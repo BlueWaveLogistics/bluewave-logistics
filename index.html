@@ -179,21 +179,58 @@ const analytics = getAnalytics(app);
   }
 
   window.track = async function () {
-    // your tracking logic
-  };
+  const input = document.getElementById("code").value;
+  const docRef = doc(db, "shipments", input);
+  const docSnap = await getDoc(docRef);
 
-  window.unlockAdmin = function () {
-    const pass = prompt("Enter admin password:");
-    if (pass === "bluewave123") {
-      document.getElementById("adminPanel").style.display = "block";
-    } else {
-      alert("Wrong password");
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+
+    // 🌍 MAP LOCATION
+    if (data.location.includes("New York")) initMap(40.7128, -74.0060);
+    else if (data.location.includes("Berlin")) initMap(52.52, 13.405);
+    else if (data.location.includes("London")) initMap(51.5074, -0.1278);
+    else initMap();
+
+    // 📜 TIMELINE
+    let historyHTML = "";
+    if (data.history) {
+      data.history.forEach(item => {
+        historyHTML += `<div class="timeline-item">${item}</div>`;
+      });
     }
-  };
-</script>
 
-<!-- ✅ Google Maps MUST be OUTSIDE -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCa5i2j2-FP3yPBICB49lDHSrFA2II_DCo"></script>
+    historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
-</body>
-</html>
+    // 🎨 STATUS COLOR
+    let statusColor = "white";
+    if (data.status === "Delivered") statusColor = "lightgreen";
+    else if (data.status === "In Transit") statusColor = "orange";
+    else if (data.status === "Pending") statusColor = "gray";
+    else if (data.status === "Out for Delivery") statusColor = "yellow";
+
+    // 📊 PROGRESS
+    let progress = 0;
+    if (data.status === "Pending") progress = 25;
+    else if (data.status === "In Transit") progress = 50;
+    else if (data.status === "Out for Delivery") progress = 75;
+    else if (data.status === "Delivered") progress = 100;
+
+    const bar = document.getElementById("progressBar");
+    bar.style.width = progress + "%";
+
+    document.getElementById("progressText").innerText =
+      "Progress: " + progress + "%";
+
+    // 📦 RESULT
+    document.getElementById("result").innerHTML =
+      `<span style="color:${statusColor}; font-weight:bold;">
+        Status: ${data.status}
+      </span><br>
+      Location: ${data.location}<br><br>` +
+      historyHTML;
+
+  } else {
+    document.getElementById("result").innerText = "Tracking code not found";
+  }
+};
