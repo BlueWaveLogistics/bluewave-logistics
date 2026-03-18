@@ -122,18 +122,41 @@
 
   // TRACK
   window.track = async function () {
-    ...
-  };
+  const input = document.getElementById("code").value;
+  const docRef = doc(db, "shipments", input);
+  const docSnap = await getDoc(docRef);
 
-  // ADD SHIPMENT
-  window.addShipment = async function () {
-    ...
-  };
+  if (docSnap.exists()) {
+    const data = docSnap.data();
 
-  // 👉 ADD HERE
-  window.setStatus = function(status) {
-    document.getElementById("newStatus").value = status;
-  };
+    let historyHTML = "";
+    if (data.history) {
+      data.history.forEach(item => {
+        historyHTML += `<div class="timeline-item">${item}</div>`;
+      });
+    }
+
+    historyHTML = `<div class="timeline">${historyHTML}</div>`;
+
+    // 👉 ADD HERE (color logic)
+    let statusColor = "white";
+
+    if (data.status === "Delivered") statusColor = "lightgreen";
+    else if (data.status === "In Transit") statusColor = "orange";
+    else if (data.status === "Pending") statusColor = "gray";
+    else if (data.status === "Out for Delivery") statusColor = "yellow";
+
+    document.getElementById("result").innerHTML =
+      `<span style="color:${statusColor}; font-weight:bold;">
+        Status: ${data.status}
+      </span><br>
+      Location: ${data.location}<br><br>` +
+      historyHTML;
+
+  } else {
+    document.getElementById("result").innerText = "Tracking code not found";
+  }
+};
 </script>
 
 </body>
