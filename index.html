@@ -16,14 +16,9 @@
 
     header {
       background: linear-gradient(90deg, #000, #111, #000);
-      box-shadow: 0 0 10px rgba(255,165,0,0.3);
       padding: 15px;
       font-size: 20px;
       font-weight: bold;
-    }
-
-    .hero {
-      padding: 40px 20px;
     }
 
     input {
@@ -36,7 +31,7 @@
     }
 
     button {
-      padding: 10px 15px;
+      padding: 10px;
       border-radius: 20px;
       background: orange;
       color: white;
@@ -55,15 +50,6 @@
       margin-right: auto;
     }
 
-    .timeline {
-      text-align: left;
-      margin-top: 10px;
-    }
-
-    .timeline-item::before {
-      content: "📍 ";
-    }
-
     #progressContainer {
       width: 80%;
       max-width: 300px;
@@ -77,15 +63,11 @@
       width: 0%;
       background: orange;
       border-radius: 20px;
-      transition: 0.5s;
     }
 
     #adminPanel {
       display: none;
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      margin: 20px;
-      border-radius: 15px;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -97,21 +79,18 @@
   <button onclick="unlockAdmin()">Admin</button>
 </header>
 
-<div class="hero">
-  <h1>Fast & Reliable Shipping</h1>
+<h2>Track Shipment</h2>
 
-  <input type="text" id="code" placeholder="Enter tracking code">
-  <br>
-  <button onclick="track()">Track</button>
+<input id="code" placeholder="Enter tracking code">
+<button onclick="track()">Track</button>
 
-  <div id="result"></div>
+<div id="result"></div>
 
-  <div id="progressContainer">
-    <div id="progressBar"></div>
-  </div>
-
-  <p id="progressText"></p>
+<div id="progressContainer">
+  <div id="progressBar"></div>
 </div>
+
+<p id="progressText"></p>
 
 <!-- ADMIN PANEL -->
 <div id="adminPanel">
@@ -130,18 +109,13 @@
 
 <script>
 
-// LOCAL DATABASE
-const shipments = {
-  "BW1234": {
-    status: "In Transit",
-    location: "New York, USA",
-    sender: "BlueWave Warehouse",
-    receiver: "John Smith",
-    weight: "5kg",
-    deliveryDate: "25 March 2026",
-    history: ["Shipment created", "In transit"]
-  }
-};
+// LOAD STORAGE OR CREATE EMPTY
+let shipments = JSON.parse(localStorage.getItem("shipments")) || {};
+
+// SAVE FUNCTION
+function saveData() {
+  localStorage.setItem("shipments", JSON.stringify(shipments));
+}
 
 // TRACK
 function track() {
@@ -149,11 +123,6 @@ function track() {
   const data = shipments[code];
 
   if (data) {
-    let historyHTML = "";
-    data.history.forEach(item => {
-      historyHTML += `<div class="timeline-item">${item}</div>`;
-    });
-
     let progress = 0;
     if (data.status === "Pending") progress = 25;
     else if (data.status === "In Transit") progress = 50;
@@ -169,8 +138,7 @@ function track() {
        <b>Sender:</b> ${data.sender}<br>
        <b>Receiver:</b> ${data.receiver}<br>
        <b>Weight:</b> ${data.weight}<br>
-       <b>Delivery Date:</b> ${data.deliveryDate}<br><br>` +
-      historyHTML;
+       <b>Delivery Date:</b> ${data.deliveryDate}`;
 
   } else {
     document.getElementById("result").innerText = "Tracking code not found";
@@ -197,11 +165,12 @@ function addShipment() {
     sender: document.getElementById("newSender").value,
     receiver: document.getElementById("newReceiver").value,
     weight: document.getElementById("newWeight").value,
-    deliveryDate: document.getElementById("newDate").value,
-    history: ["Shipment created"]
+    deliveryDate: document.getElementById("newDate").value
   };
 
-  alert("Shipment Added!");
+  saveData();
+
+  alert("Shipment saved permanently!");
 }
 
 </script>
