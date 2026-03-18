@@ -9,7 +9,7 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #111;
+      background: #0b0b0b;
       color: white;
       text-align: center;
     }
@@ -33,66 +33,62 @@
       padding: 14px;
       width: 80%;
       max-width: 320px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: none;
       margin: 10px;
-      background: #222;
+      background: #1f1f1f;
       color: white;
     }
 
     button {
-      padding: 12px 20px;
+      padding: 12px 25px;
       background: #ffcc00;
       color: black;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: bold;
       cursor: pointer;
+      transition: 0.3s;
     }
 
     button:hover {
-      opacity: 0.9;
+      transform: scale(1.05);
     }
 
     #result {
       margin: 20px auto;
       padding: 20px;
-      max-width: 350px;
-      background: #1a1a1a;
-      border-radius: 12px;
-      border-left: 6px solid #ffcc00;
-      text-align: left;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+      max-width: 360px;
+      background: #141414;
+      border-radius: 15px;
       border-left: 4px solid #ffcc00;
+      text-align: left;
+      box-shadow: 0 0 25px rgba(255,204,0,0.15);
     }
 
     .status {
-      padding: 6px 12px;
+      display: inline-block;
+      padding: 6px 14px;
       border-radius: 20px;
       font-weight: bold;
-      display: inline-block;
       margin-bottom: 10px;
     }
-
-    .pending { background: gray; }
-    .transit { background: orange; }
-    .out { background: gold; color: black; }
-    .delivered { background: green; }
 
     #progressContainer {
       width: 80%;
       max-width: 350px;
       margin: 20px auto;
-      background: #333;
+      background: #222;
       border-radius: 20px;
     }
 
     #progressBar {
       height: 12px;
       width: 0%;
-      background: #ffcc00;
+      background: linear-gradient(90deg, #ffcc00, gold);
       border-radius: 20px;
-      transition: 0.5s;
+      box-shadow: 0 0 10px #ffcc00;
+      transition: 1s;
     }
 
     .timeline {
@@ -103,6 +99,40 @@
 
     .timeline-item {
       margin-bottom: 10px;
+    }
+
+    /* LOADER */
+    #loader {
+      display: none;
+      margin-top: 15px;
+    }
+
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 4px solid #333;
+      border-top: 4px solid #ffcc00;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: auto;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* WHATSAPP BUTTON */
+    .whatsapp {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #25D366;
+      color: white;
+      padding: 15px;
+      border-radius: 50%;
+      font-size: 20px;
+      text-decoration: none;
+      box-shadow: 0 0 10px #25D366;
     }
   </style>
 </head>
@@ -120,6 +150,11 @@
 <br>
 <button onclick="track()">Track</button>
 
+<div id="loader">
+  <div class="spinner"></div>
+  <p style="color:#aaa;">Tracking shipment...</p>
+</div>
+
 <div id="result"></div>
 
 <div id="progressContainer">
@@ -130,7 +165,6 @@
 
 <script>
 
-// SAMPLE DATA
 let shipments = {
   "BW1001": {
     status: "In Transit",
@@ -147,107 +181,83 @@ let shipments = {
   }
 };
 
-// TRACK FUNCTION
 function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
 
-  if (!data) {
-    document.getElementById("result").innerHTML =
-      "<p style='color:red;'>Tracking code not found</p>";
-    document.getElementById("progressBar").style.width = "0%";
-    document.getElementById("progressText").innerText = "";
-    return;
-  }
-
-  // STATUS STYLE
-  let statusClass = "";
-  if (data.status === "Pending") statusClass = "pending";
-  else if (data.status === "In Transit") statusClass = "transit";
-  else if (data.status === "Out for Delivery") statusClass = "out";
-  else if (data.status === "Delivered") statusClass = "delivered";
-
-let statusHTML = `
-<div style="
-  display:inline-block;
-  background:${data.status === 'Delivered' ? 'green' :
-               data.status === 'In Transit' ? 'orange' :
-               data.status === 'Out for Delivery' ? 'gold' : 'gray'};
-  color:${data.status === 'Out for Delivery' ? 'black' : 'white'};
-  padding:6px 14px;
-  border-radius:20px;
-  font-weight:bold;
-  margin-bottom:12px;
-">
-  ${data.status}
-</div>
-`;
-
-  // TIMELINE
-  let historyHTML = "";
-  data.history.forEach(item => {
-    historyHTML += `<div class="timeline-item">${item}</div>`;
-  });
-  historyHTML = `<div class="timeline">${historyHTML}</div>`;
-
-  // PROGRESS
-  let progress = 0;
-  if (data.status === "Pending") progress = 25;
-  else if (data.status === "In Transit") progress = 50;
-  else if (data.status === "Out for Delivery") progress = 75;
-  else if (data.status === "Delivered") progress = 100;
-
-  const bar = document.getElementById("progressBar");
-  bar.style.width = "0%";
+  document.getElementById("loader").style.display = "block";
+  document.getElementById("result").innerHTML = "";
 
   setTimeout(() => {
-    bar.style.width = progress + "%";
-  }, 200);
 
-  document.getElementById("progressText").innerText =
-    "Progress: " + progress + "%";
+    document.getElementById("loader").style.display = "none";
 
-  // RESULT OUTPUT
-  document.getElementById("result").innerHTML =
-    statusHTML + `
-    <br>
-    📍 <b>Location:</b> ${data.location}<br>
-    📦 <b>Sender:</b> ${data.sender}<br>
-    👤 <b>Receiver:</b> ${data.receiver}<br>
-    ⚖️ <b>Weight:</b> ${data.weight}<br>
-    📅 <b>Delivery:</b> ${data.deliveryDate}<br>
-    ` + historyHTML;
+    if (!data) {
+      document.getElementById("result").innerHTML =
+        "<p style='color:red;'>Tracking code not found</p>";
+      return;
+    }
+
+    let color =
+      data.status === "Delivered" ? "green" :
+      data.status === "In Transit" ? "orange" :
+      data.status === "Out for Delivery" ? "gold" : "gray";
+
+    let statusHTML = `
+      <div class="status" style="background:${color}; color:white;">
+        ${data.status}
+      </div>
+    `;
+
+    let historyHTML = "";
+    data.history.forEach(item => {
+      historyHTML += `<div class="timeline-item">${item}</div>`;
+    });
+
+    historyHTML = `<div class="timeline">${historyHTML}</div>`;
+
+    let progress = 50;
+    if (data.status === "Pending") progress = 25;
+    else if (data.status === "Out for Delivery") progress = 75;
+    else if (data.status === "Delivered") progress = 100;
+
+    const bar = document.getElementById("progressBar");
+    bar.style.width = "0%";
+
+    setTimeout(() => {
+      bar.style.width = progress + "%";
+    }, 300);
+
+    document.getElementById("progressText").innerText =
+      "Progress: " + progress + "%";
+
+    document.getElementById("result").innerHTML =
+      statusHTML + `
+      <b>📦 Tracking ID:</b> ${code}<br><br>
+      📍 ${data.location}<br>
+      📦 ${data.sender}<br>
+      👤 ${data.receiver}<br>
+      ⚖️ ${data.weight}<br>
+      📅 ${data.deliveryDate}<br>
+      ` + historyHTML;
+
+  }, 1200);
 }
 
 </script>
 
-<!-- ✅ CONTACT SECTION -->
-<div style="
-  margin-top:50px;
-  padding:25px;
-  background:#0a0a0a;
-  border-top:2px solid #ffcc00;
-  text-align:center;
-">
-
+<!-- CONTACT -->
+<div style="margin-top:50px; padding:25px; background:#0a0a0a;">
   <h3>Customer Support</h3>
-
-  <p style="color:#aaa;">
-    For tracking issues or delivery inquiries
-  </p>
-
-  <p style="font-size:16px;">
+  <p style="color:#aaa;">For tracking issues or delivery inquiries</p>
+  <p>
     📧 <a href="mailto:support@shippingcompanyservice015@gmail.com" 
-         style="color:#ffcc00; text-decoration:none;">
-         support@shippingcompanyservice015@gmail.com
-    </a>
+    style="color:#ffcc00;">support@shippingcompanyservice015@gmail.com</a>
   </p>
-
-  <p style="color:#555; font-size:12px; margin-top:15px;">
-    © 2026 BlueWave Logistics
-  </p>
-
 </div>
+
+<!-- WHATSAPP -->
+<a class="whatsapp" href="https://wa.me/+14699600173" target="_blank">💬</a>
 
 </body>
 </html>
