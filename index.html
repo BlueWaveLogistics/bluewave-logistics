@@ -114,68 +114,26 @@
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc } 
-  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyANv_xiv_AgddM9hACDSEH8PEb8Z2JFIvU",
-    authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
-    projectId: "bluewave-logistics-c9a21",
-    storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
-    messagingSenderId: "388186247669",
-    appId: "1:388186247669:web:a28394e0e82bd499e410bc",
-    measurementId: "G-KY76SYQQV0"
-  };
+  import { initializeApp } from "...";
+  import { getFirestore, doc, getDoc, setDoc } from "...";
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // TRACK FUNCTION
+  // TRACK
   window.track = async function () {
-    const input = document.getElementById("code").value;
-    const docRef = doc(db, "shipments", input);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-
-      let historyHTML = "";
-      if (data.history) {
-        data.history.forEach(item => {
-          historyHTML += `<div class="timeline-item">${item}</div>`;
-        });
-      }
-
-      document.getElementById("result").innerHTML =
-        "Status: " + data.status + "<br>" +
-        "Location: " + data.location + "<br><br>" +
-historyHTML = `<div class="timeline">${historyHTML}</div>`;
-    } else {
-      document.getElementById("result").innerText = "Tracking code not found";
-    }
+    ...
   };
 
-  // ADD SHIPMENT FUNCTION
+  // ADD SHIPMENT
   window.addShipment = async function () {
-  const code = "BW" + Math.floor(1000 + Math.random() * 9000);
+    ...
+  };
 
-  const location = document.getElementById("newLocation").value;
-
-  await setDoc(doc(db, "shipments", code), {
-    code: code,
-    status: document.getElementById("newStatus").value,
-    location: location,
-    history: [
-      "Shipment created - " + location
-    ]
-  });
-
-  alert("Shipment added! Code: " + code);
-
-  document.getElementById("newStatus").value = "";
-  document.getElementById("newLocation").value = "";
-};
+  // 👉 ADD HERE
+  window.setStatus = function(status) {
+    document.getElementById("newStatus").value = status;
+  };
 </script>
 
 </body>
