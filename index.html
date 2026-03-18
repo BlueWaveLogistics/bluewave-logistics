@@ -9,7 +9,7 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #000;
+      background: #0a0a0a;
       color: white;
       text-align: center;
     }
@@ -17,66 +17,107 @@
     header {
       background: linear-gradient(90deg, #000, #111, #000);
       padding: 15px;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
+      box-shadow: 0 0 10px rgba(255,165,0,0.3);
     }
 
     input {
       padding: 12px;
       width: 70%;
-      max-width: 250px;
-      border-radius: 5px;
+      max-width: 260px;
+      border-radius: 8px;
       border: none;
-      margin: 5px;
+      margin: 10px;
     }
 
     button {
-      padding: 10px;
+      padding: 10px 15px;
       border-radius: 20px;
       background: orange;
       color: white;
       border: none;
       margin: 5px;
       cursor: pointer;
+      transition: 0.3s;
     }
 
-    #result {
-      margin-top: 20px;
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .card {
+      margin: 20px auto;
       padding: 20px;
-      background: rgba(255,255,255,0.05);
+      max-width: 350px;
       border-radius: 15px;
-      max-width: 300px;
-      margin-left: auto;
-      margin-right: auto;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 5px 25px rgba(0,0,0,0.5);
     }
 
-    .timeline {
-      text-align: left;
-      margin-top: 10px;
+    .status {
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 10px;
+      display: inline-block;
     }
 
-    .timeline-item::before {
-      content: "📍 ";
-    }
+    .pending { background: gray; }
+    .transit { background: orange; }
+    .out { background: gold; color: black; }
+    .delivered { background: green; }
 
     #progressContainer {
       width: 80%;
-      max-width: 300px;
+      max-width: 350px;
       margin: 20px auto;
-      background: #333;
+      background: #222;
       border-radius: 20px;
     }
 
     #progressBar {
-      height: 10px;
+      height: 12px;
       width: 0%;
-      background: orange;
+      background: linear-gradient(90deg, orange, gold);
       border-radius: 20px;
+      transition: 0.5s;
+    }
+
+    /* TIMELINE */
+    .timeline {
+      text-align: left;
+      margin-top: 20px;
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      width: 2px;
+      height: 100%;
+      background: orange;
+    }
+
+    .timeline-item {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -14px;
+      width: 10px;
+      height: 10px;
+      background: orange;
+      border-radius: 50%;
     }
 
     #adminPanel {
       display: none;
-      margin-top: 20px;
     }
   </style>
 </head>
@@ -93,7 +134,7 @@
 <input id="code" placeholder="Enter tracking code">
 <button onclick="track()">Track</button>
 
-<div id="result"></div>
+<div id="result" class="card"></div>
 
 <div id="progressContainer">
   <div id="progressBar"></div>
@@ -101,8 +142,8 @@
 
 <p id="progressText"></p>
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel">
+<!-- ADMIN -->
+<div id="adminPanel" class="card">
   <h3>Add Shipment</h3>
 
   <input id="newLocation" placeholder="Location"><br>
@@ -113,7 +154,6 @@
 
   <input id="newStatus" placeholder="Status">
 
-  <!-- STATUS BUTTONS -->
   <div>
     <button onclick="setStatus('Pending')">Pending</button>
     <button onclick="setStatus('In Transit')">Transit</button>
@@ -126,7 +166,7 @@
 
 <script>
 
-// LOAD STORAGE
+// STORAGE
 let shipments = JSON.parse(localStorage.getItem("shipments")) || {};
 let counter = JSON.parse(localStorage.getItem("counter")) || 1000;
 
@@ -135,7 +175,7 @@ function saveData() {
   localStorage.setItem("counter", JSON.stringify(counter));
 }
 
-// SET STATUS BUTTON
+// STATUS BUTTON
 function setStatus(status) {
   document.getElementById("newStatus").value = status;
 }
@@ -147,7 +187,12 @@ function track() {
 
   if (data) {
 
-    // TIMELINE
+    let statusClass = "";
+    if (data.status === "Pending") statusClass = "pending";
+    else if (data.status === "In Transit") statusClass = "transit";
+    else if (data.status === "Out for Delivery") statusClass = "out";
+    else if (data.status === "Delivered") statusClass = "delivered";
+
     let historyHTML = "";
     data.history.forEach(item => {
       historyHTML += `<div class="timeline-item">${item}</div>`;
@@ -155,7 +200,6 @@ function track() {
 
     historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
-    // PROGRESS
     let progress = 0;
     if (data.status === "Pending") progress = 25;
     else if (data.status === "In Transit") progress = 50;
@@ -163,17 +207,15 @@ function track() {
     else if (data.status === "Delivered") progress = 100;
 
     document.getElementById("progressBar").style.width = progress + "%";
-    document.getElementById("progressText").innerText =
-      "Progress: " + progress + "%";
+    document.getElementById("progressText").innerText = "Progress: " + progress + "%";
 
-    // RESULT
     document.getElementById("result").innerHTML =
-      `<b>Status:</b> ${data.status}<br>
+      `<div class="status ${statusClass}">${data.status}</div><br><br>
        <b>Location:</b> ${data.location}<br>
        <b>Sender:</b> ${data.sender}<br>
        <b>Receiver:</b> ${data.receiver}<br>
        <b>Weight:</b> ${data.weight}<br>
-       <b>Delivery Date:</b> ${data.deliveryDate}<br><br>` +
+       <b>Delivery Date:</b> ${data.deliveryDate}<br>` +
       historyHTML;
 
   } else {
@@ -181,19 +223,16 @@ function track() {
   }
 }
 
-// ADMIN LOGIN
+// ADMIN
 function unlockAdmin() {
   const pass = prompt("Enter admin password:");
   if (pass === "bluewave123") {
     document.getElementById("adminPanel").style.display = "block";
-  } else {
-    alert("Wrong password");
   }
 }
 
 // ADD SHIPMENT
 function addShipment() {
-
   counter++;
   const code = "BW" + counter;
 
@@ -201,11 +240,7 @@ function addShipment() {
   const location = document.getElementById("newLocation").value;
 
   let history = [];
-
-  if (status === "Pending") history.push("Shipment created - " + location);
-  if (status === "In Transit") history.push("In transit - " + location);
-  if (status === "Out for Delivery") history.push("Out for delivery - " + location);
-  if (status === "Delivered") history.push("Delivered - " + location);
+  history.push(status + " - " + location);
 
   shipments[code] = {
     status,
@@ -219,7 +254,7 @@ function addShipment() {
 
   saveData();
 
-  alert("Shipment created! Code: " + code);
+  alert("Shipment created: " + code);
 }
 
 </script>
