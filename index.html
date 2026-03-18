@@ -2,57 +2,123 @@
 <html>
 <head>
   <title>BlueWave Logistics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
-      font-family: Arial;
-      text-align: center;
+      margin: 0;
+      font-family: Arial, sans-serif;
       background: #0b1f3a;
       color: white;
-      padding: 20px;
+      text-align: center;
     }
+
+    header {
+      background: #08172b;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .hero {
+      padding: 40px 20px;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      color: #ccc;
+    }
+
+    .tracking-box {
+      margin-top: 30px;
+    }
+
     input {
-      padding: 10px;
-      width: 200px;
+      padding: 12px;
+      width: 70%;
+      max-width: 250px;
+      border: none;
+      border-radius: 5px;
     }
+
     button {
-      padding: 10px;
+      padding: 12px 20px;
       background: orange;
       border: none;
       color: white;
+      border-radius: 5px;
+      margin-left: 5px;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    .services {
+      margin-top: 40px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #122b4a;
+      margin: 10px auto;
+      padding: 15px;
+      border-radius: 8px;
+      max-width: 300px;
     }
   </style>
 </head>
+
 <body>
 
-  <h1>BlueWave Logistics 🚚</h1>
-  <p>Fast & Reliable Shipping Services</p>
+<header>
+  BlueWave Logistics 🚚
+</header>
 
-  <h2>Track Your Package</h2>
+<div class="hero">
+  <h1>Fast & Reliable Shipping</h1>
+  <p>Delivering packages across Nigeria and beyond</p>
 
-  <input type="text" id="code" placeholder="Enter tracking code">
-  <button onclick="track()">Track</button>
+  <div class="tracking-box">
+    <input type="text" id="code" placeholder="Enter tracking code">
+    <button onclick="track()">Track</button>
+  </div>
 
   <p id="result"></p>
+</div>
 
-  <script>
-    const shipments = [
-      {code: "BW123", status: "In Transit", location: "Lagos"},
-      {code: "BW456", status: "Delivered", location: "Abuja"}
-    ];
+<div class="services">
+  <h2>Our Services</h2>
 
-    function track() {
-      const input = document.getElementById("code").value;
-      const result = shipments.find(s => s.code === input);
+  <div class="card">🚚 Local Delivery</div>
+  <div class="card">✈️ International Shipping</div>
+  <div class="card">📦 Cargo Handling</div>
+</div>
 
-      if (result) {
-        document.getElementById("result").innerText =
-          "Status: " + result.status + " | Location: " + result.location;
-      } else {
-        document.getElementById("result").innerText =
-          "Tracking code not found";
-      }
+<script>
+  const shipments = [
+    {code: "BW123", status: "In Transit", location: "Lagos"},
+    {code: "BW456", status: "Delivered", location: "Abuja"}
+  ];
+
+  function track() {
+    const input = document.getElementById("code").value;
+    const result = shipments.find(s => s.code === input);
+
+    if (result) {
+      document.getElementById("result").innerText =
+        "Status: " + result.status + " | Location: " + result.location;
+    } else {
+      document.getElementById("result").innerText =
+        "Tracking code not found";
     }
-  </script>
+  }
+</script>
 
 </body>
 </html>
