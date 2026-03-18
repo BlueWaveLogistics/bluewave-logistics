@@ -109,19 +109,24 @@ input {
 </div>
 
 
- <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
+import { getFirestore, doc, getDoc, setDoc } 
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 const firebaseConfig = { /* keep your config */ };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.track = async function () {
-  const input = document.getElementById("code").value;
-  const docRef = doc(db, "shipments", input);
-  const docSnap = await getDoc(docRef);
+window.addShipment = async function () {
+  const code = document.getElementById("newCode").value;
+
+  await setDoc(doc(db, "shipments", code), {
+    code: code,
+    status: document.getElementById("newStatus").value,
+    location: document.getElementById("newLocation").value
+  });
+
+  alert("Shipment added!");
+};
 
   if (docSnap.exists()) {
     const data = docSnap.data();
