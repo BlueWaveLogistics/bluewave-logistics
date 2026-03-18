@@ -2,6 +2,9 @@
 <html>
 
 <head>
+  <title>BlueWave Logistics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       margin: 0;
@@ -102,13 +105,8 @@
     }
   </style>
 </head>
- 
-  </style>
-</head>
 
 <body>
-
-
 
 <header>
   BlueWave Logistics 🚚
@@ -155,7 +153,6 @@
   <div class="card">✈️ International Shipping</div>
 </div>
 
-</body>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -197,21 +194,21 @@
       else if (data.status === "In Transit") statusColor = "orange";
       else if (data.status === "Pending") statusColor = "gray";
       else if (data.status === "Out for Delivery") statusColor = "yellow";
+
       let progress = 0;
+      if (data.status === "Pending") progress = 25;
+      else if (data.status === "In Transit") progress = 50;
+      else if (data.status === "Out for Delivery") progress = 75;
+      else if (data.status === "Delivered") progress = 100;
 
-if (data.status === "Pending") progress = 25;
-else if (data.status === "In Transit") progress = 50;
-else if (data.status === "Out for Delivery") progress = 75;
-else if (data.status === "Delivered") progress = 100;
+      const bar = document.getElementById("progressBar");
+      bar.style.width = progress + "%";
 
-const bar = document.getElementById("progressBar");
+      if (progress === 100) bar.style.background = "green";
+      else if (progress >= 50) bar.style.background = "orange";
+      else bar.style.background = "gray";
 
-bar.style.width = progress + "%";
-
-if (progress === 100) bar.style.background = "green";
-else if (progress >= 50) bar.style.background = "orange";
-else bar.style.background = "gray";
-document.getElementById("progressText").innerText = "Progress: " + progress + "%";
+      document.getElementById("progressText").innerText = "Progress: " + progress + "%";
 
       document.getElementById("result").innerHTML =
         `<span style="color:${statusColor}; font-weight:bold;">
@@ -245,17 +242,18 @@ document.getElementById("progressText").innerText = "Progress: " + progress + "%
 
     alert("Shipment added! Code: " + code);
   };
-  
-  window.unlockAdmin = function () {
-  const pass = prompt("Enter admin password:");
 
-  if (pass === "bluewave123") {
-    document.getElementById("adminPanel").style.display = "block";
-    alert("Admin unlocked");
-  } else {
-    alert("Wrong password");
-  }
-};
+  // ADMIN LOGIN
+  window.unlockAdmin = function () {
+    const pass = prompt("Enter admin password:");
+
+    if (pass === "bluewave123") {
+      document.getElementById("adminPanel").style.display = "block";
+      alert("Admin unlocked");
+    } else {
+      alert("Wrong password");
+    }
+  };
 </script>
 
 </body>
