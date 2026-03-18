@@ -6,16 +6,12 @@
 
   <style>
     body {
-      #result {
-  margin-top: 20px;
-  padding: 15px;
-  background: #122b4a;
-  border-radius: 10px;
-}
-
-input {
-  margin: 5px;
-}
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b1f3a;
+      color: white;
+      text-align: center;
+    }
 
     header {
       background: #08172b;
@@ -28,25 +24,13 @@ input {
       padding: 40px 20px;
     }
 
-    .hero h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
-
-    .hero p {
-      color: #ccc;
-    }
-
-    .tracking-box {
-      margin-top: 30px;
-    }
-
     input {
       padding: 12px;
+      margin: 5px;
       width: 70%;
       max-width: 250px;
-      border: none;
       border-radius: 5px;
+      border: none;
     }
 
     button {
@@ -55,17 +39,13 @@ input {
       border: none;
       color: white;
       border-radius: 5px;
-      margin-left: 5px;
     }
 
     #result {
       margin-top: 20px;
-      font-weight: bold;
-    }
-
-    .services {
-      margin-top: 40px;
-      padding: 20px;
+      padding: 15px;
+      background: #122b4a;
+      border-radius: 10px;
     }
 
     .card {
@@ -80,114 +60,86 @@ input {
 
 <body>
 
-<header>
-  BlueWave Logistics 🚚
-</header>
+<header>BlueWave Logistics 🚚</header>
 
 <div class="hero">
   <h1>Fast & Reliable Shipping</h1>
-  <p>Delivering packages across the world</p>
 
-  <div class="tracking-box">
+  <div>
     <input type="text" id="code" placeholder="Enter tracking code">
     <button onclick="track()">Track</button>
   </div>
-<h3>Add Shipment</h3>
-<input id="newCode" placeholder="Code">
-<input id="newStatus" placeholder="Status">
-<input id="newLocation" placeholder="Location">
-<button onclick="addShipment()">Add</button>
+
+  <h3>Add Shipment</h3>
+  <input id="newCode" placeholder="Code">
+  <input id="newStatus" placeholder="Status">
+  <input id="newLocation" placeholder="Location">
+  <button onclick="addShipment()">Add</button>
+
   <p id="result"></p>
 </div>
 
-<div class="services">
-  <h2>Our Services</h2>
-
+<div>
   <div class="card">🚚 Local Delivery</div>
   <div class="card">✈️ International Shipping</div>
-  <div class="card">📦 Cargo Handling</div>
 </div>
 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } 
+  from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-import { getFirestore, doc, getDoc, setDoc } 
-from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-const firebaseConfig = { /* keep your config */ };
+  const firebaseConfig = {
+    apiKey: "AIzaSyANv_xiv_AgddM9hACDSEH8PEb8Z2JFIvU",
+    authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
+    projectId: "bluewave-logistics-c9a21",
+    storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
+    messagingSenderId: "388186247669",
+    appId: "1:388186247669:web:a28394e0e82bd499e410bc",
+    measurementId: "G-KY76SYQQV0"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-window.addShipment = async function () {
-  const code = document.getElementById("newCode").value;
+  // TRACK FUNCTION
+  window.track = async function () {
+    const input = document.getElementById("code").value;
+    const docRef = doc(db, "shipments", input);
+    const docSnap = await getDoc(docRef);
 
-  await setDoc(doc(db, "shipments", code), {
-    code: code,
-    status: document.getElementById("newStatus").value,
-    location: document.getElementById("newLocation").value
-  });
+    if (docSnap.exists()) {
+      const data = docSnap.data();
 
-  alert("Shipment added!");
-};
+      let historyHTML = "";
+      if (data.history) {
+        data.history.forEach(item => {
+          historyHTML += "📍 " + item + "<br>";
+        });
+      }
 
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-
-    let historyHTML = "";
-    if (data.history) {
-      data.history.forEach(item => {
-        historyHTML += "📍 " + item + "<br>";
-      });
+      document.getElementById("result").innerHTML =
+        "Status: " + data.status + "<br>" +
+        "Location: " + data.location + "<br><br>" +
+        historyHTML;
+    } else {
+      document.getElementById("result").innerText = "Tracking code not found";
     }
+  };
 
-    document.getElementById("result").innerHTML =
-      "Status: " + data.status + "<br>" +
-      "Location: " + data.location + "<br><br>" +
-      historyHTML;
+  // ADD SHIPMENT FUNCTION
+  window.addShipment = async function () {
+    const code = document.getElementById("newCode").value;
 
-  } else {
-    document.getElementById("result").innerText =
-      "Tracking code not found";
-  }
-};
+    await setDoc(doc(db, "shipments", code), {
+      code: code,
+      status: document.getElementById("newStatus").value,
+      location: document.getElementById("newLocation").value
+    });
+
+    alert("Shipment added!");
+  };
 </script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSy...",
-  authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
-  projectId: "bluewave-logistics-c9a21",
-  storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
-  messagingSenderId: "388186247669",
-  appId: "1:388186247669:web:a28394e0e82bd499e410bc",
-  measurementId: "G-KY76SYQQV0"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.track = async function () {
-  const input = document.getElementById("code").value;
-  const docRef = doc(db, "shipments", input);
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-
-    let historyHTML = "";
-    if (data.history) {
-      data.history.forEach(item => {
-        historyHTML += "📍 " + item + "<br>";
-      });
-    }
-
-    document.getElementById("result").innerHTML =
-      "Status: " + data.status + "<br>" +
-      "Location: " + data.location + "<br><br>" +
-      historyHTML;
-
-  } else {
-    document.getElementById("result").innerText =
-      "Tracking code not found";
-  }
-};
-</script>
 </body>
 </html>
