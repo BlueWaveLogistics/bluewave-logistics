@@ -5,38 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-  .timeline {
-  text-align: left;
-  max-width: 300px;
-  margin: 20px auto;
-  position: relative;
-}
-
-.timeline::before {
-  content: "";
-  position: absolute;
-  left: 10px;
-  width: 2px;
-  height: 100%;
-  background: orange;
-}
-
-.timeline-item {
-  margin-left: 30px;
-  margin-bottom: 15px;
-  position: relative;
-}
-
-.timeline-item::before {
-  content: "";
-  position: absolute;
-  left: -22px;
-  top: 5px;
-  width: 12px;
-  height: 12px;
-  background: orange;
-  border-radius: 50%;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b1f3a;
+      color: white;
+      text-align: center;
+    }
 
     header {
       background: #08172b;
@@ -50,24 +25,70 @@
     }
 
     input {
-     input {
-  background: white;
-  color: black;
-}
+      padding: 12px;
+      margin: 5px;
+      width: 70%;
+      max-width: 250px;
+      border-radius: 5px;
+      border: none;
+      background: white;
+      color: black;
+    }
 
     button {
-  transition: 0.3s;
-}
+      padding: 10px 15px;
+      background: orange;
+      border: none;
+      color: white;
+      border-radius: 20px;
+      margin: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
 
-button:hover {
-  background: #ff9900;
-  transform: scale(1.05);
-}
+    button:hover {
+      background: #ff9900;
+      transform: scale(1.05);
+    }
+
     #result {
       margin-top: 20px;
       padding: 15px;
       background: #122b4a;
       border-radius: 10px;
+    }
+
+    .timeline {
+      text-align: left;
+      max-width: 300px;
+      margin: 20px auto;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      width: 2px;
+      height: 100%;
+      background: orange;
+    }
+
+    .timeline-item {
+      margin-left: 30px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -22px;
+      top: 5px;
+      width: 12px;
+      height: 12px;
+      background: orange;
+      border-radius: 50%;
     }
 
     .card {
@@ -81,13 +102,7 @@ button:hover {
 </head>
 
 <body>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0b1f3a;
-  color: white;
-  text-align: center;
-}
+
 <header>BlueWave Logistics 🚚</header>
 
 <div class="hero">
@@ -99,12 +114,17 @@ body {
   </div>
 
   <h3>Add Shipment</h3>
-  <input id="newCode" placeholder="Code">
+
   <input id="newStatus" placeholder="Status">
+
+  <!-- STATUS BUTTONS -->
+  <div>
     <button onclick="setStatus('Pending')">Pending</button>
-<button onclick="setStatus('In Transit')">In Transit</button>
-<button onclick="setStatus('Out for Delivery')">Out</button>
-<button onclick="setStatus('Delivered')">Delivered</button>
+    <button onclick="setStatus('In Transit')">In Transit</button>
+    <button onclick="setStatus('Out for Delivery')">Out</button>
+    <button onclick="setStatus('Delivered')">Delivered</button>
+  </div>
+
   <input id="newLocation" placeholder="Location">
   <button onclick="addShipment()">Add</button>
 
@@ -117,49 +137,79 @@ body {
 </div>
 
 <script type="module">
-  import { initializeApp } from "...";
-  import { getFirestore, doc, getDoc, setDoc } from "...";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyANv_xiv_AgddM9hACDSEH8PEb8Z2JFIvU",
+    authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
+    projectId: "bluewave-logistics-c9a21",
+    storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
+    messagingSenderId: "388186247669",
+    appId: "1:388186247669:web:a28394e0e82bd499e410bc",
+    measurementId: "G-KY76SYQQV0"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
   // TRACK
   window.track = async function () {
-  const input = document.getElementById("code").value;
-  const docRef = doc(db, "shipments", input);
-  const docSnap = await getDoc(docRef);
+    const input = document.getElementById("code").value;
+    const docRef = doc(db, "shipments", input);
+    const docSnap = await getDoc(docRef);
 
-  if (docSnap.exists()) {
-    const data = docSnap.data();
+    if (docSnap.exists()) {
+      const data = docSnap.data();
 
-    let historyHTML = "";
-    if (data.history) {
-      data.history.forEach(item => {
-        historyHTML += `<div class="timeline-item">${item}</div>`;
-      });
+      let historyHTML = "";
+      if (data.history) {
+        data.history.forEach(item => {
+          historyHTML += `<div class="timeline-item">${item}</div>`;
+        });
+      }
+
+      historyHTML = `<div class="timeline">${historyHTML}</div>`;
+
+      let statusColor = "white";
+
+      if (data.status === "Delivered") statusColor = "lightgreen";
+      else if (data.status === "In Transit") statusColor = "orange";
+      else if (data.status === "Pending") statusColor = "gray";
+      else if (data.status === "Out for Delivery") statusColor = "yellow";
+
+      document.getElementById("result").innerHTML =
+        `<span style="color:${statusColor}; font-weight:bold;">
+          Status: ${data.status}
+        </span><br>
+        Location: ${data.location}<br><br>` +
+        historyHTML;
+
+    } else {
+      document.getElementById("result").innerText = "Tracking code not found";
     }
+  };
 
-    historyHTML = `<div class="timeline">${historyHTML}</div>`;
+  // SET STATUS BUTTON
+  window.setStatus = function(status) {
+    document.getElementById("newStatus").value = status;
+  };
 
-    // 👉 ADD HERE (color logic)
-    let statusColor = "white";
+  // ADD SHIPMENT
+  window.addShipment = async function () {
+    const code = "BW" + Math.floor(1000 + Math.random() * 9000);
 
-    if (data.status === "Delivered") statusColor = "lightgreen";
-    else if (data.status === "In Transit") statusColor = "orange";
-    else if (data.status === "Pending") statusColor = "gray";
-    else if (data.status === "Out for Delivery") statusColor = "yellow";
+    await setDoc(doc(db, "shipments", code), {
+      code: code,
+      status: document.getElementById("newStatus").value,
+      location: document.getElementById("newLocation").value,
+      history: [
+        "Shipment created"
+      ]
+    });
 
-    document.getElementById("result").innerHTML =
-      `<span style="color:${statusColor}; font-weight:bold;">
-        Status: ${data.status}
-      </span><br>
-      Location: ${data.location}<br><br>` +
-      historyHTML;
-
-  } else {
-    document.getElementById("result").innerText = "Tracking code not found";
-  }
-};
+    alert("Shipment added! Code: " + code);
+  };
 </script>
 
 </body>
