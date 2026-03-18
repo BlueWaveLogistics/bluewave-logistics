@@ -195,32 +195,54 @@ function track() {
 
   if (data) {
 
+    // ✅ STATUS BADGE
     let statusHTML = `
-<div style="
-  background:${data.status === 'Delivered' ? 'green' :
-               data.status === 'In Transit' ? 'orange' :
-               data.status === 'Out for Delivery' ? 'gold' : 'gray'};
-  color:${data.status === 'Out for Delivery' ? 'black' : 'white'};
-  padding:8px 16px;
-  border-radius:20px;
-  display:inline-block;
-  font-weight:bold;
-  margin-bottom:10px;
-">
-document.getElementById("result").innerHTML =
-  statusHTML + `
-  <br>
-  <b>Location:</b> ${data.location}<br>
-  <b>Sender:</b> ${data.sender}<br>
-  <b>Receiver:</b> ${data.receiver}<br>
-  <b>Weight:</b> ${data.weight}<br>
-  <b>Delivery Date:</b> ${data.deliveryDate}<br><br>
-  ` + historyHTML;
-// ADMIN
-function unlockAdmin() {
-  const pass = prompt("Enter admin password:");
-  if (pass === "bluewave123") {
-    document.getElementById("adminPanel").style.display = "block";
+    <div style="
+      background:${data.status === 'Delivered' ? 'green' :
+                   data.status === 'In Transit' ? 'orange' :
+                   data.status === 'Out for Delivery' ? 'gold' : 'gray'};
+      color:${data.status === 'Out for Delivery' ? 'black' : 'white'};
+      padding:8px 16px;
+      border-radius:20px;
+      display:inline-block;
+      font-weight:bold;
+      margin-bottom:10px;
+    ">
+      ${data.status}
+    </div>`;
+
+    // ✅ TIMELINE
+    let historyHTML = "";
+    data.history.forEach(item => {
+      historyHTML += `<div class="timeline-item">${item}</div>`;
+    });
+
+    historyHTML = `<div class="timeline">${historyHTML}</div>`;
+
+    // ✅ PROGRESS
+    let progress = 0;
+    if (data.status === "Pending") progress = 25;
+    else if (data.status === "In Transit") progress = 50;
+    else if (data.status === "Out for Delivery") progress = 75;
+    else if (data.status === "Delivered") progress = 100;
+
+    document.getElementById("progressBar").style.width = progress + "%";
+    document.getElementById("progressText").innerText =
+      "Progress: " + progress + "%";
+
+    // ✅ RESULT OUTPUT
+    document.getElementById("result").innerHTML =
+      statusHTML + `
+      <br>
+      <b>Location:</b> ${data.location}<br>
+      <b>Sender:</b> ${data.sender}<br>
+      <b>Receiver:</b> ${data.receiver}<br>
+      <b>Weight:</b> ${data.weight}<br>
+      <b>Delivery Date:</b> ${data.deliveryDate}<br><br>
+      ` + historyHTML;
+
+  } else {
+    document.getElementById("result").innerText = "Tracking code not found";
   }
 }
 
