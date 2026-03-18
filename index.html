@@ -102,37 +102,39 @@
 
 
  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyANv_xiv_AgddM9hACDSEH8PEb8Z2JFIvU",
-    authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
-    projectId: "bluewave-logistics-c9a21",
-    storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
-    messagingSenderId: "388186247669",
-    appId: "1:388186247669:web:a28394e0e82bd499e410bc",
-    measurementId: "G-KY76SYQQV0"
-  };
+const firebaseConfig = { /* keep your config */ };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  window.track = async function () {
-    const input = document.getElementById("code").value;
+window.track = async function () {
+  const input = document.getElementById("code").value;
+  const docRef = doc(db, "shipments", input);
+  const docSnap = await getDoc(docRef);
 
-    const docRef = doc(db, "shipments", input);
-    const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    const data = docSnap.data();
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      document.getElementById("result").innerText =
-        "Status: " + data.status + " | Location: " + data.location;
-    } else {
-      document.getElementById("result").innerText =
-        "Tracking code not found";
+    let historyHTML = "";
+    if (data.history) {
+      data.history.forEach(item => {
+        historyHTML += "📍 " + item + "<br>";
+      });
     }
-  };
+
+    document.getElementById("result").innerHTML =
+      "Status: " + data.status + "<br>" +
+      "Location: " + data.location + "<br><br>" +
+      historyHTML;
+
+  } else {
+    document.getElementById("result").innerText =
+      "Tracking code not found";
+  }
+};
 </script>
 </body>
 </html>
