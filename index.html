@@ -246,21 +246,27 @@ else initMap(); // default
   };
 
   // ADD SHIPMENT
-  window.addShipment = async function () {
-    const code = "BW" + Math.floor(1000 + Math.random() * 9000);
+window.addShipment = async function () {
+  const code = "BW" + Math.floor(1000 + Math.random() * 9000);
+  const status = document.getElementById("newStatus").value;
+  const location = document.getElementById("newLocation").value;
 
-    await setDoc(doc(db, "shipments", code), {
-      code: code,
-      status: document.getElementById("newStatus").value,
-      location: document.getElementById("newLocation").value,
-      history: [
-        "Shipment created"
-      ]
-    });
+  let history = [];
 
-    alert("Shipment added! Code: " + code);
-  };
+  if (status === "Pending") history.push("Shipment created - " + location);
+  if (status === "In Transit") history.push("In transit - " + location);
+  if (status === "Out for Delivery") history.push("Out for delivery - " + location);
+  if (status === "Delivered") history.push("Delivered - " + location);
 
+  await setDoc(doc(db, "shipments", code), {
+    code,
+    status,
+    location,
+    history
+  });
+
+  alert("Shipment added! Code: " + code);
+};
   // ADMIN LOGIN
   window.unlockAdmin = function () {
     const pass = prompt("Enter admin password:");
@@ -272,7 +278,7 @@ else initMap(); // default
       alert("Wrong password");
     }
   };
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDq9q680aigFQ2Urqy1yAheE19TS99xdIs"></script>
 
 </body>
 </html>
