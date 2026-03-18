@@ -221,40 +221,36 @@ button:hover {
 <div class="hero">
   <h1>Fast & Reliable Shipping</h1>
 
-  <div>
-   <input type="text" id="code">
-<button onclick="track()">Track</button>
+  <!-- TRACK -->
+  <input type="text" id="code" placeholder="Enter tracking code">
+  <button onclick="track()">Track</button>
 
-<div id="result"></div>
+  <!-- RESULT -->
+  <div id="result"></div>
 
-<div id="progressContainer">
-  <div id="progressBar"></div>
-</div>
-
-<p id="progressText"></p>
-
-  <div id="adminPanel">
-  <h3>Add Shipment</h3>
-
-  <input id="newStatus" placeholder="Status">
-
-  <div>
-    <button onclick="setStatus('Pending')">Pending</button>
-    <button onclick="setStatus('In Transit')">In Transit</button>
-    <button onclick="setStatus('Out for Delivery')">Out</button>
-    <button onclick="setStatus('Delivered')">Delivered</button>
+  <!-- PROGRESS -->
+  <div id="progressContainer" style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
+    <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
   </div>
 
-  <input id="newLocation" placeholder="Location">
-  <button onclick="addShipment()">Add</button>
-  <button onclick="unlockAdmin()">Admin</button>
-<div id="result"></div>
+  <p id="progressText"></p>
 
-<div id="progressContainer" style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
-  <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
-</div>
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel">
+    <h3>Add Shipment</h3>
 
-<p id="progressText"></p>
+    <input id="newStatus" placeholder="Status">
+
+    <div>
+      <button onclick="setStatus('Pending')">Pending</button>
+      <button onclick="setStatus('In Transit')">In Transit</button>
+      <button onclick="setStatus('Out for Delivery')">Out</button>
+      <button onclick="setStatus('Delivered')">Delivered</button>
+    </div>
+
+    <input id="newLocation" placeholder="Location">
+    <button onclick="addShipment()">Add</button>
+  </div>
 </div>
 
 <div>
