@@ -50,6 +50,15 @@
       margin-right: auto;
     }
 
+    .timeline {
+      text-align: left;
+      margin-top: 10px;
+    }
+
+    .timeline-item::before {
+      content: "📍 ";
+    }
+
     #progressContainer {
       width: 80%;
       max-width: 300px;
@@ -96,25 +105,39 @@
 <div id="adminPanel">
   <h3>Add Shipment</h3>
 
-  <input id="newCode" placeholder="Tracking Code"><br>
-  <input id="newStatus" placeholder="Status"><br>
   <input id="newLocation" placeholder="Location"><br>
   <input id="newSender" placeholder="Sender"><br>
   <input id="newReceiver" placeholder="Receiver"><br>
   <input id="newWeight" placeholder="Weight"><br>
   <input id="newDate" placeholder="Delivery Date"><br>
 
+  <input id="newStatus" placeholder="Status">
+
+  <!-- STATUS BUTTONS -->
+  <div>
+    <button onclick="setStatus('Pending')">Pending</button>
+    <button onclick="setStatus('In Transit')">Transit</button>
+    <button onclick="setStatus('Out for Delivery')">Out</button>
+    <button onclick="setStatus('Delivered')">Delivered</button>
+  </div>
+
   <button onclick="addShipment()">Add Shipment</button>
 </div>
 
 <script>
 
-// LOAD STORAGE OR CREATE EMPTY
+// LOAD STORAGE
 let shipments = JSON.parse(localStorage.getItem("shipments")) || {};
+let counter = JSON.parse(localStorage.getItem("counter")) || 1000;
 
-// SAVE FUNCTION
 function saveData() {
   localStorage.setItem("shipments", JSON.stringify(shipments));
+  localStorage.setItem("counter", JSON.stringify(counter));
+}
+
+// SET STATUS BUTTON
+function setStatus(status) {
+  document.getElementById("newStatus").value = status;
 }
 
 // TRACK
@@ -123,6 +146,16 @@ function track() {
   const data = shipments[code];
 
   if (data) {
+
+    // TIMELINE
+    let historyHTML = "";
+    data.history.forEach(item => {
+      historyHTML += `<div class="timeline-item">${item}</div>`;
+    });
+
+    historyHTML = `<div class="timeline">${historyHTML}</div>`;
+
+    // PROGRESS
     let progress = 0;
     if (data.status === "Pending") progress = 25;
     else if (data.status === "In Transit") progress = 50;
@@ -130,15 +163,18 @@ function track() {
     else if (data.status === "Delivered") progress = 100;
 
     document.getElementById("progressBar").style.width = progress + "%";
-    document.getElementById("progressText").innerText = "Progress: " + progress + "%";
+    document.getElementById("progressText").innerText =
+      "Progress: " + progress + "%";
 
+    // RESULT
     document.getElementById("result").innerHTML =
       `<b>Status:</b> ${data.status}<br>
        <b>Location:</b> ${data.location}<br>
        <b>Sender:</b> ${data.sender}<br>
        <b>Receiver:</b> ${data.receiver}<br>
        <b>Weight:</b> ${data.weight}<br>
-       <b>Delivery Date:</b> ${data.deliveryDate}`;
+       <b>Delivery Date:</b> ${data.deliveryDate}<br><br>` +
+      historyHTML;
 
   } else {
     document.getElementById("result").innerText = "Tracking code not found";
@@ -157,20 +193,33 @@ function unlockAdmin() {
 
 // ADD SHIPMENT
 function addShipment() {
-  const code = document.getElementById("newCode").value;
+
+  counter++;
+  const code = "BW" + counter;
+
+  const status = document.getElementById("newStatus").value;
+  const location = document.getElementById("newLocation").value;
+
+  let history = [];
+
+  if (status === "Pending") history.push("Shipment created - " + location);
+  if (status === "In Transit") history.push("In transit - " + location);
+  if (status === "Out for Delivery") history.push("Out for delivery - " + location);
+  if (status === "Delivered") history.push("Delivered - " + location);
 
   shipments[code] = {
-    status: document.getElementById("newStatus").value,
-    location: document.getElementById("newLocation").value,
+    status,
+    location,
     sender: document.getElementById("newSender").value,
     receiver: document.getElementById("newReceiver").value,
     weight: document.getElementById("newWeight").value,
-    deliveryDate: document.getElementById("newDate").value
+    deliveryDate: document.getElementById("newDate").value,
+    history
   };
 
   saveData();
 
-  alert("Shipment saved permanently!");
+  alert("Shipment created! Code: " + code);
 }
 
 </script>
