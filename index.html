@@ -1,4 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>BlueWave Logistics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: white;
+      text-align: center;
+    }
+
+    header {
+      background: linear-gradient(90deg, #000, #111, #000);
+      box-shadow: 0 0 10px rgba(255,165,0,0.3);
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .hero {
+      padding: 40px 20px;
+    }
+
+    input {
+      padding: 12px;
+      width: 70%;
+      max-width: 250px;
+      border-radius: 5px;
+      border: none;
+      margin: 5px;
+    }
+
+    button {
+      padding: 10px 15px;
+      border-radius: 20px;
+      background: orange;
+      color: white;
+      border: none;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .timeline {
+      text-align: left;
+      margin-top: 10px;
+    }
+
+    .timeline-item::before {
+      content: "📍 ";
+    }
+
+    #progressContainer {
+      width: 80%;
+      max-width: 300px;
+      margin: 20px auto;
+      background: #333;
+      border-radius: 20px;
+    }
+
+    #progressBar {
+      height: 10px;
+      width: 0%;
+      background: orange;
+      border-radius: 20px;
+      transition: 0.5s;
+    }
+
+    #adminPanel {
+      display: none;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      margin: 20px;
+      border-radius: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  BlueWave Logistics 🚚
+  <button onclick="unlockAdmin()">Admin</button>
+</header>
+
+<div class="hero">
+  <h1>Fast & Reliable Shipping</h1>
+
+  <input type="text" id="code" placeholder="Enter tracking code">
+  <br>
+  <button onclick="track()">Track</button>
+
+  <div id="result"></div>
+
+  <div id="progressContainer">
+    <div id="progressBar"></div>
+  </div>
+
+  <p id="progressText"></p>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel">
+  <h3>Add Shipment</h3>
+
+  <input id="newCode" placeholder="Tracking Code"><br>
+  <input id="newStatus" placeholder="Status"><br>
+  <input id="newLocation" placeholder="Location"><br>
+  <input id="newSender" placeholder="Sender"><br>
+  <input id="newReceiver" placeholder="Receiver"><br>
+  <input id="newWeight" placeholder="Weight"><br>
+  <input id="newDate" placeholder="Delivery Date"><br>
+
+  <button onclick="addShipment()">Add Shipment</button>
+</div>
+
 <script>
+
+// LOCAL DATABASE
 const shipments = {
   "BW1234": {
     status: "In Transit",
@@ -7,44 +139,21 @@ const shipments = {
     receiver: "John Smith",
     weight: "5kg",
     deliveryDate: "25 March 2026",
-    history: [
-      "Shipment created - Lagos",
-      "Picked up by BlueWave Logistics",
-      "Arrived at sorting facility"
-    ]
-  },
-
-  "BW5678": {
-    status: "Delivered",
-    location: "London, UK",
-    sender: "BlueWave Warehouse",
-    receiver: "Jane Doe",
-    weight: "2kg",
-    deliveryDate: "20 March 2026",
-    history: [
-      "Shipment created",
-      "In transit",
-      "Out for delivery",
-      "Delivered"
-    ]
+    history: ["Shipment created", "In transit"]
   }
 };
 
+// TRACK
 function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
 
   if (data) {
-
-    // TIMELINE
     let historyHTML = "";
     data.history.forEach(item => {
       historyHTML += `<div class="timeline-item">${item}</div>`;
     });
 
-    historyHTML = `<div class="timeline">${historyHTML}</div>`;
-
-    // PROGRESS
     let progress = 0;
     if (data.status === "Pending") progress = 25;
     else if (data.status === "In Transit") progress = 50;
@@ -52,10 +161,8 @@ function track() {
     else if (data.status === "Delivered") progress = 100;
 
     document.getElementById("progressBar").style.width = progress + "%";
-    document.getElementById("progressText").innerText =
-      "Progress: " + progress + "%";
+    document.getElementById("progressText").innerText = "Progress: " + progress + "%";
 
-    // RESULT
     document.getElementById("result").innerHTML =
       `<b>Status:</b> ${data.status}<br>
        <b>Location:</b> ${data.location}<br>
@@ -69,4 +176,35 @@ function track() {
     document.getElementById("result").innerText = "Tracking code not found";
   }
 }
+
+// ADMIN LOGIN
+function unlockAdmin() {
+  const pass = prompt("Enter admin password:");
+  if (pass === "bluewave123") {
+    document.getElementById("adminPanel").style.display = "block";
+  } else {
+    alert("Wrong password");
+  }
+}
+
+// ADD SHIPMENT
+function addShipment() {
+  const code = document.getElementById("newCode").value;
+
+  shipments[code] = {
+    status: document.getElementById("newStatus").value,
+    location: document.getElementById("newLocation").value,
+    sender: document.getElementById("newSender").value,
+    receiver: document.getElementById("newReceiver").value,
+    weight: document.getElementById("newWeight").value,
+    deliveryDate: document.getElementById("newDate").value,
+    history: ["Shipment created"]
+  };
+
+  alert("Shipment Added!");
+}
+
 </script>
+
+</body>
+</html>
