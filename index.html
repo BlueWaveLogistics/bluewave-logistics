@@ -5,121 +5,110 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0a0a0a;
-      color: white;
-      text-align: center;
-    }
+ <style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: white;
+    text-align: center;
+  }
 
-    header {
-      background: linear-gradient(90deg, #000, #111, #000);
-      padding: 15px;
-      font-size: 22px;
-      font-weight: bold;
-      box-shadow: 0 0 10px rgba(255,165,0,0.3);
-    }
+  header {
+    background: #ffcc00;
+    color: black;
+    padding: 15px;
+    font-size: 22px;
+    font-weight: bold;
+  }
 
-    input {
-      padding: 12px;
-      width: 70%;
-      max-width: 260px;
-      border-radius: 8px;
-      border: none;
-      margin: 10px;
-    }
+  h2 {
+    margin-top: 30px;
+  }
 
-    button {
-      padding: 10px 15px;
-      border-radius: 20px;
-      background: orange;
-      color: white;
-      border: none;
-      margin: 5px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+  input {
+    padding: 12px;
+    width: 70%;
+    max-width: 300px;
+    border-radius: 5px;
+    border: none;
+    margin: 10px;
+  }
 
-    button:hover {
-      transform: scale(1.05);
-    }
+  button {
+    padding: 12px 20px;
+    background: #ffcc00;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
 
-    .card {
-      margin: 20px auto;
-      padding: 20px;
-      max-width: 350px;
-      border-radius: 15px;
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-    }
+  #result {
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 350px;
+    background: #1c1c1c;
+    border-radius: 10px;
+    border-left: 5px solid #ffcc00;
+    text-align: left;
+  }
 
-    .status {
-      font-weight: bold;
-      padding: 5px 10px;
-      border-radius: 10px;
-      display: inline-block;
-    }
+  /* STATUS BADGE */
+  .status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
 
-    .pending { background: gray; }
-    .transit { background: orange; }
-    .out { background: gold; color: black; }
-    .delivered { background: green; }
+  .pending { background: gray; }
+  .transit { background: orange; }
+  .out { background: gold; color: black; }
+  .delivered { background: green; }
 
-    #progressContainer {
-      width: 80%;
-      max-width: 350px;
-      margin: 20px auto;
-      background: #222;
-      border-radius: 20px;
-    }
+  /* PROGRESS */
+  #progressContainer {
+    width: 80%;
+    max-width: 350px;
+    margin: 20px auto;
+    background: #333;
+    border-radius: 20px;
+  }
 
-    #progressBar {
-      height: 12px;
-      width: 0%;
-      background: linear-gradient(90deg, orange, gold);
-      border-radius: 20px;
-      transition: 0.5s;
-    }
+  #progressBar {
+    height: 12px;
+    width: 0%;
+    background: #ffcc00;
+    border-radius: 20px;
+    transition: 0.5s;
+  }
 
-    /* TIMELINE */
-    .timeline {
-      text-align: left;
-      margin-top: 20px;
-      position: relative;
-      padding-left: 20px;
-    }
+  /* TIMELINE */
+  .timeline {
+    margin-top: 20px;
+    border-left: 2px solid #ffcc00;
+    padding-left: 15px;
+  }
 
-    .timeline::before {
-      content: "";
-      position: absolute;
-      left: 8px;
-      width: 2px;
-      height: 100%;
-      background: orange;
-    }
+  .timeline-item {
+    margin-bottom: 10px;
+    position: relative;
+  }
 
-    .timeline-item {
-      margin-bottom: 15px;
-      position: relative;
-    }
-
-    .timeline-item::before {
-      content: "";
-      position: absolute;
-      left: -14px;
-      width: 10px;
-      height: 10px;
-      background: orange;
-      border-radius: 50%;
-    }
-
-    #adminPanel {
-      display: none;
-    }
-  </style>
+  .timeline-item::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background: #ffcc00;
+    border-radius: 50%;
+    position: absolute;
+    left: -21px;
+    top: 5px;
+  }
+</style>
 </head>
 
 <body>
@@ -197,52 +186,14 @@ function track() {
 
   if (data) {
 
-    let statusHTML = `
-    <div style="
-      background:${data.status === 'Delivered' ? 'green' :
-                   data.status === 'In Transit' ? 'orange' :
-                   data.status === 'Out for Delivery' ? 'gold' : 'gray'};
-      color:${data.status === 'Out for Delivery' ? 'black' : 'white'};
-      padding:8px 16px;
-      border-radius:20px;
-      display:inline-block;
-      font-weight:bold;
-      margin-bottom:10px;
-    ">
-      ${data.status}
-    </div>`;
+    let statusClass = "";
 
-    let historyHTML = "";
-    data.history.forEach(item => {
-      historyHTML += `<div class="timeline-item">${item}</div>`;
-    });
+if (data.status === "Pending") statusClass = "pending";
+else if (data.status === "In Transit") statusClass = "transit";
+else if (data.status === "Out for Delivery") statusClass = "out";
+else if (data.status === "Delivered") statusClass = "delivered";
 
-    historyHTML = `<div class="timeline">${historyHTML}</div>`;
-
-    let progress = 0;
-    if (data.status === "Pending") progress = 25;
-    else if (data.status === "In Transit") progress = 50;
-    else if (data.status === "Out for Delivery") progress = 75;
-    else if (data.status === "Delivered") progress = 100;
-
-    document.getElementById("progressBar").style.width = progress + "%";
-    document.getElementById("progressText").innerText =
-      "Progress: " + progress + "%";
-
-    document.getElementById("result").innerHTML =
-      statusHTML + `
-      <br>
-      <b>Location:</b> ${data.location}<br>
-      <b>Sender:</b> ${data.sender}<br>
-      <b>Receiver:</b> ${data.receiver}<br>
-      <b>Weight:</b> ${data.weight}<br>
-      <b>Delivery Date:</b> ${data.deliveryDate}<br><br>
-      ` + historyHTML;
-
-  } else {
-    document.getElementById("result").innerText = "Tracking code not found";
-  }
-}
+let statusHTML = `<div class="status ${statusClass}">${data.status}</div>`;
 
 // ADMIN LOGIN
 function unlockAdmin() {
