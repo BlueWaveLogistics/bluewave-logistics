@@ -5,190 +5,122 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
- <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: white;
-    text-align: center;
-  }
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
 
-  header {
-    background: #ffcc00;
-    color: black;
-    padding: 15px;
-    font-size: 22px;
-    font-weight: bold;
-    <p style="color:#aaa; margin-top:10px;">
-  Fast. Secure. Worldwide Delivery.
-</p>
-  }
+    header {
+      background: #ffcc00;
+      color: black;
+      padding: 15px;
+      font-size: 22px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-  h2 {
-  margin-top: 40px;
-  font-size: 26px;
-}
+    input {
+      padding: 14px;
+      width: 80%;
+      max-width: 320px;
+      border-radius: 8px;
+      border: none;
+      margin: 10px;
+      background: #222;
+      color: white;
+    }
 
-  input {
-  padding: 14px;
-  width: 80%;
-  max-width: 320px;
-  border-radius: 8px;
-  border: none;
-  margin: 10px;
-  background: #222;
-  color: white;
-  font-size: 15px;
-}
+    button {
+      padding: 12px 20px;
+      background: #ffcc00;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-  <button onclick="track()" style="
-  padding:14px 30px;
-  background:#ffcc00;
-  color:black;
-  font-weight:bold;
-  border-radius:8px;
-  font-size:16px;
-">
-  Track
-</button>
+    #result {
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 350px;
+      background: #1a1a1a;
+      border-radius: 12px;
+      border-left: 6px solid #ffcc00;
+      text-align: left;
+    }
 
-#result {
-  margin: 20px auto;
-  padding: 20px;
-  max-width: 350px;
-  background: #1a1a1a;
-  border-radius: 12px;
-  border-left: 6px solid #ffcc00;
-  text-align: left;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.6);
-}
+    .timeline {
+      margin-top: 15px;
+      border-left: 2px solid #ffcc00;
+      padding-left: 15px;
+    }
 
-  /* STATUS BADGE */
-  .status {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-weight: bold;
-    display: inline-block;
-    margin-bottom: 10px;
-  }
+    .timeline-item {
+      margin-bottom: 10px;
+    }
 
-  .pending { background: gray; }
-  .transit { background: orange; }
-  .out { background: gold; color: black; }
-  .delivered { background: green; }
+    #progressContainer {
+      width: 80%;
+      max-width: 350px;
+      margin: 20px auto;
+      background: #333;
+      border-radius: 20px;
+    }
 
-  /* PROGRESS */
-  #progressContainer {
-    width: 80%;
-    max-width: 350px;
-    margin: 20px auto;
-    background: #333;
-    border-radius: 20px;
-  }
+    #progressBar {
+      height: 12px;
+      width: 0%;
+      background: #ffcc00;
+      border-radius: 20px;
+      transition: 0.5s;
+    }
 
-  #progressBar {
-    height: 12px;
-    width: 0%;
-    background: #ffcc00;
-    border-radius: 20px;
-    transition: 0.5s;
-  }
+    .status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
 
-  /* TIMELINE */
-  .timeline {
-    margin-top: 20px;
-    border-left: 2px solid #ffcc00;
-    padding-left: 15px;
-  }
-
-  .timeline-item {
-    margin-bottom: 10px;
-    position: relative;
-  }
-
-  .timeline-item::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background: #ffcc00;
-    border-radius: 50%;
-    position: absolute;
-    left: -21px;
-    top: 5px;
-  }
-</style>
+    .pending { background: gray; }
+    .transit { background: orange; }
+    .out { background: gold; color: black; }
+    .delivered { background: green; }
+  </style>
 </head>
 
 <body>
 
-<header style="display:flex; justify-content:space-between; align-items:center;">
+<header>
   <div>BlueWave Logistics 🚚</div>
-  <button style="
-    background:black;
-    color:#ffcc00;
-    padding:8px 15px;
-    border-radius:20px;
-    font-weight:bold;
-  ">
-    Admin
-  </button>
+  <button>Admin</button>
 </header>
 
 <h2>Track Shipment</h2>
 
 <input id="code" placeholder="Enter tracking code">
+<br>
 <button onclick="track()">Track</button>
 
-<div id="loader" style="display:none; margin-top:15px;">
-  <div style="
-    width:30px;
-    height:30px;
-    border:4px solid #333;
-    border-top:4px solid #ffcc00;
-    border-radius:50%;
-    margin:auto;
-    animation: spin 1s linear infinite;
-  "></div>
-  <p style="color:#aaa;">Tracking shipment...</p>
-</div>
+<div id="result"></div>
 
 <div id="progressContainer">
   <div id="progressBar"></div>
-
-setTimeout(() => {
-  bar.style.width = progress + "%";
-}, 200);
+</div>
 
 <p id="progressText"></p>
 
-<!-- ADMIN -->
-<div id="adminPanel" class="card">
-  <h3>Add Shipment</h3>
-
-  <input id="newLocation" placeholder="Location"><br>
-  <input id="newSender" placeholder="Sender"><br>
-  <input id="newReceiver" placeholder="Receiver"><br>
-  <input id="newWeight" placeholder="Weight"><br>
-  <input id="newDate" placeholder="Delivery Date"><br>
-
-  <input id="newStatus" placeholder="Status">
-
-  <div>
-    <button onclick="setStatus('Pending')">Pending</button>
-    <button onclick="setStatus('In Transit')">Transit</button>
-    <button onclick="setStatus('Out for Delivery')">Out</button>
-    <button onclick="setStatus('Delivered')">Delivered</button>
-  </div>
-
-  <button onclick="addShipment()">Add Shipment</button>
-</div>
-
 <script>
 
-// STORAGE
-let counter = 1000;
-
+// DATA
 let shipments = {
   "BW1001": {
     status: "In Transit",
@@ -205,74 +137,57 @@ let shipments = {
   }
 };
 
-// STATUS BUTTON
-<div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-  <button onclick="setStatus('Pending')">Pending</button>
-  <button onclick="setStatus('In Transit')">Transit</button>
-  <button onclick="setStatus('Out for Delivery')">Out</button>
-  <button onclick="setStatus('Delivered')">Delivered</button>
-</div>
-
-// TRACK
+// TRACK FUNCTION
 function track() {
-  console.log("Track clicked");
-}
+  const code = document.getElementById("code").value.trim();
+  const data = shipments[code];
 
-  // SHOW LOADER
-      document.getElementById("loader").style.display = "none";
-
-  } else {
-    document.getElementById("loader").style.display = "none";
+  if (!data) {
     document.getElementById("result").innerText = "Tracking code not found";
+    return;
   }
 
-  }, 1200);
-}
+  // STATUS
+  let statusClass = "";
+  if (data.status === "Pending") statusClass = "pending";
+  else if (data.status === "In Transit") statusClass = "transit";
+  else if (data.status === "Out for Delivery") statusClass = "out";
+  else if (data.status === "Delivered") statusClass = "delivered";
 
+  let statusHTML = `<div class="status ${statusClass}">${data.status}</div>`;
+
+  // TIMELINE
+  let historyHTML = "";
+  data.history.forEach(item => {
+    historyHTML += `<div class="timeline-item">${item}</div>`;
+  });
+  historyHTML = `<div class="timeline">${historyHTML}</div>`;
+
+  // PROGRESS
+  let progress = 0;
+  if (data.status === "Pending") progress = 25;
+  else if (data.status === "In Transit") progress = 50;
+  else if (data.status === "Out for Delivery") progress = 75;
+  else if (data.status === "Delivered") progress = 100;
+
+  const bar = document.getElementById("progressBar");
+  bar.style.width = "0%";
   setTimeout(() => {
-  if (data) {
+    bar.style.width = progress + "%";
+  }, 200);
 
-    let statusClass = "";
+  document.getElementById("progressText").innerText =
+    "Progress: " + progress + "%";
 
-if (data.status === "Pending") statusClass = "pending";
-else if (data.status === "In Transit") statusClass = "transit";
-else if (data.status === "Out for Delivery") statusClass = "out";
-else if (data.status === "Delivered") statusClass = "delivered";
-
-let statusHTML = `<div class="status ${statusClass}">${data.status}</div>`;
-
-// Result
-document.getElementById("result").innerHTML =
-  statusHTML + `
-  <b>📍 Location:</b> ${data.location}<br>
-  <b>📦 Sender:</b> ${data.sender}<br>
-  <b>👤 Receiver:</b> ${data.receiver}<br>
-  <b>⚖️ Weight:</b> ${data.weight}<br>
-  <b>📅 Delivery:</b> ${data.deliveryDate}<br>
-  ` + historyHTML;
-
-// ADD SHIPMENT ✅ FIXED
-function addShipment() {
-  counter++;
-  const code = "BW" + counter;
-
-  const status = document.getElementById("newStatus").value;
-  const location = document.getElementById("newLocation").value;
-
-  let history = [];
-  history.push(status + " - " + location);
-
-  shipments[code] = {
-    status,
-    location,
-    sender: document.getElementById("newSender").value,
-    receiver: document.getElementById("newReceiver").value,
-    weight: document.getElementById("newWeight").value,
-    deliveryDate: document.getElementById("newDate").value,
-    history
-  };
-
-  alert("Shipment created: " + code);
+  // OUTPUT
+  document.getElementById("result").innerHTML =
+    statusHTML + `
+    <b>Location:</b> ${data.location}<br>
+    <b>Sender:</b> ${data.sender}<br>
+    <b>Receiver:</b> ${data.receiver}<br>
+    <b>Weight:</b> ${data.weight}<br>
+    <b>Delivery:</b> ${data.deliveryDate}<br>
+    ` + historyHTML;
 }
 
 </script>
