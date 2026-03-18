@@ -207,8 +207,15 @@ function track() {
   font-weight:bold;
   margin-bottom:10px;
 ">
-  ${data.status}
-</div>`;
+document.getElementById("result").innerHTML =
+  statusHTML + `
+  <br>
+  <b>Location:</b> ${data.location}<br>
+  <b>Sender:</b> ${data.sender}<br>
+  <b>Receiver:</b> ${data.receiver}<br>
+  <b>Weight:</b> ${data.weight}<br>
+  <b>Delivery Date:</b> ${data.deliveryDate}<br><br>
+  ` + historyHTML;
 // ADMIN
 function unlockAdmin() {
   const pass = prompt("Enter admin password:");
