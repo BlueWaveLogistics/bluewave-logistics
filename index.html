@@ -1,9 +1,12 @@
 <!DOCTYPE html>
+
 <html>
+
 
 <head>
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 
   <style>
     body {
@@ -33,8 +36,6 @@
       max-width: 250px;
       border-radius: 5px;
       border: none;
-      background: white;
-      color: black;
     }
 
     button {
@@ -75,110 +76,88 @@
       margin-bottom: 15px;
     }
 
-    .card {
-      background: rgba(255,255,255,0.05);
-      padding: 15px;
-      border-radius: 10px;
-      margin: 10px auto;
-      max-width: 300px;
-    }
-
-    #adminPanel {
-      display: none;
-    }
-
     #progressBar {
       transition: width 0.5s ease;
     }
   </style>
+
+
 </head>
+
 
 <body>
 
+
 <header>
   BlueWave Logistics 🚚
-  <button onclick="unlockAdmin()">Admin</button>
 </header>
+
+
 
 <div class="hero">
   <h1>Fast & Reliable Shipping</h1>
 
+
+
   <input type="text" id="code" placeholder="Enter tracking code">
   <button onclick="track()">Track</button>
 
+
   <div id="result"></div>
 
+
+
   <!-- PROGRESS -->
+
   <div style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
     <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
+  </div>
+
 
   <p id="progressText"></p>
 
+
+
   <!-- MAP -->
-  <div id="map" style="width:90%; height:300px; margin:20px auto;"></div>
 
-  <!-- ADMIN -->
-  <div id="adminPanel">
-    <h3>Add Shipment</h3>
 
-    <input id="newStatus" placeholder="Status">
-
-    <div>
-      <button onclick="setStatus('Pending')">Pending</button>
-      <button onclick="setStatus('In Transit')">In Transit</button>
-      <button onclick="setStatus('Out for Delivery')">Out</button>
-      <button onclick="setStatus('Delivered')">Delivered</button>
-    </div>
-
-    <input id="newLocation" placeholder="Location">
-    <button onclick="addShipment()">Add</button>
-  </div>
+  <div id="map" style="width:90%; height:300px; margin:20px auto; border-radius:10px;"></div>
 </div>
 
-<div>
-  <div class="card">🚚 Local Delivery</div>
-  <div class="card">✈️ International Shipping</div>
-</div>
 
-<!-- MAIN SCRIPT -->
+
+<!-- FIREBASE + APP -->
 <script type="module">
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyANv_xiv_AgddM9hACDSEH8PEb8Z2JFIvU",
+  apiKey: "YOUR_FIREBASE_KEY",
   authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
   projectId: "bluewave-logistics-c9a21",
-  storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
-  messagingSenderId: "388186247669",
-  appId: "1:388186247669:web:a28394e0e82bd499e410bc",
-  measurementId: "G-KY76SYQQV0"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const db = getFirestore(app);
 
-  let map, marker;
+let map, marker;
 
-  function initMap(lat = 6.5244, lng = 3.3792) {
-    map = new google.maps.Map(document.getElementById("map"), {
-      zoom: 5,
-      center: { lat, lng }
-    });
+function initMap(lat = 6.5244, lng = 3.3792) {
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 5,
+    center: { lat, lng }
+  });
 
-    marker = new google.maps.Marker({
-      position: { lat, lng },
-      map: map
-    });
-  }
+  marker = new google.maps.Marker({
+    position: { lat, lng },
+    map: map
+  });
+}
 
-  window.track = async function () {
+// Load default map
+initMap();
+
+window.track = async function () {
   const input = document.getElementById("code").value;
   const docRef = doc(db, "shipments", input);
   const docSnap = await getDoc(docRef);
@@ -186,13 +165,13 @@ const analytics = getAnalytics(app);
   if (docSnap.exists()) {
     const data = docSnap.data();
 
-    // 🌍 MAP LOCATION
+    // MAP LOCATION
     if (data.location.includes("New York")) initMap(40.7128, -74.0060);
     else if (data.location.includes("Berlin")) initMap(52.52, 13.405);
     else if (data.location.includes("London")) initMap(51.5074, -0.1278);
     else initMap();
 
-    // 📜 TIMELINE
+    // TIMELINE
     let historyHTML = "";
     if (data.history) {
       data.history.forEach(item => {
@@ -202,35 +181,29 @@ const analytics = getAnalytics(app);
 
     historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
-    // 🎨 STATUS COLOR
-    let statusColor = "white";
-    if (data.status === "Delivered") statusColor = "lightgreen";
-    else if (data.status === "In Transit") statusColor = "orange";
-    else if (data.status === "Pending") statusColor = "gray";
-    else if (data.status === "Out for Delivery") statusColor = "yellow";
-
-    // 📊 PROGRESS
+    // PROGRESS
     let progress = 0;
     if (data.status === "Pending") progress = 25;
     else if (data.status === "In Transit") progress = 50;
     else if (data.status === "Out for Delivery") progress = 75;
     else if (data.status === "Delivered") progress = 100;
 
-    const bar = document.getElementById("progressBar");
-    bar.style.width = progress + "%";
-
+    document.getElementById("progressBar").style.width = progress + "%";
     document.getElementById("progressText").innerText =
       "Progress: " + progress + "%";
 
-    // 📦 RESULT
+    // RESULT
     document.getElementById("result").innerHTML =
-      `<span style="color:${statusColor}; font-weight:bold;">
-        Status: ${data.status}
-      </span><br>
-      Location: ${data.location}<br><br>` +
+      `<b>Status:</b> ${data.status}<br>
+       <b>Location:</b> ${data.location}<br><br>` +
       historyHTML;
 
   } else {
     document.getElementById("result").innerText = "Tracking code not found";
   }
 };
+</script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYdExT0fPs-3WKkv4nkUrC54wic9snmLI"></script>
+
+
+
+
