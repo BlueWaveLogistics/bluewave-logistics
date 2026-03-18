@@ -155,7 +155,12 @@
 
 <div id="progressContainer">
   <div id="progressBar"></div>
-</div>
+const bar = document.getElementById("progressBar");
+bar.style.width = "0%";
+
+setTimeout(() => {
+  bar.style.width = progress + "%";
+}, 200);
 
 <p id="progressText"></p>
 
@@ -215,6 +220,18 @@ function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
 
+  // SHOW LOADER
+      document.getElementById("loader").style.display = "none";
+
+  } else {
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("result").innerText = "Tracking code not found";
+  }
+
+  }, 1200);
+}
+
+  setTimeout(() => {
   if (data) {
 
     let statusClass = "";
