@@ -11,7 +11,13 @@
   background: #000000; /* pure black */
   color: white;
   text-align: center;
+  #progressContainer {
+  overflow: hidden;
 }
+#progressBar {
+  transition: width 0.5s ease;
+}
+
 
     header {
   background: linear-gradient(90deg, #000, #111, #000);
@@ -133,8 +139,13 @@
   <input id="newLocation" placeholder="Location">
   <button onclick="addShipment()">Add</button>
   <button onclick="unlockAdmin()">Admin</button>
+<div id="result"></div>
+
+<div id="progressContainer" style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
+  <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
 </div>
-  <p id="result"></p>
+
+<p id="progressText"></p>
 </div>
 
 <div>
@@ -183,6 +194,21 @@
       else if (data.status === "In Transit") statusColor = "orange";
       else if (data.status === "Pending") statusColor = "gray";
       else if (data.status === "Out for Delivery") statusColor = "yellow";
+      let progress = 0;
+
+if (data.status === "Pending") progress = 25;
+else if (data.status === "In Transit") progress = 50;
+else if (data.status === "Out for Delivery") progress = 75;
+else if (data.status === "Delivered") progress = 100;
+
+const bar = document.getElementById("progressBar");
+
+bar.style.width = progress + "%";
+
+if (progress === 100) bar.style.background = "green";
+else if (progress >= 50) bar.style.background = "orange";
+else bar.style.background = "gray";
+document.getElementById("progressText").innerText = "Progress: " + progress + "%";
 
       document.getElementById("result").innerHTML =
         `<span style="color:${statusColor}; font-weight:bold;">
