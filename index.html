@@ -101,23 +101,38 @@
 </div>
 
 <script>
-  const shipments = [
-    {code: "BW123", status: "In Transit", location: "Lagos"},
-    {code: "BW456", status: "Delivered", location: "Abuja"}
-  ];
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-  function track() {
+  const firebaseConfig = {
+    apiKey: "AIzaSyANv_xiv_AgddM9hACDSEH8PEb8Z2JFIvU",
+    authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
+    projectId: "bluewave-logistics-c9a21",
+    storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
+    messagingSenderId: "388186247669",
+    appId: "1:388186247669:web:a28394e0e82bd499e410bc",
+    measurementId: "G-KY76SYQQV0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.track = async function () {
     const input = document.getElementById("code").value;
-    const result = shipments.find(s => s.code === input);
 
-    if (result) {
+    const docRef = doc(db, "shipments", input);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
       document.getElementById("result").innerText =
-        "Status: " + result.status + " | Location: " + result.location;
+        "Status: " + data.status + " | Location: " + data.location;
     } else {
       document.getElementById("result").innerText =
         "Tracking code not found";
     }
-  }
+  };
 </script>
 
 </body>
