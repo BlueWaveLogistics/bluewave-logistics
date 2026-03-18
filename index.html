@@ -166,7 +166,21 @@ function track() {
   else if (data.status === "Out for Delivery") statusClass = "out";
   else if (data.status === "Delivered") statusClass = "delivered";
 
-  let statusHTML = `<div class="status ${statusClass}">${data.status}</div>`;
+let statusHTML = `
+<div style="
+  display:inline-block;
+  background:${data.status === 'Delivered' ? 'green' :
+               data.status === 'In Transit' ? 'orange' :
+               data.status === 'Out for Delivery' ? 'gold' : 'gray'};
+  color:${data.status === 'Out for Delivery' ? 'black' : 'white'};
+  padding:6px 14px;
+  border-radius:20px;
+  font-weight:bold;
+  margin-bottom:12px;
+">
+  ${data.status}
+</div>
+`;
 
   // TIMELINE
   let historyHTML = "";
