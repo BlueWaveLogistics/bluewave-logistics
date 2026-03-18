@@ -1,119 +1,110 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #000;
-  color: white;
-  text-align: center;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: white;
+      text-align: center;
+    }
 
-/* progress */
-#progressContainer {
-  overflow: hidden;
-}
-#progressBar {
-  transition: width 0.5s ease;
-}
+    header {
+      background: linear-gradient(90deg, #000, #111, #000);
+      box-shadow: 0 0 10px rgba(255,165,0,0.3);
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
 
-/* animation */
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    .hero {
+      padding: 40px 20px;
+    }
 
-header {
-  background: linear-gradient(90deg, #000, #111, #000);
-  box-shadow: 0 0 10px rgba(255,165,0,0.3);
-  padding: 15px;
-  font-size: 20px;
-}
+    input {
+      padding: 12px;
+      margin: 5px;
+      width: 70%;
+      max-width: 250px;
+      border-radius: 5px;
+      border: none;
+      background: white;
+      color: black;
+    }
 
-.hero {
-  padding: 40px 20px;
-}
+    button {
+      padding: 10px 15px;
+      border-radius: 20px;
+      background: orange;
+      color: white;
+      border: none;
+      margin: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
 
-input {
-  padding: 12px;
-  margin: 5px;
-  width: 70%;
-  max-width: 250px;
-  border-radius: 5px;
-  border: none;
-  background: white;
-  color: black;
-}
+    button:hover {
+      background: #ff9900;
+      transform: scale(1.05);
+    }
 
-button {
-  padding: 10px 15px;
-  border-radius: 20px;
-  background: orange;
-  color: white;
-  border: none;
-  margin: 5px;
-  cursor: pointer;
-  transition: 0.3s;
-}
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+    }
 
-button:hover {
-  transform: scale(1.05);
-}
+    .timeline {
+      text-align: left;
+      max-width: 300px;
+      margin: 20px auto;
+      position: relative;
+    }
 
-#result {
-  margin-top: 20px;
-  padding: 20px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 15px;
-}
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      width: 2px;
+      height: 100%;
+      background: orange;
+    }
 
-.timeline {
-  text-align: left;
-  max-width: 300px;
-  margin: 20px auto;
-  position: relative;
-}
+    .timeline-item {
+      margin-left: 30px;
+      margin-bottom: 15px;
+      position: relative;
+    }
 
-.timeline::before {
-  content: "";
-  position: absolute;
-  left: 10px;
-  width: 2px;
-  height: 100%;
-  background: orange;
-}
+    .timeline-item::before {
+      content: "📍";
+      position: absolute;
+      left: -20px;
+    }
 
-.timeline-item {
-  margin-left: 30px;
-  margin-bottom: 15px;
-}
+    .card {
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px auto;
+      max-width: 300px;
+    }
 
-.timeline-item::before {
-  content: "📍";
-  position: absolute;
-  left: -20px;
-}
+    #adminPanel {
+      display: none;
+    }
 
-.card {
-  background: rgba(255,255,255,0.05);
-  padding: 15px;
-  border-radius: 10px;
-  margin: 10px auto;
-  max-width: 300px;
-}
-
-#adminPanel {
-  display: none;
-}
-</style>
-
+    #progressBar {
+      transition: width 0.5s ease;
+    }
+  </style>
+</head>
     header {
   background: linear-gradient(90deg, #000, #111, #000);
   box-shadow: 0 0 10px rgba(255,165,0,0.3);
