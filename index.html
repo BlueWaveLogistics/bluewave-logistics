@@ -195,13 +195,15 @@ else if (data.status === "Delivered") statusClass = "delivered";
 
 let statusHTML = `<div class="status ${statusClass}">${data.status}</div>`;
 
-// ADMIN LOGIN
-function unlockAdmin() {
-  const pass = prompt("Enter admin password:");
-  if (pass === "bluewave123") {
-    document.getElementById("adminPanel").style.display = "block";
-  }
-}
+// Result
+document.getElementById("result").innerHTML =
+  statusHTML + `
+  <b>📍 Location:</b> ${data.location}<br>
+  <b>📦 Sender:</b> ${data.sender}<br>
+  <b>👤 Receiver:</b> ${data.receiver}<br>
+  <b>⚖️ Weight:</b> ${data.weight}<br>
+  <b>📅 Delivery:</b> ${data.deliveryDate}<br>
+  ` + historyHTML;
 
 // ADD SHIPMENT ✅ FIXED
 function addShipment() {
