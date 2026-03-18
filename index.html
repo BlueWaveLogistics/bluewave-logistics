@@ -111,7 +111,6 @@
   <!-- PROGRESS -->
   <div style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
     <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
-  </div>
 
   <p id="progressText"></p>
 
@@ -143,7 +142,27 @@
 
 <!-- MAIN SCRIPT -->
 <script type="module">
-  // ALL your Firebase + tracking + map code here
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyANv_xiv_AgddM9hACDSEH8PEb8Z2JFIvU",
+  authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
+  projectId: "bluewave-logistics-c9a21",
+  storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
+  messagingSenderId: "388186247669",
+  appId: "1:388186247669:web:a28394e0e82bd499e410bc",
+  measurementId: "G-KY76SYQQV0"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
   let map, marker;
 
