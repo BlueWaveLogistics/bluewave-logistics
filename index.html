@@ -5,32 +5,14 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<div style="
-  margin-top:50px;
-  padding:25px;
-  background:#0a0a0a;
-  border-top:2px solid #ffcc00;
-  text-align:center;
-">
-
-  <h3 style="margin-bottom:10px;">Customer Support</h3>
-
-  <p style="color:#aaa;">
-    For tracking issues or delivery inquiries
-  </p>
-
-  <p style="font-size:16px;">
-    📧 <a href="mailto:support@shippingcompanyservice015@gmail.com" 
-         style="color:#ffcc00; text-decoration:none;">
-         support@shippingcompanyservice015@gmail.com
-    </a>
-  </p>
-
-  <p style="color:#555; font-size:12px; margin-top:15px;">
-    © 2026 BlueWave Logistics
-  </p>
-
-</div>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
 
     header {
       background: #ffcc00;
@@ -136,6 +118,34 @@
 
 <p id="progressText"></p>
 
+<!-- ✅ CONTACT SECTION (NOW IN CORRECT PLACE) -->
+<div style="
+  margin-top:50px;
+  padding:25px;
+  background:#0a0a0a;
+  border-top:2px solid #ffcc00;
+  text-align:center;
+">
+
+  <h3 style="margin-bottom:10px;">Customer Support</h3>
+
+  <p style="color:#aaa;">
+    For tracking issues or delivery inquiries
+  </p>
+
+  <p style="font-size:16px;">
+    📧 <a href="mailto:support@shippingcompanyservice015@gmail.com" 
+         style="color:#ffcc00; text-decoration:none;">
+         support@shippingcompanyservice015@gmail.com
+    </a>
+  </p>
+
+  <p style="color:#555; font-size:12px; margin-top:15px;">
+    © 2026 BlueWave Logistics
+  </p>
+
+</div>
+
 <script>
 
 // SAMPLE DATA
@@ -166,29 +176,13 @@ function track() {
     return;
   }
 
-  // STATUS STYLE
-  let statusClass = "";
-  if (data.status === "Pending") statusClass = "pending";
-  else if (data.status === "In Transit") statusClass = "transit";
-  else if (data.status === "Out for Delivery") statusClass = "out";
-  else if (data.status === "Delivered") statusClass = "delivered";
-
-  let statusHTML = `<div class="status ${statusClass}">${data.status}</div>`;
-
-  // TIMELINE
   let historyHTML = "";
   data.history.forEach(item => {
     historyHTML += `<div class="timeline-item">${item}</div>`;
   });
   historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
-  // PROGRESS
-  let progress = 0;
-  if (data.status === "Pending") progress = 25;
-  else if (data.status === "In Transit") progress = 50;
-  else if (data.status === "Out for Delivery") progress = 75;
-  else if (data.status === "Delivered") progress = 100;
-
+  let progress = 50;
   const bar = document.getElementById("progressBar");
   bar.style.width = "0%";
 
@@ -199,16 +193,19 @@ function track() {
   document.getElementById("progressText").innerText =
     "Progress: " + progress + "%";
 
-  // RESULT OUTPUT
-  document.getElementById("result").innerHTML =
-    statusHTML + `
-    <br>
-    <b>📍 Location:</b> ${data.location}<br>
-    <b>📦 Sender:</b> ${data.sender}<br>
-    <b>👤 Receiver:</b> ${data.receiver}<br>
-    <b>⚖️ Weight:</b> ${data.weight}<br>
-    <b>📅 Delivery:</b> ${data.deliveryDate}<br>
-    ` + historyHTML;
+  document.getElementById("result").innerHTML = `
+    <div style="background:orange;padding:8px;border-radius:10px;margin-bottom:10px;">
+      ${data.status}
+    </div>
+
+    📍 Location: ${data.location}<br>
+    📦 Sender: ${data.sender}<br>
+    👤 Receiver: ${data.receiver}<br>
+    ⚖️ Weight: ${data.weight}<br>
+    📅 Delivery: ${data.deliveryDate}<br><br>
+
+    ${historyHTML}
+  `;
 }
 
 </script>
