@@ -167,13 +167,21 @@
 <script>
 
 // STORAGE
-let shipments = JSON.parse(localStorage.getItem("shipments")) || {};
-let counter = JSON.parse(localStorage.getItem("counter")) || 1000;
-
-function saveData() {
-  localStorage.setItem("shipments", JSON.stringify(shipments));
-  localStorage.setItem("counter", JSON.stringify(counter));
-}
+let shipments = {
+  "BW1001": {
+    status: "In Transit",
+    location: "New York, USA",
+    sender: "BlueWave",
+    receiver: "John Doe",
+    weight: "5kg",
+    deliveryDate: "25 March 2026",
+    history: [
+      "Shipment created - Lagos",
+      "Picked up by BlueWave",
+      "In transit to USA"
+    ]
+  }
+};
 
 // STATUS BUTTON
 function setStatus(status) {
