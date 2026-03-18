@@ -129,7 +129,7 @@
 
   // ADD SHIPMENT FUNCTION
   window.addShipment = async function () {
-    const code = document.getElementById("newCode").value;
+const code = "BW" + Math.floor(1000 + Math.random() * 9000);
 
     await setDoc(doc(db, "shipments", code), {
       code: code,
@@ -137,7 +137,10 @@
       location: document.getElementById("newLocation").value
     });
 
-    alert("Shipment added!");
+alert("Shipment added! Code: " + code);
+document.getElementById("newCode").value = "";
+document.getElementById("newStatus").value = "";
+document.getElementById("newLocation").value = "";
   };
 </script>
 
