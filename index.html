@@ -136,36 +136,33 @@ let shipments = {
   }
 };
 
-// TRACK FUNCTION
+<script>
+
 function track() {
   const code = document.getElementById("code").value.trim();
-  const result = document.getElementById("result");
+  const data = shipments[code];
 
-  if (!shipments[code]) {
-    result.innerHTML = "<p style='color:red;'>Tracking code not found</p>";
+  if (!data) {
+    document.getElementById("result").innerHTML = "Not found";
     return;
   }
 
-  const data = shipments[code];
-
   let historyHTML = "";
   data.history.forEach(item => {
-    historyHTML += `<div class="timeline-item">${item}</div>`;
+    historyHTML += `<div>${item}</div>`;
   });
 
-  result.innerHTML = `
-    <div style="background:orange; padding:8px; border-radius:10px; margin-bottom:10px;">
-      ${data.status}
-    </div>
-
+  document.getElementById("result").innerHTML = `
     <b>Location:</b> ${data.location}<br>
     <b>Sender:</b> ${data.sender}<br>
     <b>Receiver:</b> ${data.receiver}<br>
     <b>Weight:</b> ${data.weight}<br>
     <b>Delivery:</b> ${data.deliveryDate}<br>
-
-    <div class="timeline">${historyHTML}</div>
+    ${historyHTML}
   `;
+}
+
+</script>
 
   // PROGRESS
   let progress = 50;
