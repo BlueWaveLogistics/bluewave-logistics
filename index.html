@@ -45,12 +45,6 @@
       border: none;
       margin: 5px;
       cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background: #ff9900;
-      transform: scale(1.05);
     }
 
     #result {
@@ -79,13 +73,6 @@
     .timeline-item {
       margin-left: 30px;
       margin-bottom: 15px;
-      position: relative;
-    }
-
-    .timeline-item::before {
-      content: "📍";
-      position: absolute;
-      left: -20px;
     }
 
     .card {
@@ -116,23 +103,22 @@
 <div class="hero">
   <h1>Fast & Reliable Shipping</h1>
 
-  <!-- TRACK -->
   <input type="text" id="code" placeholder="Enter tracking code">
   <button onclick="track()">Track</button>
 
-  <!-- RESULT -->
   <div id="result"></div>
 
   <!-- PROGRESS -->
-<div id="progressContainer" style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
-  <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
-</div>
+  <div style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
+    <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
+  </div>
 
-<p id="progressText"></p>
+  <p id="progressText"></p>
 
-<!-- ✅ MAP GOES HERE -->
-<div id="map" style="width:90%; height:300px; margin:20px auto; border-radius:10px;"></div>
+  <!-- MAP -->
+  <div id="map" style="width:90%; height:300px; margin:20px auto;"></div>
 
+  <!-- ADMIN -->
   <div id="adminPanel">
     <h3>Add Shipment</h3>
 
@@ -155,36 +141,44 @@
   <div class="card">✈️ International Shipping</div>
 </div>
 
+<!-- MAIN SCRIPT -->
 <script type="module">
+  // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: "AIzaSyANv_xiv_AgddM9hACDSEH8PEb8Z2JFIvU",
     authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
     projectId: "bluewave-logistics-c9a21",
     storageBucket: "bluewave-logistics-c9a21.firebasestorage.app",
     messagingSenderId: "388186247669",
-    appId: "1:388186247669:web:a28394e0e82bd499e410bc",
-    measurementId: "G-KY76SYQQV0"
+    appId: "1:388186247669:web:118a6809f8db9ec6e410bc",
+    measurementId: "G-7LHHQ8NPCY"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-let map, marker;
+  const analytics = getAnalytics(app);
+</script>
+  let map, marker;
 
-function initMap(lat = 6.5244, lng = 3.3792) {
-  map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 5,
-    center: { lat, lng }
-  });
+  function initMap(lat = 6.5244, lng = 3.3792) {
+    map = new google.maps.Map(document.getElementById("map"), {
+      zoom: 5,
+      center: { lat, lng }
+    });
 
-  marker = new google.maps.Marker({
-    position: { lat, lng },
-    map: map
-  });
-}
-  // TRACK
+    marker = new google.maps.Marker({
+      position: { lat, lng },
+      map: map
+    });
+  }
+
   window.track = async function () {
     const input = document.getElementById("code").value;
     const docRef = doc(db, "shipments", input);
@@ -192,11 +186,14 @@ function initMap(lat = 6.5244, lng = 3.3792) {
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      
-if (data.location.includes("New York")) initMap(40.7128, -74.0060);
-else if (data.location.includes("Berlin")) initMap(52.52, 13.405);
-else if (data.location.includes("London")) initMap(51.5074, -0.1278);
-else initMap(); // default
+
+      // MAP LOCATION
+      if (data.location.includes("New York")) initMap(40.7128, -74.0060);
+      else if (data.location.includes("Berlin")) initMap(52.52, 13.405);
+      else if (data.location.includes("London")) initMap(51.5074, -0.1278);
+      else initMap();
+
+      // TIMELINE
       let historyHTML = "";
       if (data.history) {
         data.history.forEach(item => {
@@ -206,13 +203,14 @@ else initMap(); // default
 
       historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
+      // STATUS COLOR
       let statusColor = "white";
-
       if (data.status === "Delivered") statusColor = "lightgreen";
       else if (data.status === "In Transit") statusColor = "orange";
       else if (data.status === "Pending") statusColor = "gray";
       else if (data.status === "Out for Delivery") statusColor = "yellow";
 
+      // PROGRESS
       let progress = 0;
       if (data.status === "Pending") progress = 25;
       else if (data.status === "In Transit") progress = 50;
@@ -221,10 +219,6 @@ else initMap(); // default
 
       const bar = document.getElementById("progressBar");
       bar.style.width = progress + "%";
-
-      if (progress === 100) bar.style.background = "green";
-      else if (progress >= 50) bar.style.background = "orange";
-      else bar.style.background = "gray";
 
       document.getElementById("progressText").innerText = "Progress: " + progress + "%";
 
@@ -240,37 +234,25 @@ else initMap(); // default
     }
   };
 
-  // SET STATUS BUTTON
   window.setStatus = function(status) {
     document.getElementById("newStatus").value = status;
   };
 
-  // ADD SHIPMENT
-window.addShipment = async function () {
-  const code = "BW" + Math.floor(1000 + Math.random() * 9000);
-  const status = document.getElementById("newStatus").value;
-  const location = document.getElementById("newLocation").value;
+  window.addShipment = async function () {
+    const code = "BW" + Math.floor(1000 + Math.random() * 9000);
 
-  let history = [];
+    await setDoc(doc(db, "shipments", code), {
+      code,
+      status: document.getElementById("newStatus").value,
+      location: document.getElementById("newLocation").value,
+      history: ["Shipment created"]
+    });
 
-  if (status === "Pending") history.push("Shipment created - " + location);
-  if (status === "In Transit") history.push("In transit - " + location);
-  if (status === "Out for Delivery") history.push("Out for delivery - " + location);
-  if (status === "Delivered") history.push("Delivered - " + location);
+    alert("Shipment added! Code: " + code);
+  };
 
-  await setDoc(doc(db, "shipments", code), {
-    code,
-    status,
-    location,
-    history
-  });
-
-  alert("Shipment added! Code: " + code);
-};
-  // ADMIN LOGIN
   window.unlockAdmin = function () {
     const pass = prompt("Enter admin password:");
-
     if (pass === "bluewave123") {
       document.getElementById("adminPanel").style.display = "block";
       alert("Admin unlocked");
@@ -278,7 +260,10 @@ window.addShipment = async function () {
       alert("Wrong password");
     }
   };
-<script src=https://bluewavelogistics.github.io/*
+</script>
+
+<!-- GOOGLE MAPS -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCa5i2j2-FP3yPBICB49lDHSrFA2II_DCo></script>
 
 </body>
 </html>
