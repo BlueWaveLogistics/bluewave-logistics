@@ -216,6 +216,17 @@
 
     alert("Shipment added! Code: " + code);
   };
+  
+  window.unlockAdmin = function () {
+  const pass = prompt("Enter admin password:");
+
+  if (pass === "bluewave123") {
+    document.getElementById("adminPanel").style.display = "block";
+    alert("Admin unlocked");
+  } else {
+    alert("Wrong password");
+  }
+};
 </script>
 
 </body>
