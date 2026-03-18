@@ -5,26 +5,114 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-  body {
+body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #000000; /* pure black */
+  background: #000;
   color: white;
   text-align: center;
-  #progressContainer {
+}
+
+/* progress */
+#progressContainer {
   overflow: hidden;
 }
 #progressBar {
   transition: width 0.5s ease;
 }
+
+/* animation */
 .fade-in {
   animation: fadeIn 0.5s ease-in-out;
 }
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+header {
+  background: linear-gradient(90deg, #000, #111, #000);
+  box-shadow: 0 0 10px rgba(255,165,0,0.3);
+  padding: 15px;
+  font-size: 20px;
+}
+
+.hero {
+  padding: 40px 20px;
+}
+
+input {
+  padding: 12px;
+  margin: 5px;
+  width: 70%;
+  max-width: 250px;
+  border-radius: 5px;
+  border: none;
+  background: white;
+  color: black;
+}
+
+button {
+  padding: 10px 15px;
+  border-radius: 20px;
+  background: orange;
+  color: white;
+  border: none;
+  margin: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+#result {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+}
+
+.timeline {
+  text-align: left;
+  max-width: 300px;
+  margin: 20px auto;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  width: 2px;
+  height: 100%;
+  background: orange;
+}
+
+.timeline-item {
+  margin-left: 30px;
+  margin-bottom: 15px;
+}
+
+.timeline-item::before {
+  content: "📍";
+  position: absolute;
+  left: -20px;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 10px auto;
+  max-width: 300px;
+}
+
+#adminPanel {
+  display: none;
+}
+</style>
 
     header {
   background: linear-gradient(90deg, #000, #111, #000);
@@ -125,15 +213,25 @@
 
 <body>
 
-<header>BlueWave Logistics 🚚</header>
+<header>
+  BlueWave Logistics 🚚
+  <button onclick="unlockAdmin()">Admin</button>
+</header>
 
 <div class="hero">
   <h1>Fast & Reliable Shipping</h1>
 
   <div>
-    <input type="text" id="code" placeholder="Enter tracking code">
-    <button onclick="track()">Track</button>
-  </div>
+   <input type="text" id="code">
+<button onclick="track()">Track</button>
+
+<div id="result"></div>
+
+<div id="progressContainer">
+  <div id="progressBar"></div>
+</div>
+
+<p id="progressText"></p>
 
   <div id="adminPanel">
   <h3>Add Shipment</h3>
