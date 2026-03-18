@@ -247,9 +247,12 @@ function track() {
 }
 
 // ADD SHIPMENT
-function addShipment() {
-  counter++;
-  const code = "BW" + counter;
+<script>
+
+// STORAGE
+let counter = 1000;
+
+let shipments = {
 
   const status = document.getElementById("newStatus").value;
   const location = document.getElementById("newLocation").value;
