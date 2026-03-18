@@ -167,6 +167,8 @@
 <script>
 
 // STORAGE
+let counter = 1000;
+
 let shipments = {
   "BW1001": {
     status: "In Transit",
@@ -195,7 +197,6 @@ function track() {
 
   if (data) {
 
-    // ✅ STATUS BADGE
     let statusHTML = `
     <div style="
       background:${data.status === 'Delivered' ? 'green' :
@@ -211,7 +212,6 @@ function track() {
       ${data.status}
     </div>`;
 
-    // ✅ TIMELINE
     let historyHTML = "";
     data.history.forEach(item => {
       historyHTML += `<div class="timeline-item">${item}</div>`;
@@ -219,7 +219,6 @@ function track() {
 
     historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
-    // ✅ PROGRESS
     let progress = 0;
     if (data.status === "Pending") progress = 25;
     else if (data.status === "In Transit") progress = 50;
@@ -230,7 +229,6 @@ function track() {
     document.getElementById("progressText").innerText =
       "Progress: " + progress + "%";
 
-    // ✅ RESULT OUTPUT
     document.getElementById("result").innerHTML =
       statusHTML + `
       <br>
@@ -246,14 +244,18 @@ function track() {
   }
 }
 
-// ADD SHIPMENT
-<script>
+// ADMIN LOGIN
+function unlockAdmin() {
+  const pass = prompt("Enter admin password:");
+  if (pass === "bluewave123") {
+    document.getElementById("adminPanel").style.display = "block";
+  }
+}
 
-let counter = 1000;
-
-let shipments = {
-  "BW1001": { ... }
-};
+// ADD SHIPMENT ✅ FIXED
+function addShipment() {
+  counter++;
+  const code = "BW" + counter;
 
   const status = document.getElementById("newStatus").value;
   const location = document.getElementById("newLocation").value;
@@ -270,8 +272,6 @@ let shipments = {
     deliveryDate: document.getElementById("newDate").value,
     history
   };
-
-  saveData();
 
   alert("Shipment created: " + code);
 }
