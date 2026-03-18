@@ -1,183 +1,46 @@
-<!DOCTYPE html>
+<script>
+const shipments = {
+  "BW1234": {
+    status: "In Transit",
+    location: "New York, USA",
+    sender: "BlueWave Warehouse",
+    receiver: "John Smith",
+    weight: "5kg",
+    deliveryDate: "25 March 2026",
+    history: [
+      "Shipment created - Lagos",
+      "Picked up by BlueWave Logistics",
+      "Arrived at sorting facility"
+    ]
+  },
 
-<html>
-
-
-<head>
-  <title>BlueWave Logistics</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
-      color: white;
-      text-align: center;
-    }
-
-    header {
-      background: linear-gradient(90deg, #000, #111, #000);
-      box-shadow: 0 0 10px rgba(255,165,0,0.3);
-      padding: 15px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .hero {
-      padding: 40px 20px;
-    }
-
-    input {
-      padding: 12px;
-      margin: 5px;
-      width: 70%;
-      max-width: 250px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      padding: 10px 15px;
-      border-radius: 20px;
-      background: orange;
-      color: white;
-      border: none;
-      margin: 5px;
-      cursor: pointer;
-    }
-
-    #result {
-      margin-top: 20px;
-      padding: 20px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 15px;
-    }
-
-    .timeline {
-      text-align: left;
-      max-width: 300px;
-      margin: 20px auto;
-      position: relative;
-    }
-
-    .timeline::before {
-      content: "";
-      position: absolute;
-      left: 10px;
-      width: 2px;
-      height: 100%;
-      background: orange;
-    }
-
-    .timeline-item {
-      margin-left: 30px;
-      margin-bottom: 15px;
-    }
-
-    #progressBar {
-      transition: width 0.5s ease;
-    }
-  </style>
-
-
-</head>
-
-
-<body>
-
-
-<header>
-  BlueWave Logistics 🚚
-</header>
-
-
-
-<div class="hero">
-  <h1>Fast & Reliable Shipping</h1>
-
-
-
-  <input type="text" id="code" placeholder="Enter tracking code">
-  <button onclick="track()">Track</button>
-
-
-  <div id="result"></div>
-
-
-
-  <!-- PROGRESS -->
-
-  <div style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
-    <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
-  </div>
-
-
-  <p id="progressText"></p>
-
-
-
-  <!-- MAP -->
-
-
-  <div id="map" style="width:90%; height:300px; margin:20px auto; border-radius:10px;"></div>
-</div>
-
-
-
-<!-- FIREBASE + APP -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_KEY",
-  authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
-  projectId: "bluewave-logistics-c9a21",
+  "BW5678": {
+    status: "Delivered",
+    location: "London, UK",
+    sender: "BlueWave Warehouse",
+    receiver: "Jane Doe",
+    weight: "2kg",
+    deliveryDate: "20 March 2026",
+    history: [
+      "Shipment created",
+      "In transit",
+      "Out for delivery",
+      "Delivered"
+    ]
+  }
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+function track() {
+  const code = document.getElementById("code").value.trim();
+  const data = shipments[code];
 
-let map, marker;
-
-function initMap(lat = 6.5244, lng = 3.3792) {
-  map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 5,
-    center: { lat, lng }
-  });
-
-  marker = new google.maps.Marker({
-    position: { lat, lng },
-    map: map
-  });
-}
-
-// Load default map
-initMap();
-
-window.track = async function () {
-  const input = document.getElementById("code").value;
-  const docRef = doc(db, "shipments", input);
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-
-    // MAP LOCATION
-    if (data.location.includes("New York")) initMap(40.7128, -74.0060);
-    else if (data.location.includes("Berlin")) initMap(52.52, 13.405);
-    else if (data.location.includes("London")) initMap(51.5074, -0.1278);
-    else initMap();
+  if (data) {
 
     // TIMELINE
     let historyHTML = "";
-    if (data.history) {
-      data.history.forEach(item => {
-        historyHTML += `<div class="timeline-item">${item}</div>`;
-      });
-    }
+    data.history.forEach(item => {
+      historyHTML += `<div class="timeline-item">${item}</div>`;
+    });
 
     historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
@@ -195,15 +58,15 @@ window.track = async function () {
     // RESULT
     document.getElementById("result").innerHTML =
       `<b>Status:</b> ${data.status}<br>
-       <b>Location:</b> ${data.location}<br><br>` +
+       <b>Location:</b> ${data.location}<br>
+       <b>Sender:</b> ${data.sender}<br>
+       <b>Receiver:</b> ${data.receiver}<br>
+       <b>Weight:</b> ${data.weight}<br>
+       <b>Delivery Date:</b> ${data.deliveryDate}<br><br>` +
       historyHTML;
 
   } else {
     document.getElementById("result").innerText = "Tracking code not found";
   }
-};
-</script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCYdExT0fPs-3WKkv4nkUrC54wic9snmLI"></script>
-
-
-
-
+}
+</script>
