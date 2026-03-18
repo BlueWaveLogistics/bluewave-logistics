@@ -126,7 +126,7 @@
   <!-- PROGRESS -->
   <div id="progressContainer" style="width:80%; max-width:300px; margin:20px auto; background:#333; border-radius:20px;">
     <div id="progressBar" style="height:10px; width:0%; background:orange; border-radius:20px;"></div>
-  </div>
+<div id="map" style="width:90%; height:300px; margin:20px auto; border-radius:10px;"></div>
 
   <p id="progressText"></p>
 
@@ -169,7 +169,19 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+let map, marker;
 
+function initMap(lat = 6.5244, lng = 3.3792) {
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 5,
+    center: { lat, lng }
+  });
+
+  marker = new google.maps.Marker({
+    position: { lat, lng },
+    map: map
+  });
+}
   // TRACK
   window.track = async function () {
     const input = document.getElementById("code").value;
@@ -178,7 +190,11 @@
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-
+      
+if (data.location.includes("New York")) initMap(40.7128, -74.0060);
+else if (data.location.includes("Berlin")) initMap(52.52, 13.405);
+else if (data.location.includes("London")) initMap(51.5074, -0.1278);
+else initMap(); // default
       let historyHTML = "";
       if (data.history) {
         data.history.forEach(item => {
@@ -255,6 +271,6 @@
     }
   };
 </script>
-
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
 </body>
 </html>
