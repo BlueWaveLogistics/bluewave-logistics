@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BlueWave Logistics</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #0b1f3a;
+      color: white;
+      padding: 20px;
+    }
+    input {
+      padding: 10px;
+      width: 200px;
+    }
+    button {
+      padding: 10px;
+      background: orange;
+      border: none;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>BlueWave Logistics 🚚</h1>
+  <p>Fast & Reliable Shipping Services</p>
+
+  <h2>Track Your Package</h2>
+
+  <input type="text" id="code" placeholder="Enter tracking code">
+  <button onclick="track()">Track</button>
+
+  <p id="result"></p>
+
+  <script>
+    const shipments = [
+      {code: "BW123", status: "In Transit", location: "Lagos"},
+      {code: "BW456", status: "Delivered", location: "Abuja"}
+    ];
+
+    function track() {
+      const input = document.getElementById("code").value;
+      const result = shipments.find(s => s.code === input);
+
+      if (result) {
+        document.getElementById("result").innerText =
+          "Status: " + result.status + " | Location: " + result.location;
+      } else {
+        document.getElementById("result").innerText =
+          "Tracking code not found";
+      }
+    }
+  </script>
+
+</body>
+</html>
