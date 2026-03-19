@@ -17,8 +17,8 @@
     .app {
       width: 100%;
       max-width: 420px;
-      min-height: 100vh;
       background: #111;
+      min-height: 100vh;
       color: white;
     }
 
@@ -63,27 +63,13 @@
     }
 
     .timeline {
-      margin-top: 15px;
+      margin-top: 10px;
       border-left: 2px solid #ffcc00;
       padding-left: 10px;
     }
 
     .timeline-item {
       margin-bottom: 8px;
-    }
-
-    #progressContainer {
-      margin-top: 15px;
-      background: #333;
-      border-radius: 10px;
-    }
-
-    #progressBar {
-      height: 10px;
-      width: 0%;
-      background: #ffcc00;
-      border-radius: 10px;
-      transition: 0.5s;
     }
   </style>
 </head>
@@ -92,191 +78,130 @@
 
 <div class="app">
 
-<header>BlueWave Logistics 🚚</header>
+<header>
+  BlueWave Logistics 🚚
+  <button onclick="unlockAdmin()" style="float:right;">Admin</button>
+</header>
 
 <div class="container">
 
+  <!-- TRACK -->
   <input id="code" placeholder="Enter tracking code">
   <button onclick="track()">Track</button>
 
-  <button onclick="showAllShipments()">📦 Admin Dashboard</button>
+  <button onclick="showAllShipments()">📦 Dashboard</button>
 
   <div id="result" class="card"></div>
 
-  <div id="progressContainer">
-    <div id="progressBar"></div>
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" style="display:none;" class="card">
+
+    <h3>Add Shipment</h3>
+
+    <input id="newLocation" placeholder="Location">
+    <input id="newReceiver" placeholder="Receiver">
+    <input id="newStatus" placeholder="Status">
+
+    <button onclick="addShipment()">Add Shipment</button>
+
   </div>
 
-  <p id="progressText"></p>
-
-  <h3>Add Shipment</h3>
-
-  <input id="newLocation" placeholder="Location">
-  <input id="newStatus" placeholder="Status">
-
-  <button onclick="setStatus('Pending')">Pending</button>
-  <button onclick="setStatus('In Transit')">Transit</button>
-  <button onclick="setStatus('Out for Delivery')">Out</button>
-  <button onclick="setStatus('Delivered')">Delivered</button>
-
-  <button onclick="addShipment()">Add Shipment</button>
-
 </div>
 
 </div>
 
-<!-- 💬 CHAT BUTTON -->
-<div style="
-position:fixed;
-bottom:20px;
-right:20px;
-background:#25D366;
-width:60px;
-height:60px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:24px;
-cursor:pointer;
-">
-💬
-</div>
+<!-- FIREBASE -->
+<script type="module">
 
-<script>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-// 💾 STORAGE
-let shipments = JSON.parse(localStorage.getItem("shipments")) || {
-  "BW1001": {
-    status: "In Transit",
-    location: "New York",
-    sender: "BlueWave",
-    receiver: "John Doe",
-    weight: "5kg",
-    deliveryDate: "25 March 2026",
-    history: ["Shipment created - Italy", "In transit"]
-  }
+// 🔥 YOUR FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_KEY",
+  authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
+  projectId: "bluewave-logistics-c9a21"
 };
 
-let counter = Object.keys(shipments).length + 1000;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-function saveData() {
-  localStorage.setItem("shipments", JSON.stringify(shipments));
-}
+// 🚀 TRACK
+window.track = async function () {
+  const code = document.getElementById("code").value.trim();
 
-// 🚀 TRACK SYSTEM
-function track() {
-  const code = document.getElementById("code").value.trim().toUpperCase();
-  let data = shipments[code];
+  const ref = doc(db, "shipments", code);
+  const snap = await getDoc(ref);
 
-  // AUTO GENERATE
-  if (!data) {
-    const locations = ["New York", "London", "Berlin", "Paris", "Madrid", "Rome"];
-    const names = ["John Doe", "Maria Lopez", "Ali Khan", "Sophia Klein"];
-
-    const statusList = ["Pending", "In Transit", "Out for Delivery", "Delivered"];
-    const status = statusList[Math.floor(Math.random() * statusList.length)];
-
-    data = {
-      status,
-      location: locations[Math.floor(Math.random() * locations.length)],
-      sender: "BlueWave",
-      receiver: names[Math.floor(Math.random() * names.length)],
-      weight: Math.floor(Math.random() * 10 + 1) + "kg",
-      deliveryDate: "Arriving soon",
-      history: ["Shipment created - Italy", status]
-    };
+  if (!snap.exists()) {
+    document.getElementById("result").innerHTML =
+      "<p style='color:red;'>Tracking not found</p>";
+    return;
   }
 
-  let extraMsg = "";
-  if (data.status === "Out for Delivery") {
-    extraMsg = "<br><b>🚚 Arriving Today</b>";
-  }
+  const data = snap.data();
 
   let historyHTML = "";
-  data.history.forEach(h => {
-    historyHTML += `<div class="timeline-item">${h}</div>`;
-  });
-
-  let progress = 25;
-  if (data.status === "In Transit") progress = 50;
-  if (data.status === "Out for Delivery") progress = 75;
-  if (data.status === "Delivered") progress = 100;
-
-  document.getElementById("progressBar").style.width = progress + "%";
-  document.getElementById("progressText").innerText = "Progress: " + progress + "%";
+  if (data.history) {
+    data.history.forEach(h => {
+      historyHTML += `<div class="timeline-item">${h}</div>`;
+    });
+  }
 
   document.getElementById("result").innerHTML = `
     <b>📦 ${code}</b><br><br>
     📍 ${data.location}<br>
     👤 ${data.receiver}<br>
-    ⚖️ ${data.weight}<br>
-    📅 ${data.deliveryDate}
-    ${extraMsg}
+    📦 ${data.status}<br>
     <div class="timeline">${historyHTML}</div>
   `;
-}
+};
 
 // ➕ ADD SHIPMENT
-function addShipment() {
-  counter++;
-  const code = "BW" + counter;
+window.addShipment = async function () {
+  const code = "BW" + Math.floor(Math.random() * 10000);
 
-  shipments[code] = {
-    status: document.getElementById("newStatus").value,
+  await setDoc(doc(db, "shipments", code), {
     location: document.getElementById("newLocation").value,
-    sender: "BlueWave",
-    receiver: "Customer",
-    weight: "3kg",
-    deliveryDate: "Processing",
-    history: ["Created"]
-  };
+    receiver: document.getElementById("newReceiver").value,
+    status: document.getElementById("newStatus").value,
+    history: ["Shipment created"]
+  });
 
-  saveData();
   alert("Created: " + code);
-}
+};
 
-// 📦 ADMIN DASHBOARD
-function showAllShipments() {
+// 📦 DASHBOARD
+window.showAllShipments = async function () {
+  const querySnapshot = await getDocs(collection(db, "shipments"));
+
   let output = "<h3>All Shipments</h3>";
 
-  for (let code in shipments) {
-    let s = shipments[code];
+  querySnapshot.forEach(docSnap => {
+    const s = docSnap.data();
 
     output += `
       <div class="card">
-        <b>${code}</b><br>
+        <b>${docSnap.id}</b><br>
         📍 ${s.location}<br>
-        📦 ${s.status}<br><br>
-
-        <button onclick="deleteShipment('${code}')">Delete</button>
-        <button onclick="updateStatus('${code}')">Mark Delivered</button>
+        📦 ${s.status}
       </div>
     `;
-  }
+  });
 
   document.getElementById("result").innerHTML = output;
-}
+};
 
-// ❌ DELETE
-function deleteShipment(code) {
-  delete shipments[code];
-  saveData();
-  showAllShipments();
-}
+// 🔐 ADMIN LOGIN
+window.unlockAdmin = function () {
+  const pass = prompt("Admin password");
 
-// ⚡ UPDATE
-function updateStatus(code) {
-  shipments[code].status = "Delivered";
-  shipments[code].history.push("Delivered");
-  saveData();
-  showAllShipments();
-}
-
-// STATUS BUTTON
-function setStatus(status) {
-  document.getElementById("newStatus").value = status;
-}
+  if (pass === "admin123") {
+    document.getElementById("adminPanel").style.display = "block";
+  } else {
+    alert("Wrong password");
+  }
+};
 
 </script>
 
