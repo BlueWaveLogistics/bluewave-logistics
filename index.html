@@ -5,7 +5,7 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- LEAFLET CSS -->
+  <!-- LEAFLET -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
   <style>
@@ -21,21 +21,27 @@
       background: #ffcc00;
       color: black;
       padding: 15px;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
+    }
+
+    h2 {
+      margin-top: 30px;
     }
 
     input {
       padding: 14px;
       width: 80%;
-      max-width: 300px;
+      max-width: 320px;
       border-radius: 8px;
       border: none;
       margin: 10px;
+      background: #222;
+      color: white;
     }
 
     button {
-      padding: 14px 20px;
+      padding: 14px 25px;
       border-radius: 8px;
       background: #ffcc00;
       border: none;
@@ -44,8 +50,9 @@
     }
 
     #result {
-      margin: 20px;
+      margin: 20px auto;
       padding: 20px;
+      max-width: 350px;
       background: #1a1a1a;
       border-radius: 10px;
       text-align: left;
@@ -54,18 +61,23 @@
 
     #progressContainer {
       width: 80%;
-      max-width: 300px;
+      max-width: 350px;
       margin: 20px auto;
       background: #333;
       border-radius: 20px;
     }
 
     #progressBar {
-      height: 10px;
+      height: 12px;
       width: 0%;
       background: #ffcc00;
       border-radius: 20px;
-      transition: 0.5s;
+      transition: 0.3s;
+    }
+
+    #progressText {
+      margin-top: 10px;
+      color: #aaa;
     }
 
     .timeline {
@@ -91,7 +103,7 @@
 
 <header>BlueWave Logistics 🚚</header>
 
-<h2>Track Shipment</h2>
+<h2>Live Shipment Tracking</h2>
 
 <input id="code" placeholder="Enter tracking code">
 <br>
@@ -103,14 +115,16 @@
   <div id="progressBar"></div>
 </div>
 
+<p id="progressText"></p>
+
 <div id="map"></div>
 
-<!-- LEAFLET JS -->
+<!-- LEAFLET -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
-let map, marker, routeLine;
+let map, marker, routeLine, interval;
 
 // INIT MAP
 function initMap() {
@@ -125,34 +139,68 @@ function initMap() {
 function drawRoute(route) {
   if (routeLine) map.removeLayer(routeLine);
 
-  routeLine = L.polyline(route, { color: 'orange' }).addTo(map);
+  routeLine = L.polyline(route, { color: 'orange', weight: 4 }).addTo(map);
 }
 
-// MOVE TRUCK
-function moveTruck(route) {
-  let index = 0;
+// 🚚 REAL-TIME MOVEMENT
+function moveTruckLive(route) {
+  if (interval) clearInterval(interval);
+
+  let i = 0;
+  let progressStep = 0;
+  let speed = 0.01;
 
   if (marker) map.removeLayer(marker);
 
   marker = L.marker(route[0]).addTo(map);
 
-  const interval = setInterval(() => {
-    index++;
+  interval = setInterval(() => {
 
-    if (index >= route.length) {
+    if (i >= route.length - 1) {
       clearInterval(interval);
+      document.getElementById("progressText").innerText = "Delivered ✅";
+      document.getElementById("progressBar").style.width = "100%";
       return;
     }
 
-    marker.setLatLng(route[index]);
-  }, 1500);
+    let start = route[i];
+    let end = route[i + 1];
+
+    let lat = start[0] + (end[0] - start[0]) * progressStep;
+    let lng = start[1] + (end[1] - start[1]) * progressStep;
+
+    marker.setLatLng([lat, lng]);
+
+    // 📍 LIVE LOCATION
+    document.getElementById("progressText").innerText =
+      `📍 Live: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+    progressStep += speed;
+
+    if (progressStep >= 1) {
+      progressStep = 0;
+      i++;
+      updateProgress(i, route.length);
+    }
+
+  }, 100);
+}
+
+// 📊 PROGRESS
+function updateProgress(step, total) {
+  let progress = (step / (total - 1)) * 100;
+  document.getElementById("progressBar").style.width = progress + "%";
 }
 
 // TRACK FUNCTION
 function track() {
   const code = document.getElementById("code").value;
 
-  // ROUTE (MULTI-STOPS)
+  if (!code) {
+    alert("Enter tracking code");
+    return;
+  }
+
   const route = [
     [41.9028, 12.4964], // Italy
     [52.52, 13.405],    // Berlin
@@ -162,31 +210,20 @@ function track() {
 
   initMap();
   drawRoute(route);
-  moveTruck(route);
-
-  // RANDOM STATUS
-  const statuses = ["Pending", "In Transit", "Out for Delivery", "Delivered"];
-  const status = statuses[Math.floor(Math.random()*statuses.length)];
-
-  let progress = 25;
-  if (status === "In Transit") progress = 50;
-  if (status === "Out for Delivery") progress = 75;
-  if (status === "Delivered") progress = 100;
-
-  document.getElementById("progressBar").style.width = progress + "%";
+  moveTruckLive(route);
 
   // TIMELINE
-  let historyHTML = `<div class="timeline">
-    <div class="timeline-item">Italy Warehouse</div>
-    <div class="timeline-item">Berlin Facility</div>
-    <div class="timeline-item">London Hub</div>
-    <div class="timeline-item">New York Destination</div>
+  let historyHTML = `
+  <div class="timeline">
+    <div class="timeline-item">📦 Shipment created - Italy</div>
+    <div class="timeline-item">🚚 In transit - Berlin</div>
+    <div class="timeline-item">✈️ Arrived - London</div>
+    <div class="timeline-item">🏠 Out for delivery - New York</div>
   </div>`;
 
-  // RESULT
   document.getElementById("result").innerHTML = `
-    <b>📦 ${code}</b><br><br>
-    📦 Status: ${status}<br><br>
+    <b>📦 Tracking ID:</b> ${code}<br><br>
+    🚚 Live tracking started...
     ${historyHTML}
   `;
 }
