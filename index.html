@@ -18,11 +18,28 @@
       background: #ffcc00;
       color: black;
       padding: 15px;
-      font-size: 22px;
-      font-weight: bold;
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo img {
+      height: 50px;
+    }
+
+    .hero {
+      padding: 40px 20px;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
     }
 
     input {
@@ -31,7 +48,7 @@
       max-width: 320px;
       border-radius: 10px;
       border: none;
-      margin: 10px;
+      margin-top: 15px;
       background: #1f1f1f;
       color: white;
     }
@@ -43,6 +60,7 @@
       border: none;
       border-radius: 10px;
       font-weight: bold;
+      margin-top: 10px;
       cursor: pointer;
     }
 
@@ -58,10 +76,20 @@
     }
 
     .status {
-      display: inline-block;
       padding: 6px 14px;
       border-radius: 20px;
       font-weight: bold;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .timeline {
+      margin-top: 15px;
+      border-left: 2px solid #ffcc00;
+      padding-left: 15px;
+    }
+
+    .timeline-item {
       margin-bottom: 10px;
     }
 
@@ -81,17 +109,13 @@
       transition: 1s;
     }
 
-    .timeline {
-      margin-top: 15px;
-      border-left: 2px solid #ffcc00;
-      padding-left: 15px;
+    footer {
+      margin-top: 50px;
+      padding: 25px;
+      background: #0a0a0a;
+      border-top: 2px solid #ffcc00;
     }
 
-    .timeline-item {
-      margin-bottom: 10px;
-    }
-
-    /* WhatsApp */
     .whatsapp {
       position: fixed;
       bottom: 20px;
@@ -109,22 +133,26 @@
 <body>
 
 <header>
-  <div style="display:flex; align-items:center; gap:10px;">
-    <img src="https://cdn-icons-png.flaticon.com/512/1048/1048314.png" style="height:45px;">
-    
-    <div style="line-height:1;">
-      <div style="font-weight:bold;">BlueWave</div>
-      <small style="font-size:12px;">Logistics</small>
+  <div class="logo">
+    <!-- USE YOUR LOGO -->
+    <img src="./logo.png">
+    <div>
+      <b>BlueWave</b><br>
+      <small>Logistics</small>
     </div>
   </div>
 
   <button>Admin</button>
 </header>
-<h2>Track Shipment</h2>
 
-<input id="code" placeholder="Enter tracking code">
-<br>
-<button onclick="track()">Track</button>
+<div class="hero">
+  <h1>Fast & Reliable Shipping</h1>
+  <p style="color:#aaa;">Track your shipment in real-time</p>
+
+  <input id="code" placeholder="Enter tracking code">
+  <br>
+  <button onclick="track()">Track</button>
+</div>
 
 <div id="result"></div>
 
@@ -137,7 +165,6 @@
 <script>
 
 let shipments = {
-
   "BW1001": {
     status: "In Transit",
     location: "New York, USA",
@@ -147,48 +174,8 @@ let shipments = {
     deliveryDate: "25 March 2026",
     history: [
       "Shipment created - Italy",
-      "Picked up by BlueWave",
-      "In transit to USA"
-    ]
-  },
-
-  "BW1002": {
-    status: "Delivered",
-    location: "London, UK",
-    sender: "BlueWave",
-    receiver: "Emma Watson",
-    weight: "3kg",
-    deliveryDate: "20 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "In transit",
-      "Delivered"
-    ]
-  },
-
-  "BW1003": {
-    status: "Out for Delivery",
-    location: "Toronto, Canada",
-    sender: "BlueWave",
-    receiver: "Michael Lee",
-    weight: "2kg",
-    deliveryDate: "26 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "Arrived in Canada",
-      "Out for delivery"
-    ]
-  },
-
-  "BW1004": {
-    status: "Pending",
-    location: "Dubai, UAE",
-    sender: "BlueWave",
-    receiver: "Ali Hassan",
-    weight: "6kg",
-    deliveryDate: "30 March 2026",
-    history: [
-      "Shipment created - Italy"
+      "Picked up",
+      "In transit"
     ]
   },
 
@@ -205,7 +192,6 @@ let shipments = {
       "In transit"
     ]
   }
-
 };
 
 function track() {
@@ -223,11 +209,7 @@ function track() {
     data.status === "In Transit" ? "orange" :
     data.status === "Out for Delivery" ? "gold" : "gray";
 
-  let statusHTML = `
-    <div class="status" style="background:${color};">
-      ${data.status}
-    </div>
-  `;
+  let statusHTML = `<div class="status" style="background:${color};">${data.status}</div>`;
 
   let historyHTML = "";
   data.history.forEach(item => {
@@ -265,8 +247,7 @@ function track() {
 
 </script>
 
-<!-- CONTACT -->
-<div style="margin-top:50px; padding:25px; background:#0a0a0a;">
+<footer>
   <h3>Customer Support</h3>
   <p style="color:#aaa;">For tracking issues or delivery inquiries</p>
   <p>
@@ -274,10 +255,10 @@ function track() {
       support@shippingcompanyservice015@gmail.com
     </a>
   </p>
-</div>
+  <p style="color:#555;">© 2026 BlueWave Logistics</p>
+</footer>
 
-<!-- WHATSAPP -->
-<a class="whatsapp" href="https://wa.me/234XXXXXXXXXX" target="_blank">💬</a>
+<a class="whatsapp" href="https://wa.me/234XXXXXXXXXX">💬</a>
 
 </body>
 </html>
