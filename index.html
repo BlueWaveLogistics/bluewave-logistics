@@ -5,15 +5,11 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- LEAFLET -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
   <style>
     body {
       margin: 0;
       font-family: Arial;
-      background: #0b0b0b;
+      background: #111;
       color: white;
       text-align: center;
     }
@@ -26,83 +22,66 @@
       font-size: 20px;
     }
 
-    .hero {
-      background:url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d');
-      background-size:cover;
-      padding:80px 20px;
+    input {
+      padding: 12px;
+      margin: 10px;
+      width: 80%;
+      max-width: 300px;
+      border: none;
+      border-radius: 8px;
     }
 
-    .search-box {
-      background:white;
-      border-radius:10px;
-      max-width:400px;
-      margin:auto;
-      display:flex;
-      overflow:hidden;
+    button {
+      padding: 12px 20px;
+      background: #ffcc00;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
     }
 
-    .search-box input {
-      flex:1;
-      padding:12px;
-      border:none;
-      outline:none;
+    #loginBox, #dashboard {
+      margin-top: 40px;
     }
 
-    .search-box button {
-      background:#ffcc00;
-      border:none;
-      padding:12px;
-      font-weight:bold;
-    }
-
-    .grid {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:15px;
-      padding:20px;
-    }
-
-    .card {
-      background:#1a1a1a;
-      padding:20px;
-      border-radius:10px;
+    #dashboard {
+      display: none;
     }
 
     #result {
-      margin:20px;
-      padding:20px;
-      background:#1a1a1a;
-      border-left:5px solid #ffcc00;
-      border-radius:10px;
-      text-align:left;
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 350px;
+      background: #1a1a1a;
+      border-radius: 12px;
+      text-align: left;
+      border-left: 5px solid #ffcc00;
     }
 
     .timeline {
-      border-left:2px solid #ffcc00;
-      padding-left:10px;
-      margin-top:10px;
+      border-left: 2px solid #ffcc00;
+      padding-left: 10px;
+      margin-top: 10px;
+    }
+
+    .timeline-item {
+      margin-bottom: 8px;
     }
 
     #progressContainer {
-      width:80%;
-      margin:auto;
-      background:#333;
-      border-radius:20px;
+      width: 80%;
+      max-width: 350px;
+      margin: 20px auto;
+      background: #333;
+      border-radius: 20px;
     }
 
     #progressBar {
-      height:10px;
-      width:0%;
-      background:#ffcc00;
-      border-radius:20px;
-    }
-
-    #map {
-      width:90%;
-      height:320px;
-      margin:20px auto;
-      border-radius:10px;
-      display:none;
+      height: 10px;
+      width: 0%;
+      background: #ffcc00;
+      border-radius: 20px;
+      transition: 0.5s;
     }
   </style>
 </head>
@@ -111,173 +90,136 @@
 
 <header>BlueWave Logistics 🚚</header>
 
-<div class="hero">
-  <h1>Live Shipment Tracking</h1>
+<!-- LOGIN -->
+<div id="loginBox">
+  <h2>Login</h2>
+  <input id="email" placeholder="Email"><br>
+  <input id="password" type="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+</div>
 
-  <div class="search-box">
-    <input id="code" placeholder="Enter tracking number">
-    <button onclick="track()">Track</button>
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <h2>Track Shipment</h2>
+
+  <input id="code" placeholder="Enter tracking code"><br>
+  <button onclick="track()">Track</button>
+
+  <div id="result"></div>
+
+  <div id="progressContainer">
+    <div id="progressBar"></div>
   </div>
+
+  <p id="progressText"></p>
 </div>
-
-<div class="grid">
-  <div class="card">🚚 Fast Delivery</div>
-  <div class="card">✈️ International Shipping</div>
-  <div class="card">📦 Secure Packaging</div>
-  <div class="card">📍 Real-Time Tracking</div>
-</div>
-
-<div id="result"></div>
-
-<div id="progressContainer">
-  <div id="progressBar"></div>
-</div>
-
-<p id="progressText"></p>
-
-<div id="map"></div>
 
 <script>
 
-let map, marker, routeLine, interval;
+// SIMPLE LOGIN
+function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-// MULTIPLE SHIPMENTS
-let shipments = {
-
-  "BW1001": {
-    route: [
-      [41.9028, 12.4964],
-      [48.8566, 2.3522],
-      [52.52, 13.405],
-      [51.5074, -0.1278],
-      [40.7128, -74.0060]
-    ],
-    history: ["Italy created", "Paris transit", "Berlin hub", "London hub"]
-  },
-
-  "BW1002": {
-    route: [
-      [45.4642, 9.19],
-      [50.1109, 8.6821],
-      [52.52, 13.405],
-      [59.3293, 18.0686]
-    ],
-    history: ["Milan", "Frankfurt", "Berlin", "Stockholm"]
-  },
-
-  "BW1003": {
-    route: [
-      [40.4168, -3.7038],
-      [48.8566, 2.3522],
-      [51.5074, -0.1278],
-      [40.7128, -74.0060]
-    ],
-    history: ["Madrid", "Paris", "London", "USA"]
+  if (email && password) {
+    localStorage.setItem("user", email);
+    showDashboard();
+  } else {
+    alert("Enter login details");
   }
+}
 
+function showDashboard() {
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+}
+
+// AUTO LOGIN
+if (localStorage.getItem("user")) {
+  showDashboard();
+}
+
+// SHIPMENTS DATA
+let shipments = {
+  "BW1001": {
+    status: "In Transit",
+    location: "New York, USA",
+    history: ["Created - Italy", "Picked up", "In transit"]
+  },
+  "BW1002": {
+    status: "Delivered",
+    location: "London, UK",
+    history: ["Created", "Transit", "Delivered"]
+  },
+  "BW1003": {
+    status: "Out for Delivery",
+    location: "Berlin, Germany",
+    history: ["Created", "Transit", "Out for delivery"]
+  }
 };
 
-// MAP INIT
-function initMap() {
-  map = L.map('map').setView([45, 10], 4);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-    .addTo(map);
-}
-
-// DRAW ROUTE
-function drawRoute(route) {
-  if (routeLine) map.removeLayer(routeLine);
-
-  routeLine = L.polyline(route, {
-    color: '#ffcc00',
-    weight: 5
-  }).addTo(map);
-
-  map.fitBounds(route);
-}
-
-// MOVE TRUCK
-function moveTruck(route) {
-
-  if (interval) clearInterval(interval);
-
-  let i = 0;
-  let progress = 0;
-
-  const truckIcon = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/1995/1995470.png",
-    iconSize: [40, 40]
-  });
-
-  marker = L.marker(route[0], { icon: truckIcon }).addTo(map);
-
-  interval = setInterval(() => {
-
-    if (i >= route.length - 1) {
-      clearInterval(interval);
-      document.getElementById("progressText").innerText = "Delivered ✅";
-      document.getElementById("progressBar").style.width = "100%";
-      return;
-    }
-
-    let start = route[i];
-    let end = route[i + 1];
-
-    let lat = start[0] + (end[0] - start[0]) * progress;
-    let lng = start[1] + (end[1] - start[1]) * progress;
-
-    marker.setLatLng([lat, lng]);
-
-    document.getElementById("progressText").innerText =
-      `📍 ${lat.toFixed(3)}, ${lng.toFixed(3)}`;
-
-    progress += 0.02;
-
-    if (progress >= 1) {
-      progress = 0;
-      i++;
-      updateProgress(i, route.length);
-    }
-
-  }, 100);
-}
-
-// PROGRESS
-function updateProgress(step, total) {
-  let percent = (step / (total - 1)) * 100;
-  document.getElementById("progressBar").style.width = percent + "%";
-}
-
-// TRACK
+// TRACK FUNCTION
 function track() {
-
   const code = document.getElementById("code").value.trim();
+  const data = shipments[code];
 
-  if (!shipments[code]) {
-    document.getElementById("result").innerHTML = "❌ Tracking not found";
+  if (!data) {
+    document.getElementById("result").innerHTML =
+      "<p style='color:red;'>Tracking code not found</p>";
     return;
   }
 
-  const data = shipments[code];
+  // STATUS COLOR
+  let color =
+    data.status === "Delivered" ? "green" :
+    data.status === "In Transit" ? "orange" :
+    data.status === "Out for Delivery" ? "gold" : "gray";
 
-  document.getElementById("map").style.display = "block";
-
-  initMap();
-  drawRoute(data.route);
-  moveTruck(data.route);
-
-  let historyHTML = "<div class='timeline'>";
-  data.history.forEach(item => {
-    historyHTML += `<div>${item}</div>`;
-  });
-  historyHTML += "</div>";
-
-  document.getElementById("result").innerHTML = `
-    <b>📦 ${code}</b><br><br>
-    🚚 Shipment in transit
-    ${historyHTML}
+  let statusHTML = `
+    <div style="
+      background:${color};
+      padding:8px 16px;
+      border-radius:20px;
+      display:inline-block;
+      font-weight:bold;
+      margin-bottom:10px;
+      color:${color === 'gold' ? 'black' : 'white'};
+    ">
+      ${data.status}
+    </div>
   `;
+
+  // TIMELINE
+  let historyHTML = "";
+  data.history.forEach(item => {
+    historyHTML += `<div class="timeline-item">${item}</div>`;
+  });
+
+  historyHTML = `<div class="timeline">${historyHTML}</div>`;
+
+  // PROGRESS
+  let progress = 0;
+  if (data.status === "Pending") progress = 25;
+  else if (data.status === "In Transit") progress = 50;
+  else if (data.status === "Out for Delivery") progress = 75;
+  else if (data.status === "Delivered") progress = 100;
+
+  const bar = document.getElementById("progressBar");
+  bar.style.width = "0%";
+
+  setTimeout(() => {
+    bar.style.width = progress + "%";
+  }, 200);
+
+  document.getElementById("progressText").innerText =
+    "Progress: " + progress + "%";
+
+  // RESULT
+  document.getElementById("result").innerHTML =
+    statusHTML + `
+    <br>
+    <b>📍 Location:</b> ${data.location}<br><br>
+    ` + historyHTML;
 }
 
 </script>
