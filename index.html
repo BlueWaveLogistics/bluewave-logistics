@@ -53,7 +53,6 @@
       border-left: 5px solid #ffcc00;
       border-radius: 12px;
       text-align: left;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.6);
     }
 
     .status {
@@ -105,10 +104,10 @@
 
     .card {
       background: #1a1a1a;
+      padding: 15px;
+      border-radius: 12px;
       margin: 10px;
-      padding: 10px;
-      border-radius: 10px;
-      text-align: left;
+      box-shadow: 0 0 10px rgba(255,204,0,0.2);
     }
   </style>
 </head>
@@ -137,6 +136,27 @@
 <!-- ADMIN PANEL -->
 <div id="adminPanel">
 
+  <h3>Dashboard</h3>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+    <div class="card">
+      <h4>Total</h4>
+      <p id="totalCount">0</p>
+    </div>
+
+    <div class="card">
+      <h4>In Transit</h4>
+      <p id="transitCount">0</p>
+    </div>
+
+    <div class="card">
+      <h4>Delivered</h4>
+      <p id="deliveredCount">0</p>
+    </div>
+  </div>
+
+  <input id="searchBox" placeholder="Search tracking ID..." oninput="searchShipment()">
+
   <h3>Add Shipment</h3>
 
   <input id="newLocation" placeholder="Location"><br>
@@ -144,7 +164,6 @@
   <input id="newReceiver" placeholder="Receiver"><br>
   <input id="newWeight" placeholder="Weight"><br>
   <input id="newDate" placeholder="Delivery Date"><br>
-
   <input id="newStatus" placeholder="Status"><br>
 
   <button onclick="setStatus('Pending')">Pending</button>
@@ -155,8 +174,6 @@
   <br>
   <button onclick="addShipment()">Add Shipment</button>
 
-  <hr>
-
   <h3>All Shipments</h3>
   <div id="shipmentList"></div>
 
@@ -164,97 +181,29 @@
 
 <script>
 
-// MULTIPLE SHIPMENTS
 let shipments = {
-
-  "BW1001": {
-    status: "In Transit",
-    location: "New York, USA",
-    sender: "BlueWave",
-    receiver: "John Doe",
-    weight: "5kg",
-    deliveryDate: "25 March 2026",
-    history: ["Shipment created - Italy", "Picked up", "In transit"]
-  },
-
-  "BW1002": {
-    status: "Delivered",
-    location: "London, UK",
-    sender: "BlueWave",
-    receiver: "Emma Brown",
-    weight: "2kg",
-    deliveryDate: "20 March 2026",
-    history: ["Shipment created - Italy", "Delivered"]
-  },
-
-  "BW1003": {
-    status: "Pending",
-    location: "Paris, France",
-    sender: "BlueWave",
-    receiver: "Lucas Martin",
-    weight: "3kg",
-    deliveryDate: "30 March 2026",
-    history: ["Shipment created - Italy"]
-  },
-
-  "BW1004": {
-    status: "Out for Delivery",
-    location: "Berlin, Germany",
-    sender: "BlueWave",
-    receiver: "Sophia Klein",
-    weight: "4kg",
-    deliveryDate: "28 March 2026",
-    history: ["Shipment created - Italy", "In transit", "Out for delivery"]
-  },
-
-  "BW1005": {
-    status: "In Transit",
-    location: "Madrid, Spain",
-    sender: "BlueWave",
-    receiver: "Carlos Diaz",
-    weight: "6kg",
-    deliveryDate: "27 March 2026",
-    history: ["Shipment created - Italy", "In transit"]
-  },
-
-  "BW1006": {
-    status: "Out for Delivery",
-    location: "Amsterdam, Netherlands",
-    sender: "BlueWave",
-    receiver: "Anna de Vries",
-    weight: "1.5kg",
-    deliveryDate: "26 March 2026",
-    history: ["Shipment created - Italy", "In transit", "Out for delivery"]
-  }
-
+  "BW1001": {status:"In Transit",location:"New York, USA",sender:"BlueWave",receiver:"John Doe",weight:"5kg",deliveryDate:"25 March 2026",history:["Shipment created - Italy","Picked up","In transit"]},
+  "BW1002": {status:"Delivered",location:"London, UK",sender:"BlueWave",receiver:"Emma Brown",weight:"2kg",deliveryDate:"20 March 2026",history:["Shipment created - Italy","Delivered"]},
+  "BW1003": {status:"Pending",location:"Paris, France",sender:"BlueWave",receiver:"Lucas Martin",weight:"3kg",deliveryDate:"30 March 2026",history:["Shipment created - Italy"]},
+  "BW1004": {status:"Out for Delivery",location:"Berlin, Germany",sender:"BlueWave",receiver:"Sophia Klein",weight:"4kg",deliveryDate:"28 March 2026",history:["Shipment created - Italy","In transit","Out for delivery"]},
+  "BW1005": {status:"In Transit",location:"Madrid, Spain",sender:"BlueWave",receiver:"Carlos Diaz",weight:"6kg",deliveryDate:"27 March 2026",history:["Shipment created - Italy","In transit"]},
+  "BW1006": {status:"Out for Delivery",location:"Amsterdam, Netherlands",sender:"BlueWave",receiver:"Anna de Vries",weight:"1.5kg",deliveryDate:"26 March 2026",history:["Shipment created - Italy","In transit","Out for delivery"]}
 };
 
-// SET STATUS
-function setStatus(status) {
-  document.getElementById("newStatus").value = status;
-}
-
-// TRACK FUNCTION
 function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
 
   if (!data) {
-    document.getElementById("result").innerHTML =
-      "<p style='color:red;'>Tracking code not found</p>";
-    document.getElementById("progressBar").style.width = "0%";
-    document.getElementById("progressText").innerText = "";
+    document.getElementById("result").innerHTML = "<p style='color:red;'>Tracking code not found</p>";
     return;
   }
 
   let statusClass = "";
-
   if (data.status === "Pending") statusClass = "pending";
   else if (data.status === "In Transit") statusClass = "transit";
   else if (data.status === "Out for Delivery") statusClass = "out";
   else if (data.status === "Delivered") statusClass = "delivered";
-
-  let statusHTML = `<div class="status ${statusClass}">${data.status}</div>`;
 
   let historyHTML = "";
   data.history.forEach(item => {
@@ -267,11 +216,10 @@ function track() {
   if (data.status === "Delivered") progress = 100;
 
   document.getElementById("progressBar").style.width = progress + "%";
-  document.getElementById("progressText").innerText =
-    "Progress: " + progress + "%";
+  document.getElementById("progressText").innerText = "Progress: " + progress + "%";
 
   document.getElementById("result").innerHTML =
-    statusHTML + `
+    `<div class="status ${statusClass}">${data.status}</div>
     <br>
     <b>📦 Tracking ID:</b> ${code}<br><br>
     📍 ${data.location}<br>
@@ -279,41 +227,33 @@ function track() {
     👤 ${data.receiver}<br>
     ⚖️ ${data.weight}<br>
     📅 ${data.deliveryDate}<br>
-    <div class="timeline">${historyHTML}</div>
-  `;
+    <div class="timeline">${historyHTML}</div>`;
 }
 
-// ADMIN LOGIN
 function unlockAdmin() {
-  const pass = prompt("Enter admin password:");
-  if (pass === "admin123") {
+  if (prompt("Password") === "admin123") {
     document.getElementById("adminPanel").style.display = "block";
     loadShipments();
   }
 }
 
-// ADD SHIPMENT
 function addShipment() {
   const code = "BW" + Math.floor(Math.random() * 9000 + 1000);
 
-  const status = document.getElementById("newStatus").value;
-  const location = document.getElementById("newLocation").value;
-
   shipments[code] = {
-    status,
-    location,
+    status: document.getElementById("newStatus").value,
+    location: document.getElementById("newLocation").value,
     sender: document.getElementById("newSender").value,
     receiver: document.getElementById("newReceiver").value,
     weight: document.getElementById("newWeight").value,
     deliveryDate: document.getElementById("newDate").value,
-    history: [status + " - " + location]
+    history: ["Shipment created - Italy"]
   };
 
-  alert("Shipment Created: " + code);
+  alert("Created: " + code);
   loadShipments();
 }
 
-// LOAD ADMIN LIST
 function loadShipments() {
   let list = "";
 
@@ -330,12 +270,47 @@ function loadShipments() {
   }
 
   document.getElementById("shipmentList").innerHTML = list;
+  updateDashboard();
 }
 
-// QUICK TRACK
 function quickTrack(code) {
   document.getElementById("code").value = code;
   track();
+}
+
+function updateDashboard() {
+  let total = 0, transit = 0, delivered = 0;
+
+  for (let code in shipments) {
+    total++;
+    if (shipments[code].status === "In Transit") transit++;
+    if (shipments[code].status === "Delivered") delivered++;
+  }
+
+  document.getElementById("totalCount").innerText = total;
+  document.getElementById("transitCount").innerText = transit;
+  document.getElementById("deliveredCount").innerText = delivered;
+}
+
+function searchShipment() {
+  const search = document.getElementById("searchBox").value.toLowerCase();
+  let list = "";
+
+  for (let code in shipments) {
+    if (code.toLowerCase().includes(search)) {
+      let s = shipments[code];
+
+      list += `
+        <div class="card">
+          <b>${code}</b><br>
+          ${s.status} - ${s.location}<br>
+          <button onclick="quickTrack('${code}')">Track</button>
+        </div>
+      `;
+    }
+  }
+
+  document.getElementById("shipmentList").innerHTML = list;
 }
 
 </script>
