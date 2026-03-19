@@ -1,145 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BlueWave Logistics</title>
+  <title>BlueWave Logistics</title>
 
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {
-  margin:0;
-  font-family:Arial;
-  background:#0d0d0d;
-  color:white;
-  text-align:center;
-}
+  <style>
+    body {
+      margin:0;
+      font-family: Arial;
+      background:#000;
+      color:white;
+    }
 
-header {
-  background:#ffcc00;
-  color:black;
-  padding:15px;
-  font-weight:bold;
-}
+    header {
+      background:#ffcc00;
+      padding:15px;
+      text-align:center;
+      font-weight:bold;
+      font-size:20px;
+      color:black;
+    }
 
-input {
-  padding:12px;
-  margin:10px;
-  width:85%;
-  max-width:320px;
-  border:none;
-  border-radius:10px;
-  background:#222;
-  color:white;
-}
+    .hero {
+      background:url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+      background-size:cover;
+      padding:100px 20px;
+      text-align:center;
+    }
 
-button {
-  padding:12px;
-  background:#ffcc00;
-  border:none;
-  border-radius:10px;
-  font-weight:bold;
-  cursor:pointer;
-  margin:5px;
-}
+    .hero h1 {
+      font-size:32px;
+    }
 
-.card {
-  margin:15px auto;
-  padding:15px;
-  max-width:350px;
-  background:#1a1a1a;
-  border-left:5px solid #ffcc00;
-  border-radius:12px;
-  text-align:left;
-}
+    .search-box {
+      margin-top:20px;
+      display:flex;
+      max-width:400px;
+      margin-left:auto;
+      margin-right:auto;
+    }
 
-.hidden { display:none; }
+    .search-box input {
+      flex:1;
+      padding:12px;
+      border:none;
+      border-radius:10px 0 0 10px;
+    }
 
-.logout {
-  background:red;
-  color:white;
-}
-</style>
+    .search-box button {
+      padding:12px;
+      border:none;
+      background:#ffcc00;
+      font-weight:bold;
+      border-radius:0 10px 10px 0;
+    }
+
+    .cards {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:15px;
+      padding:20px;
+    }
+
+    .card {
+      background:#111;
+      padding:20px;
+      border-radius:15px;
+      text-align:center;
+    }
+
+    #result {
+      padding:20px;
+    }
+
+  </style>
 </head>
 
 <body>
 
-<header>BlueWave Logistics 🚚</header>
+<header>
+  BlueWave Logistics 🚚
+</header>
 
-<!-- LOGIN -->
-<div id="loginBox">
-  <h2>Login</h2>
-  <input id="loginEmail" placeholder="Email"><br>
-  <input id="loginPass" type="password" placeholder="Password"><br>
-  <button onclick="login()">Login</button><br>
-  <button onclick="showSignup()">Create Account</button>
+<div class="hero">
+  <h1>Live Shipment Tracking</h1>
+
+  <div class="search-box">
+    <input id="code" placeholder="Enter tracking number">
+    <button onclick="track()">Track</button>
+  </div>
 </div>
 
-<!-- SIGNUP -->
-<div id="signupBox" class="hidden">
-  <h2>Sign Up</h2>
-  <input id="signupEmail" placeholder="Email"><br>
-  <input id="signupPass" type="password" placeholder="Password"><br>
-  <button onclick="signup()">Create</button><br>
-  <button onclick="showLogin()">Back</button>
+<div class="cards">
+  <div class="card">🚚 Fast Delivery</div>
+  <div class="card">✈️ International Shipping</div>
+  <div class="card">📦 Secure Packaging</div>
+  <div class="card">📍 Real-Time Tracking</div>
 </div>
-
-<!-- DASHBOARD -->
-<div id="dashboard" class="hidden">
-
-<h2>Track Shipment</h2>
-<input id="codeInput" placeholder="Tracking code"><br>
-<button onclick="track()">Track</button>
 
 <div id="result"></div>
 
-<h3>My Shipments</h3>
-<div id="myShipments"></div>
-
-<!-- ADMIN -->
-<div id="adminPanel" class="hidden">
-  <h3>Add Shipment</h3>
-
-  <input id="newLocation" placeholder="Location"><br>
-  <input id="newSender" placeholder="Sender"><br>
-  <input id="newReceiver" placeholder="Customer Email"><br>
-  <input id="newWeight" placeholder="Weight"><br>
-  <input id="newDate" placeholder="Delivery Date"><br>
-
-  <button onclick="addShipment()">Create Shipment</button>
-</div>
-
-<br>
-<button onclick="logout()" class="logout">Logout</button>
-
-</div>
-
+<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, doc, getDoc }
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc,
-  collection,
-  getDocs,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-// 🔑 CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
@@ -150,167 +118,32 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
 const db = getFirestore();
 
-// 🔐 ADMIN EMAIL
-const ADMIN_EMAIL = "taytaylor984@gmail.com";
+// TRACK FUNCTION
+window.track = async function(){
+  const code = document.getElementById("code").value;
 
-// UI
-window.showSignup = () => {
-  loginBox.classList.add("hidden");
-  signupBox.classList.remove("hidden");
-};
-
-window.showLogin = () => {
-  signupBox.classList.add("hidden");
-  loginBox.classList.remove("hidden");
-};
-
-window.showDashboard = () => {
-  loginBox.classList.add("hidden");
-  signupBox.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-};
-
-// AUTO LOGIN
-onAuthStateChanged(auth, (user) => {
-  if(user){
-    showDashboard();
-    loadMyShipments(user.email);
-
-    if(user.email === ADMIN_EMAIL){
-      adminPanel.classList.remove("hidden");
-    }
-  }
-});
-
-// SIGNUP
-window.signup = async () => {
-  try{
-    await createUserWithEmailAndPassword(auth, signupEmail.value, signupPass.value);
-    alert("Account created");
-  }catch(e){
-    alert(e.message);
-  }
-};
-
-// LOGIN
-window.login = async () => {
-  try{
-    await signInWithEmailAndPassword(auth, loginEmail.value, loginPass.value);
-  }catch(e){
-    alert(e.message);
-  }
-};
-
-// LOGOUT
-window.logout = () => {
-  signOut(auth);
-  location.reload();
-};
-
-// ADD SHIPMENT
-window.addShipment = async () => {
-
-  const code = "BW" + Date.now().toString().slice(-6);
-
-  await setDoc(doc(db,"shipments",code),{
-    owner:newReceiver.value.toLowerCase(),
-    location:newLocation.value,
-    sender:newSender.value,
-    receiver:newReceiver.value,
-    weight:newWeight.value,
-    deliveryDate:newDate.value,
-    status:"Pending",
-    history:["Shipment created"]
-  });
-
-  alert("Shipment created: " + code);
-};
-
-// TRACK
-window.track = async () => {
-
-  const code = codeInput.value;
-  const docSnap = await getDoc(doc(db,"shipments",code));
-
-  if(!docSnap.exists()){
-    result.innerHTML="<div class='card'>❌ Not found</div>";
-    return;
-  }
-
-  const data = docSnap.data();
-
-  let historyHTML = "";
-  data.history.forEach(h=>{
-    historyHTML += `<div>• ${h}</div>`;
-  });
-
-  result.innerHTML = `
-  <div class="card">
-    <b>${code}</b><br><br>
-
-    📍 ${data.location}<br>
-    👤 ${data.receiver}<br>
-    📦 ${data.weight}<br>
-    📅 ${data.deliveryDate}<br><br>
-
-    🚚 ${data.status}<br><br>
-
-    <b>Timeline</b><br>
-    ${historyHTML}
-
-    ${auth.currentUser.email === ADMIN_EMAIL ? `
-    <br><br>
-    <button onclick="updateStatus('${code}','In transit')">Transit</button>
-    <button onclick="updateStatus('${code}','Out for delivery')">Out</button>
-    <button onclick="updateStatus('${code}','Delivered')">Delivered</button>
-    ` : ""}
-  </div>
-  `;
-};
-
-// UPDATE STATUS
-window.updateStatus = async (code,status)=>{
-
-  const ref = doc(db,"shipments",code);
+  const ref = doc(db, "shipments", code);
   const snap = await getDoc(ref);
 
-  let data = snap.data();
-  let history = data.history || [];
+  if(snap.exists()){
+    const d = snap.data();
 
-  history.push(status);
-
-  await updateDoc(ref,{
-    status:status,
-    history:history
-  });
-
-  track();
-};
-
-// LOAD USER SHIPMENTS
-async function loadMyShipments(email){
-
-  const q = query(collection(db,"shipments"),where("owner","==",email.toLowerCase()));
-  const snap = await getDocs(q);
-
-  let html = "";
-
-  snap.forEach(doc=>{
-    const d = doc.data();
-
-    html += `
-      <div class="card">
-        <b>${doc.id}</b><br>
-        ${d.status}<br>
-        ${d.location}
+    document.getElementById("result").innerHTML = `
+      <div style="background:#111;padding:20px;border-radius:10px;">
+        <b>${code}</b><br><br>
+        📍 ${d.location}<br>
+        👤 ${d.receiver}<br>
+        📦 ${d.weight}<br>
+        📅 ${d.deliveryDate}<br>
+        🚚 ${d.status}
       </div>
     `;
-  });
-
-  myShipments.innerHTML = html || "No shipments yet";
+  } else {
+    document.getElementById("result").innerHTML =
+      "<p style='color:red;'>❌ Tracking not found</p>";
+  }
 }
 
 </script>
