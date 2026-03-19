@@ -5,76 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
+body{
   margin:0;
   font-family:Arial;
   background:#0a0a0a;
   color:white;
 }
 
-header {
+header{
   background:#ffcc00;
-  color:black;
   padding:15px;
   display:flex;
   justify-content:space-between;
+  color:black;
   font-weight:bold;
 }
 
-/* PAGES */
-.page { display:none; padding:20px; }
-.active { display:block; }
+.page{ display:none; padding:20px; }
+.active{ display:block; }
 
-/* HERO */
-.hero {
+.hero{
   background:url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
   padding:100px 20px;
   text-align:center;
   background-size:cover;
 }
 
-/* TRACK */
-.track {
+.track{
   display:flex;
   max-width:400px;
   margin:auto;
 }
 
-.track input {
+.track input{
   flex:1;
   padding:15px;
   border:none;
   border-radius:10px 0 0 10px;
 }
 
-.track button {
+.track button{
   background:#ffcc00;
   border:none;
   padding:15px;
   border-radius:0 10px 10px 0;
 }
 
-/* CARD */
-.card {
+.card{
   background:rgba(255,255,255,0.05);
   backdrop-filter:blur(10px);
   padding:20px;
   border-radius:15px;
   margin-top:20px;
-  box-shadow:0 5px 30px rgba(0,0,0,0.6);
 }
 
-input {
-  padding:12px;
+input{
   width:90%;
+  padding:12px;
   margin:5px;
-  border-radius:10px;
   border:none;
+  border-radius:10px;
   background:#222;
   color:white;
 }
 
-button {
+button{
   padding:12px;
   border:none;
   border-radius:10px;
@@ -101,6 +96,7 @@ BlueWave Logistics 🚚
 <input id="code" placeholder="Tracking code">
 <button onclick="track()">Track</button>
 </div>
+
 </div>
 
 <div id="result"></div>
@@ -121,12 +117,10 @@ BlueWave Logistics 🚚
 <!-- DASHBOARD -->
 <div id="dashboard" class="page">
 
-<h2 style="text-align:center;">📦 Shipment Dashboard</h2>
+<h2 style="text-align:center;">📦 Dashboard</h2>
 
-<div style="text-align:center;">
-<button onclick="show('admin')">➕ Add Shipment</button>
-<button onclick="logout()">🚪 Logout</button>
-</div>
+<button onclick="show('admin')">Add Shipment</button>
+<button onclick="logout()">Logout</button>
 
 <div id="shipments"></div>
 
@@ -139,7 +133,7 @@ BlueWave Logistics 🚚
 
 <input id="location" placeholder="Location">
 <input id="receiver" placeholder="Receiver">
-<input id="weight" placeholder="Weight">
+<input id="weight" placeholder="Weight (kg)">
 <input id="date" placeholder="Delivery Date">
 <input id="status" placeholder="Status">
 
@@ -168,7 +162,7 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-// FIREBASE CONFIG
+// CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
@@ -183,121 +177,120 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // NAVIGATION
-window.show = (id) => {
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+window.show = (id)=>{
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 };
 
 // LOGIN
-window.login = async () => {
-  try {
+window.login = async ()=>{
+  try{
     await signInWithEmailAndPassword(auth,email.value,password.value);
     show("dashboard");
     loadShipments();
-  } catch(e){
+  }catch(e){
     alert(e.message);
   }
 };
 
 // SIGNUP
-window.signup = async () => {
-  try {
+window.signup = async ()=>{
+  try{
     await createUserWithEmailAndPassword(auth,email.value,password.value);
     alert("Account created");
-  } catch(e){
+  }catch(e){
     alert(e.message);
   }
 };
 
 // LOGOUT
-window.logout = () => {
+window.logout = ()=>{
   signOut(auth);
   show("home");
 };
 
 // ADD SHIPMENT
-window.addShipment = async () => {
+window.addShipment = async ()=>{
+
   const code = "BW" + Math.floor(Math.random()*10000);
 
   await setDoc(doc(db,"shipments",code), {
     location: location.value,
     receiver: receiver.value,
-    weight: weight.value,
-    deliveryDate: date.value,
-    status: status.value
+    weight: weight.value + "kg",
+    deliveryDate: date.value || "Not set",
+    status: status.value || "Pending"
   });
 
   alert("Shipment Created: " + code);
 };
 
 // TRACK
-window.track = async () => {
+window.track = async ()=>{
+
   const snap = await getDoc(doc(db,"shipments",code.value));
 
   if(snap.exists()){
     const d = snap.data();
 
+    let progress =
+      d.status==="Pending"?25:
+      d.status==="In Transit"?50:
+      d.status==="Out for Delivery"?75:100;
+
     result.innerHTML = `
+    <div class="card">
+
+      <h3>${code.value}</h3>
+
+      📍 ${d.location || "N/A"}<br>
+      👤 ${d.receiver || "N/A"}<br>
+      📦 ${d.weight || "N/A"}<br>
+      📅 ${d.deliveryDate || "Not set"}<br>
+
+      <br>
+
+      <div style="background:#333;border-radius:20px;">
+        <div style="
+          width:${progress}%;
+          height:10px;
+          background:#ffcc00;
+          border-radius:20px;
+        "></div>
+      </div>
+
+      <br>
+
+      <b>${d.status}</b>
+
+    </div>
+    `;
+  } else {
+    result.innerHTML = "<p style='color:red'>Not found</p>";
+  }
+};
+
+// DASHBOARD
+async function loadShipments(){
+
+  shipments.innerHTML="";
+
+  const snap = await getDocs(collection(db,"shipments"));
+
+  snap.forEach(doc=>{
+
+    const d = doc.data();
+
+    shipments.innerHTML += `
       <div class="card">
-        <b>${code.value}</b><br><br>
+
+        <b>${doc.id}</b><br><br>
+
         📍 ${d.location}<br>
         👤 ${d.receiver}<br>
         📦 ${d.weight}<br>
         📅 ${d.deliveryDate}<br>
         🚚 ${d.status}
-      </div>
-    `;
-  } else {
-    result.innerHTML = "<p style='color:red'>Tracking not found</p>";
-  }
-};
-
-// LOAD DASHBOARD (ULTRA)
-async function loadShipments(){
-
-  shipments.innerHTML = "";
-
-  const snap = await getDocs(collection(db,"shipments"));
-
-  snap.forEach(doc => {
-
-    const d = doc.data();
-
-    let color = "gray";
-    let progress = 25;
-
-    if(d.status === "In Transit"){ color="orange"; progress=50; }
-    else if(d.status === "Out for Delivery"){ color="gold"; progress=75; }
-    else if(d.status === "Delivered"){ color="green"; progress=100; }
-
-    shipments.innerHTML += `
-      <div class="card">
-
-        <b>📦 ${doc.id}</b><br><br>
-
-        📍 ${d.location}<br>
-        👤 ${d.receiver}<br>
-        ⚖️ ${d.weight}<br>
-        📅 ${d.deliveryDate}<br><br>
-
-        <span style="
-          background:${color};
-          padding:6px 12px;
-          border-radius:20px;
-          font-weight:bold;
-          color:${color==='gold'?'black':'white'};
-        ">
-          ${d.status}
-        </span>
-
-        <div style="margin-top:15px;background:#333;border-radius:20px;">
-          <div style="
-            width:${progress}%;
-            height:10px;
-            background:${color};
-            border-radius:20px;
-          "></div>
-        </div>
 
       </div>
     `;
