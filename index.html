@@ -5,56 +5,144 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { margin:0; font-family:Arial; background:#000; color:white; }
-
-header {
-  background:#ffcc00;
-  padding:15px;
-  text-align:center;
-  font-weight:bold;
-  color:black;
+body {
+  margin:0;
+  font-family:Arial;
+  background:#0a0a0a;
+  color:white;
 }
 
+/* HEADER */
+header {
+  background:#ffcc00;
+  color:black;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:bold;
+}
+
+/* HERO */
+.hero {
+  background:url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+  background-size:cover;
+  padding:100px 20px;
+  text-align:center;
+}
+
+.hero h1 {
+  font-size:32px;
+  margin-bottom:20px;
+}
+
+/* TRACK BAR */
+.track-box {
+  display:flex;
+  max-width:400px;
+  margin:auto;
+}
+
+.track-box input {
+  flex:1;
+  padding:15px;
+  border:none;
+  border-radius:10px 0 0 10px;
+}
+
+.track-box button {
+  padding:15px;
+  background:#ffcc00;
+  border:none;
+  border-radius:0 10px 10px 0;
+  font-weight:bold;
+}
+
+/* PAGES */
 .page { display:none; padding:20px; }
 .active { display:block; }
 
-input, button {
-  padding:12px;
-  margin:5px;
-  border-radius:10px;
-  border:none;
-}
-
-button { background:#ffcc00; font-weight:bold; }
-
+/* CARD */
 .card {
   background:#111;
-  padding:15px;
+  padding:20px;
+  border-radius:15px;
+  margin-top:15px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.5);
+}
+
+/* BUTTON */
+button {
+  padding:12px 20px;
+  border:none;
   border-radius:10px;
-  margin-top:10px;
+  background:#ffcc00;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+/* INPUT */
+input {
+  padding:12px;
+  width:90%;
+  margin:10px;
+  border-radius:10px;
+  border:none;
+  background:#222;
+  color:white;
+}
+
+/* GRID */
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:20px;
+}
+
+.small-card {
+  background:#111;
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
 }
 </style>
 </head>
 
 <body>
 
-<header>BlueWave Logistics 🚚</header>
+<header>
+  BlueWave Logistics 🚚
+  <button onclick="show('login')">Login</button>
+</header>
 
 <!-- HOME -->
 <div id="home" class="page active">
-  <h2>Track Shipment</h2>
-  <input id="trackCode" placeholder="Tracking code">
-  <button onclick="track()">Track</button>
 
-  <br><br>
-  <button onclick="show('login')">Login</button>
+  <div class="hero">
+    <h1>Track Your Shipment</h1>
+
+    <div class="track-box">
+      <input id="trackCode" placeholder="Enter tracking number">
+      <button onclick="track()">Track</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="small-card">🚚 Fast Delivery</div>
+    <div class="small-card">✈️ International</div>
+    <div class="small-card">📦 Secure</div>
+    <div class="small-card">📍 Real-Time</div>
+  </div>
 
   <div id="trackResult"></div>
+
 </div>
 
 <!-- LOGIN -->
 <div id="login" class="page">
   <h2>Login</h2>
+
   <input id="email" placeholder="Email">
   <input id="password" type="password" placeholder="Password">
 
@@ -66,6 +154,7 @@ button { background:#ffcc00; font-weight:bold; }
 <!-- DASHBOARD -->
 <div id="dashboard" class="page">
   <h2>Dashboard</h2>
+
   <button onclick="show('admin')">Admin Panel</button>
   <button onclick="logout()">Logout</button>
 
@@ -79,7 +168,7 @@ button { background:#ffcc00; font-weight:bold; }
   <input id="location" placeholder="Location">
   <input id="receiver" placeholder="Receiver">
   <input id="weight" placeholder="Weight">
-  <input id="date" placeholder="Date">
+  <input id="date" placeholder="Delivery Date">
   <input id="status" placeholder="Status">
 
   <br>
@@ -108,7 +197,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "YOUR KEY",
+  apiKey: "YOUR KEY HERE",
   authDomain: "bluewave-website.firebaseapp.com",
   projectId: "bluewave-website"
 };
@@ -117,47 +206,55 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// PAGE SWITCH
+/* NAVIGATION */
 window.show = (id) => {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 };
 
-// LOGIN
+/* LOGIN */
 window.login = async () => {
-  await signInWithEmailAndPassword(auth, email.value, password.value);
-  show("dashboard");
-  loadShipments();
+  try {
+    await signInWithEmailAndPassword(auth, email.value, password.value);
+    show("dashboard");
+    loadShipments();
+  } catch(e){
+    alert("Login failed");
+  }
 };
 
-// SIGNUP
+/* SIGNUP */
 window.signup = async () => {
-  await createUserWithEmailAndPassword(auth, email.value, password.value);
-  alert("Account created");
+  try {
+    await createUserWithEmailAndPassword(auth, email.value, password.value);
+    alert("Account created");
+  } catch(e){
+    alert(e.message);
+  }
 };
 
-// LOGOUT
+/* LOGOUT */
 window.logout = () => {
   signOut(auth);
   show("home");
 };
 
-// ADD SHIPMENT
+/* ADD SHIPMENT */
 window.addShipment = async () => {
   const code = "BW" + Math.floor(Math.random()*10000);
 
-  await setDoc(doc(db, "shipments", code), {
-    location: location.value,
-    receiver: receiver.value,
-    weight: weight.value,
-    deliveryDate: date.value,
-    status: status.value
+  await setDoc(doc(db,"shipments",code),{
+    location:location.value,
+    receiver:receiver.value,
+    weight:weight.value,
+    deliveryDate:date.value,
+    status:status.value
   });
 
-  alert("Created: " + code);
+  alert("Shipment Created: " + code);
 };
 
-// TRACK
+/* TRACK */
 window.track = async () => {
   const code = trackCode.value;
 
@@ -165,20 +262,23 @@ window.track = async () => {
 
   if(snap.exists()){
     const d = snap.data();
+
     trackResult.innerHTML = `
       <div class="card">
-      ${code}<br>
-      ${d.location}<br>
-      ${d.receiver}<br>
-      ${d.status}
+        <b>${code}</b><br><br>
+        📍 ${d.location}<br>
+        👤 ${d.receiver}<br>
+        📦 ${d.weight}<br>
+        📅 ${d.deliveryDate}<br>
+        🚚 ${d.status}
       </div>
     `;
   } else {
-    trackResult.innerHTML = "Not found";
+    trackResult.innerHTML = "<p style='color:red'>Tracking not found</p>";
   }
 };
 
-// LOAD SHIPMENTS
+/* LOAD DASHBOARD */
 async function loadShipments(){
   shipments.innerHTML = "";
 
@@ -186,11 +286,12 @@ async function loadShipments(){
 
   snap.forEach(doc => {
     const d = doc.data();
+
     shipments.innerHTML += `
       <div class="card">
-      ${doc.id}<br>
-      ${d.location}<br>
-      ${d.status}
+        📦 ${doc.id}<br>
+        📍 ${d.location}<br>
+        🚚 ${d.status}
       </div>
     `;
   });
