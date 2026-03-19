@@ -19,7 +19,6 @@
       color:black;
       padding:15px;
       font-weight:bold;
-      font-size:20px;
     }
 
     input {
@@ -40,8 +39,7 @@
       cursor:pointer;
     }
 
-    #dashboard { display:none; }
-    #adminPanel { display:none; }
+    .hidden { display:none; }
 
     #result {
       margin:20px auto;
@@ -52,165 +50,143 @@
       border-radius:12px;
       text-align:left;
     }
-
-    .timeline {
-      border-left:2px solid #ffcc00;
-      padding-left:10px;
-      margin-top:10px;
-    }
-
-    #progressContainer {
-      width:80%;
-      max-width:350px;
-      margin:20px auto;
-      background:#333;
-      border-radius:20px;
-    }
-
-    #progressBar {
-      height:10px;
-      width:0%;
-      background:#ffcc00;
-      border-radius:20px;
-    }
   </style>
 </head>
 
 <body>
 
-<header>
-  BlueWave Logistics 🚚
-  <button onclick="unlockAdmin()">Admin</button>
-</header>
+<header>BlueWave Logistics 🚚</header>
 
 <!-- LOGIN -->
 <div id="loginBox">
-  <h2>Customer Login</h2>
-  <input id="email" placeholder="Email"><br>
-  <input id="password" type="password" placeholder="Password"><br>
+  <h2>Login</h2>
+  <input id="loginEmail" placeholder="Email"><br>
+  <input id="loginPass" type="password" placeholder="Password"><br>
   <button onclick="login()">Login</button>
+
+  <p>Don't have account?</p>
+  <button onclick="showSignup()">Sign Up</button>
+</div>
+
+<!-- SIGNUP -->
+<div id="signupBox" class="hidden">
+  <h2>Create Account</h2>
+  <input id="signupEmail" placeholder="Email"><br>
+  <input id="signupPass" type="password" placeholder="Password"><br>
+  <button onclick="signup()">Create Account</button>
+  <button onclick="showLogin()">Back</button>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard">
-  <h2>Track Shipment</h2>
+<div id="dashboard" class="hidden">
 
+  <h2>Track Shipment</h2>
   <input id="code" placeholder="Tracking code"><br>
   <button onclick="track()">Track</button>
 
   <div id="result"></div>
 
-  <div id="progressContainer">
-    <div id="progressBar"></div>
-  </div>
-
-  <p id="progressText"></p>
+  <h3>Your Shipments</h3>
+  <div id="myShipments"></div>
 
   <button onclick="logout()" style="background:red;color:white;">Logout</button>
 </div>
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel">
-  <h3>Add Shipment</h3>
-
-  <input id="newLocation" placeholder="Location"><br>
-  <input id="newSender" placeholder="Sender"><br>
-  <input id="newReceiver" placeholder="Receiver"><br>
-  <input id="newWeight" placeholder="Weight"><br>
-  <input id="newDate" placeholder="Delivery Date"><br>
-
-  <input id="newStatus" placeholder="Status">
-
-  <div>
-    <button onclick="setStatus('Pending')">Pending</button>
-    <button onclick="setStatus('In Transit')">Transit</button>
-    <button onclick="setStatus('Out for Delivery')">Out</button>
-    <button onclick="setStatus('Delivered')">Delivered</button>
-  </div>
-
-  <button onclick="addShipment()">Add Shipment</button>
-</div>
-
 <script>
 
-// LOAD DATA
+// USERS + SHIPMENTS DATABASE
+let users = JSON.parse(localStorage.getItem("users")) || {};
 let shipments = JSON.parse(localStorage.getItem("shipments")) || {
   "BW1001": {
+    user:"test@gmail.com",
     status:"In Transit",
     location:"New York",
-    sender:"BlueWave",
     receiver:"John",
     weight:"5kg",
-    deliveryDate:"25 March",
     history:["Created - Italy","Transit"]
   }
 };
 
-let counter = Object.keys(shipments).length + 1000;
-
 // SAVE
-function saveData(){
+function saveAll(){
+  localStorage.setItem("users", JSON.stringify(users));
   localStorage.setItem("shipments", JSON.stringify(shipments));
+}
+
+// NAVIGATION
+function showSignup(){
+  loginBox.style.display="none";
+  signupBox.style.display="block";
+}
+
+function showLogin(){
+  signupBox.style.display="none";
+  loginBox.style.display="block";
+}
+
+// SIGNUP
+function signup(){
+  const email=signupEmail.value;
+  const pass=signupPass.value;
+
+  if(users[email]){
+    alert("User exists");
+    return;
+  }
+
+  users[email]={password:pass};
+  saveAll();
+  alert("Account created!");
+  showLogin();
 }
 
 // LOGIN
 function login(){
-  if(email.value && password.value){
-    localStorage.setItem("user", email.value);
-    showDashboard();
+  const email=loginEmail.value;
+  const pass=loginPass.value;
+
+  if(!users[email] || users[email].password!==pass){
+    alert("Invalid login");
+    return;
   }
+
+  localStorage.setItem("currentUser", email);
+  showDashboard();
 }
 
 // SHOW DASHBOARD
 function showDashboard(){
   loginBox.style.display="none";
+  signupBox.style.display="none";
   dashboard.style.display="block";
+
+  loadUserShipments();
 }
 
 // AUTO LOGIN
-if(localStorage.getItem("user")) showDashboard();
+if(localStorage.getItem("currentUser")){
+  showDashboard();
+}
 
 // LOGOUT
 function logout(){
-  localStorage.removeItem("user");
+  localStorage.removeItem("currentUser");
   location.reload();
 }
 
-// ADMIN UNLOCK
-function unlockAdmin(){
-  const pass = prompt("Admin password");
-  if(pass==="admin123"){
-    adminPanel.style.display="block";
-  } else alert("Wrong password");
-}
+// LOAD USER SHIPMENTS
+function loadUserShipments(){
+  const user=localStorage.getItem("currentUser");
 
-// STATUS BUTTON
-function setStatus(s){
-  newStatus.value = s;
-}
+  let html="";
 
-// ADD SHIPMENT
-function addShipment(){
-  counter++;
-  const code="BW"+counter;
+  for(let code in shipments){
+    if(shipments[code].user===user){
+      html+=`<div style="margin:10px;">📦 ${code} - ${shipments[code].status}</div>`;
+    }
+  }
 
-  const status=newStatus.value;
-  const location=newLocation.value;
-
-  let history=[status+" - "+location];
-
-  shipments[code]={
-    status,
-    location,
-    sender:newSender.value,
-    receiver:newReceiver.value,
-    weight:newWeight.value,
-    deliveryDate:newDate.value,
-    history
-  };
-
-  saveData();
-  alert("Shipment created: "+code);
+  myShipments.innerHTML=html || "No shipments";
 }
 
 // TRACK
@@ -223,36 +199,13 @@ function track(){
     return;
   }
 
-  let color=
-    data.status==="Delivered"?"green":
-    data.status==="In Transit"?"orange":
-    data.status==="Out for Delivery"?"gold":"gray";
-
-  let statusHTML=`<div style="background:${color};padding:6px 12px;border-radius:20px;">${data.status}</div>`;
-
-  let historyHTML="";
-  data.history.forEach(i=>{
-    historyHTML+=`<div>${i}</div>`;
-  });
-
-  historyHTML=`<div class="timeline">${historyHTML}</div>`;
-
-  let progress=0;
-  if(data.status==="Pending")progress=25;
-  else if(data.status==="In Transit")progress=50;
-  else if(data.status==="Out for Delivery")progress=75;
-  else if(data.status==="Delivered")progress=100;
-
-  progressBar.style.width=progress+"%";
-  progressText.innerText="Progress: "+progress+"%";
-
-  result.innerHTML=
-    statusHTML+
-    `<br><b>${code}</b><br>
+  result.innerHTML=`
+    <b>${code}</b><br>
     📍 ${data.location}<br>
     👤 ${data.receiver}<br>
-    📦 ${data.weight}<br><br>`+
-    historyHTML;
+    📦 ${data.weight}<br>
+    <br>${data.history.join("<br>")}
+  `;
 }
 
 </script>
