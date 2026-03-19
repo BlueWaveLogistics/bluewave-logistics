@@ -166,34 +166,137 @@
 <script>
 
 let shipments = {
-  "BW1001": { ... },
+
+  "BW1001": {
+    status: "In Transit",
+    location: "New York, USA",
+    sender: "BlueWave",
+    receiver: "John Doe",
+    weight: "5kg",
+    deliveryDate: "25 March 2026",
+    history: [
+      "Shipment created - Italy",
+      "Picked up by BlueWave",
+      "In transit to USA"
+    ]
+  },
 
   "BW1002": {
-    status: "processing",
-    location: "London, UK",
+    status: "Pending",
+    location: "kentucky,USA",
     sender: "BlueWave",
-    receiver: "Jane Smith",
-    weight: "3kg",
+    receiver: "Mary Johnson",
+    weight: "2kg",
     deliveryDate: "28 March 2026",
     history: [
-      "Shipment created - UK"
+      "Shipment created - Italy"
     ]
   },
 
   "BW1003": {
+    status: "Out for Delivery",
+    location: "London, UK",
+    sender: "BlueWave",
+    receiver: "James Smith",
+    weight: "3kg",
+    deliveryDate: "22 March 2026",
+    history: [
+      "Arrived in UK",
+      "Out for delivery"
+    ]
+  },
+
+  "BW1004": {
     status: "Delivered",
     location: "Toronto, Canada",
     sender: "BlueWave",
-    receiver: "Mike Lee",
+    receiver: "Michael Lee",
     weight: "7kg",
     deliveryDate: "20 March 2026",
     history: [
       "Shipment created",
+      "Delivered successfully"
+    ]
+  },
+
+  "BW1005": {
+    status: "In Transit",
+    location: "Berlin, Germany",
+    sender: "BlueWave",
+    receiver: "Anna Muller",
+    weight: "4kg",
+    deliveryDate: "27 March 2026",
+    history: [
+      "Picked up",
+      "Sorting facility",
+      "In transit"
+    ]
+  },
+
+  "BW1006": {
+    status: "Pending",
+    location: "Dubai, UAE",
+    sender: "BlueWave",
+    receiver: "Ali Hassan",
+    weight: "6kg",
+    deliveryDate: "30 March 2026",
+    history: [
+      "Shipment created"
+    ]
+  },
+
+  "BW1007": {
+    status: "Out for Delivery",
+    location: "Paris, France",
+    sender: "BlueWave",
+    receiver: "Sophia Laurent",
+    weight: "1.5kg",
+    deliveryDate: "23 March 2026",
+    history: [
+      "Arrived in Paris",
+      "Out for delivery"
+    ]
+  },
+
+  "BW1008": {
+    status: "Delivered",
+    location: "Madrid, Spain",
+    sender: "BlueWave",
+    receiver: "Carlos Diaz",
+    weight: "2.5kg",
+    deliveryDate: "19 March 2026",
+    history: [
+      "Shipment created",
       "Delivered"
     ]
-  }
-};
+  },
 
+  "BW1009": {
+    status: "In Transit",
+    location: "Rome, Italy",
+    sender: "BlueWave",
+    receiver: "Luca Rossi",
+    weight: "3.2kg",
+    deliveryDate: "26 March 2026",
+    history: [
+      "Picked up",
+      "In transit"
+    ]
+  },
+
+  "BW1010": {
+    status: "Pending",
+    location: "Cape Town, South Africa",
+    sender: "BlueWave",
+    receiver: "Thabo Nkosi",
+    weight: "8kg",
+    deliveryDate: "29 March 2026",
+    history: [
+      "Shipment created"
+    ]
+  }
+
+};
 function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
