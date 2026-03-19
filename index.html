@@ -2,68 +2,80 @@
 <html>
 
 <head>
-  <title>BlueWave Logistics</title>
+  <title>BlueWave Logistics App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
       margin: 0;
       font-family: Arial;
-      background: #0b0b0b;
+      background: #000;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* APP CONTAINER */
+    .app {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: #111;
       color: white;
+      display: flex;
+      flex-direction: column;
     }
 
     header {
       background: #ffcc00;
       color: black;
       padding: 15px;
-      font-size: 22px;
       font-weight: bold;
-      display: flex;
-      justify-content: space-between;
+      text-align: center;
+      font-size: 20px;
     }
 
-    .container {
+    .screen {
+      flex: 1;
       padding: 20px;
-      text-align: center;
+      display: none;
+    }
+
+    .active {
+      display: block;
     }
 
     input {
-      padding: 12px;
-      width: 80%;
-      max-width: 300px;
-      margin: 10px;
-      border-radius: 8px;
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border-radius: 10px;
       border: none;
       background: #222;
       color: white;
     }
 
     button {
-      padding: 10px 18px;
-      background: #ffcc00;
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border-radius: 10px;
       border: none;
-      border-radius: 8px;
+      background: #ffcc00;
       font-weight: bold;
-      cursor: pointer;
-      margin: 5px;
     }
 
-    #result {
-      margin: 20px auto;
-      padding: 20px;
-      max-width: 400px;
-      background: #141414;
-      border-left: 5px solid #ffcc00;
-      border-radius: 12px;
-      text-align: left;
+    .card {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 15px;
+      margin-top: 15px;
     }
 
     .status {
-      padding: 8px 16px;
+      padding: 6px 12px;
       border-radius: 20px;
-      font-weight: bold;
       display: inline-block;
+      font-weight: bold;
       margin-bottom: 10px;
     }
 
@@ -72,153 +84,109 @@
     .out { background: gold; color: black; }
     .delivered { background: green; }
 
-    .timeline {
-      margin-top: 10px;
-      border-left: 2px solid #ffcc00;
-      padding-left: 10px;
-    }
-
-    .timeline-item {
-      margin-bottom: 8px;
-    }
-
-    #progressContainer {
-      width: 80%;
-      max-width: 400px;
-      margin: 20px auto;
-      background: #333;
-      border-radius: 20px;
-    }
-
     #progressBar {
-      height: 10px;
+      height: 8px;
       width: 0%;
-      background: linear-gradient(90deg, #ffcc00, orange);
-      border-radius: 20px;
-      transition: 0.5s;
+      background: #ffcc00;
+      border-radius: 10px;
+      margin-top: 10px;
     }
 
-    /* ADMIN PANEL */
-    #adminPanel {
-      display: none;
-      padding: 20px;
+    /* BOTTOM NAV */
+    .nav {
+      display: flex;
       background: #111;
-      border-top: 2px solid #ffcc00;
+      border-top: 1px solid #333;
     }
 
-    .card {
-      background: #1a1a1a;
-      padding: 15px;
-      border-radius: 12px;
-      margin: 10px;
-      box-shadow: 0 0 10px rgba(255,204,0,0.2);
+    .nav button {
+      flex: 1;
+      background: none;
+      color: white;
+      padding: 12px;
     }
 
-    /* LOGIN BOX */
-    #loginBox {
-      display: none;
-      position: fixed;
-      top: 30%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #111;
-      padding: 20px;
-      border-radius: 12px;
-      border: 2px solid #ffcc00;
+    .nav button.activeTab {
+      color: #ffcc00;
     }
   </style>
 </head>
 
 <body>
 
-<header>
-  <div>BlueWave Logistics 🚚</div>
-  <button onclick="showLogin()">Admin</button>
-</header>
+<div class="app">
 
-<div class="container">
-  <h2>Track Shipment</h2>
+<header>BlueWave Logistics 🚚</header>
+
+<!-- TRACK SCREEN -->
+<div id="trackScreen" class="screen active">
+
+  <h3>Track Shipment</h3>
 
   <input id="code" placeholder="Enter tracking code">
-  <br>
   <button onclick="track()">Track</button>
 
-  <div id="result"></div>
+  <div id="result" class="card"></div>
 
-  <div id="progressContainer">
-    <div id="progressBar"></div>
-  </div>
+  <div id="progressBar"></div>
 
-  <p id="progressText"></p>
 </div>
 
-<!-- LOGIN -->
-<div id="loginBox">
-  <h3>Admin Login</h3>
-  <input id="adminPass" placeholder="Password">
-  <br>
-  <button onclick="login()">Login</button>
-</div>
+<!-- ADMIN SCREEN -->
+<div id="adminScreen" class="screen">
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel">
-
-  <h3>Dashboard</h3>
-
-  <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <div class="card"><h4>Total</h4><p id="totalCount">0</p></div>
-    <div class="card"><h4>Transit</h4><p id="transitCount">0</p></div>
-    <div class="card"><h4>Delivered</h4><p id="deliveredCount">0</p></div>
-  </div>
-
-  <input id="searchBox" placeholder="Search..." oninput="searchShipment()">
-
-  <h3>Add Shipment</h3>
+  <h3>Admin Panel</h3>
 
   <input id="newLocation" placeholder="Location">
-  <input id="newSender" placeholder="Sender">
-  <input id="newReceiver" placeholder="Receiver">
-  <input id="newWeight" placeholder="Weight">
-  <input id="newDate" placeholder="Delivery Date">
   <input id="newStatus" placeholder="Status">
 
-  <br>
   <button onclick="setStatus('Pending')">Pending</button>
   <button onclick="setStatus('In Transit')">Transit</button>
-  <button onclick="setStatus('Out for Delivery')">Out</button>
   <button onclick="setStatus('Delivered')">Delivered</button>
 
-  <br>
-  <button onclick="addShipment()">Add</button>
+  <button onclick="addShipment()">Add Shipment</button>
 
-  <h3>All Shipments</h3>
   <div id="shipmentList"></div>
+
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav">
+  <button onclick="switchTab('track')" class="activeTab">Track</button>
+  <button onclick="switchTab('admin')">Admin</button>
+</div>
 
 </div>
 
 <script>
 
 // DATABASE
-let shipments = JSON.parse(localStorage.getItem("shipments")) || {};
-
-let counter = Object.keys(shipments).length + 1000;
+let shipments = JSON.parse(localStorage.getItem("shipments")) || {
+  "BW1001": {
+    status: "In Transit",
+    location: "New York",
+    history: ["Shipment created", "In transit"]
+  }
+};
 
 function saveData() {
   localStorage.setItem("shipments", JSON.stringify(shipments));
 }
 
-// LOGIN
-function showLogin() {
-  document.getElementById("loginBox").style.display = "block";
-}
+// NAVIGATION
+function switchTab(tab) {
+  document.getElementById("trackScreen").classList.remove("active");
+  document.getElementById("adminScreen").classList.remove("active");
 
-function login() {
-  if (document.getElementById("adminPass").value === "admin123") {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("adminPanel").style.display = "block";
-    loadShipments();
+  document.querySelectorAll(".nav button").forEach(btn => btn.classList.remove("activeTab"));
+
+  if (tab === "track") {
+    trackScreen.classList.add("active");
+    document.querySelectorAll(".nav button")[0].classList.add("activeTab");
   } else {
-    alert("Wrong password");
+    adminScreen.classList.add("active");
+    document.querySelectorAll(".nav button")[1].classList.add("activeTab");
+    loadShipments();
   }
 }
 
@@ -228,48 +196,39 @@ function track() {
   const data = shipments[code];
 
   if (!data) {
-    document.getElementById("result").innerHTML = "Not found";
+    result.innerHTML = "Not found";
     return;
   }
 
-  let statusClass =
+  let cls =
     data.status === "Delivered" ? "delivered" :
-    data.status === "Out for Delivery" ? "out" :
-    data.status === "In Transit" ? "transit" : "pending";
+    data.status === "In Transit" ? "transit" :
+    data.status === "Out for Delivery" ? "out" : "pending";
 
   let historyHTML = "";
-  data.history.forEach(i => {
-    historyHTML += `<div class="timeline-item">${i}</div>`;
+  data.history.forEach(h => {
+    historyHTML += `<div>• ${h}</div>`;
   });
+
+  result.innerHTML =
+    `<div class="status ${cls}">${data.status}</div>
+     <br>📍 ${data.location}
+     <br><br>${historyHTML}`;
 
   let progress =
     data.status === "Delivered" ? 100 :
-    data.status === "Out for Delivery" ? 75 :
     data.status === "In Transit" ? 50 : 25;
 
   document.getElementById("progressBar").style.width = progress + "%";
-
-  document.getElementById("result").innerHTML =
-    `<div class="status ${statusClass}">${data.status}</div>
-     📦 ${code}<br>
-     📍 ${data.location}<br>
-     👤 ${data.receiver}<br>
-     📅 ${data.deliveryDate}
-     <div class="timeline">${historyHTML}</div>`;
 }
 
 // ADD
 function addShipment() {
-  counter++;
-  const code = "BW" + counter;
+  const code = "BW" + Math.floor(Math.random() * 9000);
 
   shipments[code] = {
     status: document.getElementById("newStatus").value,
     location: document.getElementById("newLocation").value,
-    sender: document.getElementById("newSender").value,
-    receiver: document.getElementById("newReceiver").value,
-    weight: document.getElementById("newWeight").value,
-    deliveryDate: document.getElementById("newDate").value,
     history: ["Shipment created"]
   };
 
@@ -283,55 +242,15 @@ function loadShipments() {
   let html = "";
 
   for (let code in shipments) {
-    let s = shipments[code];
-
-    html += `
-      <div class="card">
-        <b>${code}</b><br>
-        ${s.status} - ${s.location}
-        <br>
-        <button onclick="quickTrack('${code}')">Track</button>
-      </div>
-    `;
-  }
-
-  document.getElementById("shipmentList").innerHTML = html;
-  updateDashboard();
-}
-
-function quickTrack(code) {
-  document.getElementById("code").value = code;
-  track();
-}
-
-// DASHBOARD
-function updateDashboard() {
-  let total = 0, transit = 0, delivered = 0;
-
-  for (let c in shipments) {
-    total++;
-    if (shipments[c].status === "In Transit") transit++;
-    if (shipments[c].status === "Delivered") delivered++;
-  }
-
-  totalCount.innerText = total;
-  transitCount.innerText = transit;
-  deliveredCount.innerText = delivered;
-}
-
-// SEARCH
-function searchShipment() {
-  const val = searchBox.value.toLowerCase();
-  let html = "";
-
-  for (let c in shipments) {
-    if (c.toLowerCase().includes(val)) {
-      let s = shipments[c];
-      html += `<div class="card">${c} - ${s.status}</div>`;
-    }
+    html += `<div class="card">${code} - ${shipments[code].status}</div>`;
   }
 
   shipmentList.innerHTML = html;
+}
+
+// STATUS
+function setStatus(status) {
+  document.getElementById("newStatus").value = status;
 }
 
 </script>
