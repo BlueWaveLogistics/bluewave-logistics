@@ -85,7 +85,6 @@
       border-radius: 10px;
       transition: 0.5s;
     }
-
   </style>
 </head>
 
@@ -99,6 +98,8 @@
 
   <input id="code" placeholder="Enter tracking code">
   <button onclick="track()">Track</button>
+
+  <button onclick="showAllShipments()">📦 Admin Dashboard</button>
 
   <div id="result" class="card"></div>
 
@@ -124,6 +125,24 @@
 
 </div>
 
+<!-- 💬 CHAT BUTTON -->
+<div style="
+position:fixed;
+bottom:20px;
+right:20px;
+background:#25D366;
+width:60px;
+height:60px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+cursor:pointer;
+">
+💬
+</div>
+
 <script>
 
 // 💾 STORAGE
@@ -135,10 +154,7 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     receiver: "John Doe",
     weight: "5kg",
     deliveryDate: "25 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "In transit"
-    ]
+    history: ["Shipment created - Italy", "In transit"]
   }
 };
 
@@ -148,97 +164,57 @@ function saveData() {
   localStorage.setItem("shipments", JSON.stringify(shipments));
 }
 
-// 🚀 TRACK (AUTO SYSTEM)
+// 🚀 TRACK SYSTEM
 function track() {
   const code = document.getElementById("code").value.trim().toUpperCase();
-
   let data = shipments[code];
 
   // AUTO GENERATE
   if (!data) {
+    const locations = ["New York", "London", "Berlin", "Paris", "Madrid", "Rome"];
+    const names = ["John Doe", "Maria Lopez", "Ali Khan", "Sophia Klein"];
 
-    const locations = ["New York", "London", "Berlin", "Paris", "Madrid", "Rome", "Dubai"];
-    const names = ["John Doe", "Maria Lopez", "James Smith", "Ali Khan", "Sophia Klein"];
-
-    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
-    const randomName = names[Math.floor(Math.random() * names.length)];
-
-    const statuses = ["Pending", "In Transit", "Out for Delivery", "Delivered"];
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-    let history = [];
-
-    if (status === "Pending") history = ["Shipment created - Italy"];
-    if (status === "In Transit") history = ["Shipment created - Italy", "In transit"];
-    if (status === "Out for Delivery") history = ["Shipment created - Italy", "Out for delivery"];
-    if (status === "Delivered") history = ["Shipment created - Italy", "Delivered"];
+    const statusList = ["Pending", "In Transit", "Out for Delivery", "Delivered"];
+    const status = statusList[Math.floor(Math.random() * statusList.length)];
 
     data = {
       status,
-      location: randomLocation,
+      location: locations[Math.floor(Math.random() * locations.length)],
       sender: "BlueWave",
-      receiver: randomName,
+      receiver: names[Math.floor(Math.random() * names.length)],
       weight: Math.floor(Math.random() * 10 + 1) + "kg",
       deliveryDate: "Arriving soon",
-      history
+      history: ["Shipment created - Italy", status]
     };
   }
 
-  // STATUS STYLE
-  let color =
-    data.status === "Delivered" ? "green" :
-    data.status === "In Transit" ? "orange" :
-    data.status === "Out for Delivery" ? "gold" : "gray";
+  let extraMsg = "";
+  if (data.status === "Out for Delivery") {
+    extraMsg = "<br><b>🚚 Arriving Today</b>";
+  }
 
-  let statusHTML = `
-    <div style="
-      background:${color};
-      padding:8px 16px;
-      border-radius:20px;
-      display:inline-block;
-      font-weight:bold;
-      margin-bottom:10px;
-      color:${color === 'gold' ? 'black' : 'white'};
-    ">
-      ${data.status}
-    </div>
-  `;
-
-  // TIMELINE
   let historyHTML = "";
-  data.history.forEach(item => {
-    historyHTML += `<div class="timeline-item">${item}</div>`;
+  data.history.forEach(h => {
+    historyHTML += `<div class="timeline-item">${h}</div>`;
   });
 
-  historyHTML = `<div class="timeline">${historyHTML}</div>`;
-
-  // PROGRESS
   let progress = 25;
   if (data.status === "In Transit") progress = 50;
   if (data.status === "Out for Delivery") progress = 75;
   if (data.status === "Delivered") progress = 100;
 
-  const bar = document.getElementById("progressBar");
-  bar.style.width = "0%";
+  document.getElementById("progressBar").style.width = progress + "%";
+  document.getElementById("progressText").innerText = "Progress: " + progress + "%";
 
-  setTimeout(() => {
-    bar.style.width = progress + "%";
-  }, 200);
-
-  document.getElementById("progressText").innerText =
-    "Progress: " + progress + "%";
-
-  // RESULT
-  document.getElementById("result").innerHTML =
-    statusHTML + `
-    <br>
-    <b>📦 Tracking ID:</b> ${code}<br><br>
+  document.getElementById("result").innerHTML = `
+    <b>📦 ${code}</b><br><br>
     📍 ${data.location}<br>
-    📦 ${data.sender}<br>
     👤 ${data.receiver}<br>
     ⚖️ ${data.weight}<br>
-    📅 ${data.deliveryDate}<br>
-    ` + historyHTML;
+    📅 ${data.deliveryDate}
+    ${extraMsg}
+    <div class="timeline">${historyHTML}</div>
+  `;
 }
 
 // ➕ ADD SHIPMENT
@@ -246,22 +222,55 @@ function addShipment() {
   counter++;
   const code = "BW" + counter;
 
-  const status = document.getElementById("newStatus").value;
-  const location = document.getElementById("newLocation").value;
-
   shipments[code] = {
-    status,
-    location,
+    status: document.getElementById("newStatus").value,
+    location: document.getElementById("newLocation").value,
     sender: "BlueWave",
-    receiver: "New Customer",
-    weight: "2kg",
+    receiver: "Customer",
+    weight: "3kg",
     deliveryDate: "Processing",
-    history: [status + " - " + location]
+    history: ["Created"]
   };
 
   saveData();
+  alert("Created: " + code);
+}
 
-  alert("✅ Created: " + code);
+// 📦 ADMIN DASHBOARD
+function showAllShipments() {
+  let output = "<h3>All Shipments</h3>";
+
+  for (let code in shipments) {
+    let s = shipments[code];
+
+    output += `
+      <div class="card">
+        <b>${code}</b><br>
+        📍 ${s.location}<br>
+        📦 ${s.status}<br><br>
+
+        <button onclick="deleteShipment('${code}')">Delete</button>
+        <button onclick="updateStatus('${code}')">Mark Delivered</button>
+      </div>
+    `;
+  }
+
+  document.getElementById("result").innerHTML = output;
+}
+
+// ❌ DELETE
+function deleteShipment(code) {
+  delete shipments[code];
+  saveData();
+  showAllShipments();
+}
+
+// ⚡ UPDATE
+function updateStatus(code) {
+  shipments[code].status = "Delivered";
+  shipments[code].history.push("Delivered");
+  saveData();
+  showAllShipments();
 }
 
 // STATUS BUTTON
