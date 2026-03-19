@@ -5,10 +5,6 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- LEAFLET MAP -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
   <style>
     body {
       margin:0;
@@ -54,13 +50,6 @@
       border-radius:12px;
       text-align:left;
     }
-
-    #map {
-      width:90%;
-      height:300px;
-      margin:20px auto;
-      border-radius:10px;
-    }
   </style>
 </head>
 
@@ -97,9 +86,6 @@
 
   <div id="result"></div>
 
-  <!-- MAP -->
-  <div id="map"></div>
-
   <h3>Add Shipment (Admin)</h3>
 
   <input id="newLocation" placeholder="Location"><br>
@@ -125,22 +111,22 @@ from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc }
 from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-// 🔑 YOUR CONFIG
+// 🔑 YOUR FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
   projectId: "bluewave-website",
   storageBucket: "bluewave-website.firebasestorage.app",
   messagingSenderId: "116060669757",
-  appId: "1:116060669757:web:26d6ef7746c7feceeaa754",
-  measurementId: "G-BT4DYMNWBL"
+  appId: "1:116060669757:web:26d6ef7746c7feceeaa754"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
-// UI SWITCH
+// ---------------- UI ----------------
+
 window.showSignup = () => {
   loginBox.style.display="none";
   signupBox.style.display="block";
@@ -157,16 +143,36 @@ window.showDashboard = () => {
   dashboard.style.display="block";
 };
 
-// AUTH
+// ---------------- AUTH ----------------
+
 window.signup = async () => {
-  await createUserWithEmailAndPassword(auth, signupEmail.value, signupPass.value);
-  alert("Account created");
-  showLogin();
+  try{
+    const email = document.getElementById("signupEmail").value;
+    const pass = document.getElementById("signupPass").value;
+
+    await createUserWithEmailAndPassword(auth, email, pass);
+
+    alert("✅ Account created!");
+    showLogin();
+
+  }catch(e){
+    alert("ERROR: " + e.message);
+  }
 };
 
 window.login = async () => {
-  await signInWithEmailAndPassword(auth, loginEmail.value, loginPass.value);
-  showDashboard();
+  try{
+    const email = document.getElementById("loginEmail").value;
+    const pass = document.getElementById("loginPass").value;
+
+    await signInWithEmailAndPassword(auth, email, pass);
+
+    alert("✅ Login success!");
+    showDashboard();
+
+  }catch(e){
+    alert("❌ " + e.message);
+  }
 };
 
 window.logout = () => {
@@ -174,9 +180,11 @@ window.logout = () => {
   location.reload();
 };
 
-// ADD SHIPMENT
+// ---------------- DATABASE ----------------
+
 window.addShipment = async () => {
-  const code = "BW" + Math.floor(Math.random()*10000);
+
+  const code = "BW" + Math.floor(1000 + Math.random()*9000);
 
   await setDoc(doc(db, "shipments", code), {
     location: newLocation.value,
@@ -184,27 +192,20 @@ window.addShipment = async () => {
     receiver: newReceiver.value,
     weight: newWeight.value,
     deliveryDate: newDate.value,
-    status: newStatus.value,
-    lat: 40.7128,
-    lng: -74.0060
+    status: newStatus.value
   });
 
-  alert("Shipment created: " + code);
+  alert("✅ Shipment created: " + code);
 };
 
-// MAP
-let map = L.map('map').setView([20,0],2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-let marker;
-
-// TRACK
 window.track = async () => {
 
   const code = document.getElementById("code").value;
+
   const docSnap = await getDoc(doc(db,"shipments",code));
 
   if(!docSnap.exists()){
-    result.innerHTML="❌ Not found";
+    result.innerHTML="❌ Tracking code not found";
     return;
   }
 
@@ -218,11 +219,6 @@ window.track = async () => {
     📅 ${data.deliveryDate}<br>
     🚚 ${data.status}
   `;
-
-  if(marker) map.removeLayer(marker);
-
-  marker = L.marker([data.lat, data.lng]).addTo(map);
-  map.setView([data.lat, data.lng], 6);
 };
 
 </script>
