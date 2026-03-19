@@ -5,15 +5,92 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:Arial;background:#0a0a0a;color:white;}
-header{background:#ffcc00;padding:15px;display:flex;justify-content:space-between;color:black;font-weight:bold;}
-.page{display:none;padding:20px;}
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0a0a0a;
+  color:white;
+}
+
+/* HEADER */
+header{
+  background:#ffcc00;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  color:black;
+  font-weight:bold;
+}
+
+/* PAGES */
+.page{display:none;}
 .active{display:block;}
-input{padding:12px;margin:5px;width:90%;border-radius:10px;border:none;background:#222;color:white;}
-button{padding:12px;border:none;border-radius:10px;background:#ffcc00;font-weight:bold;margin:5px;}
-.card{background:#111;padding:20px;border-radius:15px;margin:10px;}
-.track-box{display:flex;}
-.track-box input{flex:1;}
+
+/* HERO */
+.hero{
+  background:url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+  background-size:cover;
+  padding:120px 20px;
+  text-align:center;
+}
+
+.hero h1{font-size:30px;}
+
+/* TRACK */
+.track-box{
+  display:flex;
+  max-width:400px;
+  margin:auto;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.track-box input{
+  flex:1;
+  padding:15px;
+  border:none;
+}
+
+.track-box button{
+  background:#ffcc00;
+  border:none;
+  padding:15px;
+  font-weight:bold;
+}
+
+/* FEATURES */
+.features{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  padding:20px;
+}
+
+.card{
+  background:#1a1a1a;
+  padding:20px;
+  border-radius:15px;
+}
+
+/* FORM */
+input{
+  width:90%;
+  padding:12px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  background:#222;
+  color:white;
+}
+
+button{
+  padding:12px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  background:#ffcc00;
+  font-weight:bold;
+}
 </style>
 </head>
 
@@ -26,100 +103,87 @@ BlueWave Logistics 🚚
 
 <!-- HOME -->
 <div id="home" class="page active">
-<h2>Track Shipment</h2>
+
+<div class="hero">
+<h1>Live Shipment Tracking</h1>
 
 <div class="track-box">
-<input id="code" placeholder="Tracking code">
+<input id="code" placeholder="Enter tracking number">
 <button onclick="track()">Track</button>
+</div>
+</div>
+
+<div class="features">
+<div class="card">🚚 Fast Delivery</div>
+<div class="card">✈️ International Shipping</div>
+<div class="card">📦 Secure Packaging</div>
+<div class="card">📍 Real-Time Tracking</div>
 </div>
 
 <div id="result"></div>
+
 </div>
 
 <!-- LOGIN -->
 <div id="login" class="page">
-<h2>Login / Signup</h2>
+<h2 style="padding:20px;">Login / Signup</h2>
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
-
 <button onclick="login()">Login</button>
 <button onclick="signup()">Signup</button>
 </div>
 
-<!-- DASHBOARD (ADMIN ONLY) -->
+<!-- DASHBOARD -->
 <div id="dashboard" class="page">
-<h2>Admin Dashboard 🔐</h2>
-
+<h2 style="padding:20px;">Admin Dashboard 🔐</h2>
 <button onclick="show('admin')">Add Shipment</button>
 <button onclick="logout()">Logout</button>
-
 <div id="shipments"></div>
 </div>
 
-<!-- ADMIN PANEL -->
+<!-- ADMIN -->
 <div id="admin" class="page">
-<h2>Add Shipment</h2>
-
+<h2 style="padding:20px;">Add Shipment</h2>
 <input id="location" placeholder="Location">
 <input id="receiver" placeholder="Receiver">
 <input id="weight" placeholder="Weight">
 <input id="date" placeholder="Delivery Date">
 <input id="status" placeholder="Status">
-
-<button onclick="addShipment()">Add</button>
+<button onclick="addShipment()">Add Shipment</button>
 <button onclick="show('dashboard')">Back</button>
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  collection,
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-// 🔐 ADMIN EMAIL
 const ADMIN_EMAIL = "shippingcompanyservice015@gmail.com";
-
 let isAdmin = false;
 
 // FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
-  projectId: "bluewave-website",
+  projectId: "bluewave-website"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
-const db = getFirestore();
+const db = getFirestore(app);
 
-// NAVIGATION (PROTECTED)
+// NAVIGATION
 window.show = (id)=>{
-
   if((id==="dashboard" || id==="admin") && !isAdmin){
-    alert("Admin access only 🔐");
+    alert("Admin only 🔐");
     return;
   }
-
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 };
 
-// SIGNUP
+// AUTH
 window.signup = async ()=>{
   try{
     await createUserWithEmailAndPassword(auth,email.value,password.value);
@@ -127,26 +191,22 @@ window.signup = async ()=>{
   }catch(e){alert(e.message);}
 };
 
-// LOGIN (ADMIN ONLY)
 window.login = async ()=>{
   try{
     const user = await signInWithEmailAndPassword(auth,email.value,password.value);
-
     if(user.user.email === ADMIN_EMAIL){
       isAdmin = true;
       show("dashboard");
       loadShipments();
     } else {
-      alert("Access denied ❌ (Not admin)");
+      alert("Access denied");
       logout();
     }
-
   }catch(e){
     alert("Invalid login");
   }
 };
 
-// LOGOUT
 window.logout = ()=>{
   isAdmin = false;
   signOut(auth);
@@ -166,7 +226,7 @@ window.addShipment = async ()=>{
     paid:false
   });
 
-  alert("Shipment created: "+code);
+  alert("Created: "+code);
 };
 
 // LOAD DASHBOARD
@@ -176,13 +236,12 @@ async function loadShipments(){
 
   snap.forEach(docu=>{
     const d = docu.data();
-
     shipments.innerHTML += `
     <div class="card">
-      <b>${docu.id}</b><br>
-      📍 ${d.location}<br>
-      🚚 ${d.status}<br>
-      💳 ${d.paid ? "✅ Paid" : "❌ Not Paid"}
+    <b>${docu.id}</b><br>
+    ${d.location}<br>
+    ${d.status}<br>
+    ${d.paid ? "✅ Paid" : "❌ Not Paid"}
     </div>`;
   });
 }
@@ -194,7 +253,7 @@ window.track = async ()=>{
   const snap = await getDoc(ref);
 
   if(!snap.exists()){
-    result.innerHTML="Not found";
+    result.innerHTML="<p style='color:red'>Not found</p>";
     return;
   }
 
@@ -212,7 +271,7 @@ window.track = async ()=>{
 
   result.innerHTML = `
   <div class="card">
-  <b>${codeVal}</b><br>
+  <h2>${codeVal}</h2>
   📍 ${d.location}<br>
   👤 ${d.receiver}<br>
   📦 ${d.weight}<br>
@@ -222,13 +281,12 @@ window.track = async ()=>{
   </div>`;
 };
 
-// EMAIL PAYMENT
+// PAYMENT
 window.payEmail = (code)=>{
   window.location.href =
   "mailto:shippingcompanyservice015@gmail.com?subject=Payment "+code;
 };
 
-// MARK PAID
 window.markPaid = async (code)=>{
   await updateDoc(doc(db,"shipments",code),{paid:true});
   track();
