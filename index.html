@@ -21,79 +21,92 @@
       background: #ffcc00;
       color: black;
       padding: 15px;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: bold;
     }
 
-    h2 {
-      margin-top: 30px;
+    /* HERO */
+    .hero {
+      background:url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d');
+      background-size:cover;
+      background-position:center;
+      padding:80px 20px;
     }
 
-    input {
-      padding: 14px;
-      width: 80%;
-      max-width: 320px;
-      border-radius: 8px;
-      border: none;
-      margin: 10px;
-      background: #222;
-      color: white;
+    .search-box {
+      background:white;
+      border-radius:10px;
+      max-width:400px;
+      margin:auto;
+      display:flex;
+      overflow:hidden;
     }
 
-    button {
-      padding: 14px 25px;
-      border-radius: 8px;
-      background: #ffcc00;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
+    .search-box input {
+      flex:1;
+      padding:12px;
+      border:none;
+      outline:none;
     }
 
+    .search-box button {
+      background:#ffcc00;
+      border:none;
+      padding:12px 20px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    /* CARDS */
+    .grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:15px;
+      padding:20px;
+    }
+
+    .card {
+      background:#1a1a1a;
+      padding:20px;
+      border-radius:10px;
+    }
+
+    /* RESULT */
     #result {
-      margin: 20px auto;
-      padding: 20px;
-      max-width: 350px;
-      background: #1a1a1a;
-      border-radius: 10px;
-      text-align: left;
-      border-left: 6px solid #ffcc00;
+      margin:20px;
+      padding:20px;
+      background:#1a1a1a;
+      border-radius:10px;
+      text-align:left;
+      border-left:5px solid #ffcc00;
     }
 
     #progressContainer {
-      width: 80%;
-      max-width: 350px;
-      margin: 20px auto;
-      background: #333;
-      border-radius: 20px;
+      width:80%;
+      max-width:350px;
+      margin:20px auto;
+      background:#333;
+      border-radius:20px;
     }
 
     #progressBar {
-      height: 12px;
-      width: 0%;
-      background: #ffcc00;
-      border-radius: 20px;
-    }
-
-    #progressText {
-      margin-top: 10px;
-      color: #aaa;
-    }
-
-    .timeline {
-      margin-top: 15px;
-      border-left: 2px solid #ffcc00;
-      padding-left: 15px;
-    }
-
-    .timeline-item {
-      margin-bottom: 10px;
+      height:10px;
+      width:0%;
+      background:#ffcc00;
+      border-radius:20px;
     }
 
     #map {
-      width: 90%;
-      height: 320px;
-      margin: 20px auto;
-      border-radius: 10px;
+      width:90%;
+      height:320px;
+      margin:20px auto;
+      border-radius:10px;
+    }
+
+    .timeline {
+      margin-top:15px;
+      border-left:2px solid #ffcc00;
+      padding-left:15px;
     }
   </style>
 </head>
@@ -102,20 +115,35 @@
 
 <header>BlueWave Logistics 🚚</header>
 
-<h2>Live Shipment Tracking</h2>
+<!-- HERO -->
+<div class="hero">
+  <h1>Track Your Shipment</h1>
 
-<input id="code" placeholder="Enter tracking code">
-<br>
-<button onclick="track()">Track</button>
+  <div class="search-box">
+    <input id="code" placeholder="Enter tracking number">
+    <button onclick="track()">Track</button>
+  </div>
+</div>
 
+<!-- FEATURES -->
+<div class="grid">
+  <div class="card">🚚 Fast Delivery</div>
+  <div class="card">✈️ International Shipping</div>
+  <div class="card">📦 Secure Packaging</div>
+  <div class="card">📍 Real-Time Tracking</div>
+</div>
+
+<!-- RESULT -->
 <div id="result"></div>
 
+<!-- PROGRESS -->
 <div id="progressContainer">
   <div id="progressBar"></div>
 </div>
 
 <p id="progressText"></p>
 
+<!-- MAP -->
 <div id="map"></div>
 
 <!-- LEAFLET -->
@@ -123,7 +151,6 @@
 
 <script>
 
-// GLOBAL VARIABLES
 let map, marker, routeLine, interval;
 
 // INIT MAP
@@ -142,12 +169,11 @@ function drawRoute(route) {
 }
 
 // REAL-TIME TRUCK
-function moveTruckLive(route) {
+function moveTruck(route) {
   if (interval) clearInterval(interval);
 
   let i = 0;
   let progressStep = 0;
-  let speed = 0.01;
 
   if (marker) map.removeLayer(marker);
 
@@ -173,7 +199,7 @@ function moveTruckLive(route) {
     document.getElementById("progressText").innerText =
       `📍 Live: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 
-    progressStep += speed;
+    progressStep += 0.01;
 
     if (progressStep >= 1) {
       progressStep = 0;
@@ -190,7 +216,7 @@ function updateProgress(step, total) {
   document.getElementById("progressBar").style.width = progress + "%";
 }
 
-// 🚨 IMPORTANT: GLOBAL FUNCTION (FIXED)
+// GLOBAL TRACK FUNCTION (FIXED)
 window.track = function () {
 
   const code = document.getElementById("code").value;
@@ -209,20 +235,20 @@ window.track = function () {
 
   initMap();
   drawRoute(route);
-  moveTruckLive(route);
+  moveTruck(route);
 
-  let historyHTML = `
+  let timeline = `
   <div class="timeline">
-    <div class="timeline-item">📦 Shipment created - Italy</div>
-    <div class="timeline-item">🚚 In transit - Berlin</div>
-    <div class="timeline-item">✈️ Arrived - London</div>
-    <div class="timeline-item">🏠 Out for delivery - New York</div>
+    <div>📦 Shipment created - Italy</div>
+    <div>🚚 Berlin transit</div>
+    <div>✈️ London hub</div>
+    <div>🏠 New York delivery</div>
   </div>`;
 
   document.getElementById("result").innerHTML = `
     <b>📦 Tracking ID:</b> ${code}<br><br>
-    🚚 Live tracking started...
-    ${historyHTML}
+    🚚 Live tracking started
+    ${timeline}
   `;
 };
 
