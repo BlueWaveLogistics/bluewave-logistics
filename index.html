@@ -7,98 +7,85 @@
 
   <style>
     body {
-      margin: 0;
-      font-family: Arial;
-      background: #111;
-      color: white;
-      text-align: center;
+      margin:0;
+      font-family:Arial;
+      background:#111;
+      color:white;
+      text-align:center;
     }
 
     header {
-      background: #ffcc00;
-      color: black;
-      padding: 15px;
-      font-weight: bold;
-      font-size: 20px;
+      background:#ffcc00;
+      color:black;
+      padding:15px;
+      font-weight:bold;
+      font-size:20px;
     }
 
     input {
-      padding: 12px;
-      margin: 10px;
-      width: 80%;
-      max-width: 300px;
-      border: none;
-      border-radius: 8px;
+      padding:12px;
+      margin:10px;
+      width:80%;
+      max-width:300px;
+      border:none;
+      border-radius:8px;
     }
 
     button {
-      padding: 12px 20px;
-      background: #ffcc00;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
+      padding:12px 20px;
+      background:#ffcc00;
+      border:none;
+      border-radius:8px;
+      font-weight:bold;
+      cursor:pointer;
     }
 
-    #loginBox, #dashboard {
-      margin-top: 40px;
-    }
-
-    #dashboard {
-      display: none;
-    }
+    #dashboard { display:none; }
+    #adminPanel { display:none; }
 
     #result {
-      margin: 20px auto;
-      padding: 20px;
-      max-width: 350px;
-      background: #1a1a1a;
-      border-radius: 12px;
-      text-align: left;
-      border-left: 5px solid #ffcc00;
+      margin:20px auto;
+      padding:20px;
+      max-width:350px;
+      background:#1a1a1a;
+      border-left:5px solid #ffcc00;
+      border-radius:12px;
+      text-align:left;
     }
 
     .timeline {
-      border-left: 2px solid #ffcc00;
-      padding-left: 10px;
-      margin-top: 10px;
-    }
-
-    .timeline-item {
-      margin-bottom: 8px;
+      border-left:2px solid #ffcc00;
+      padding-left:10px;
+      margin-top:10px;
     }
 
     #progressContainer {
-      width: 80%;
-      max-width: 350px;
-      margin: 20px auto;
-      background: #333;
-      border-radius: 20px;
+      width:80%;
+      max-width:350px;
+      margin:20px auto;
+      background:#333;
+      border-radius:20px;
     }
 
     #progressBar {
-      height: 10px;
-      width: 0%;
-      background: #ffcc00;
-      border-radius: 20px;
-      transition: 0.5s;
-    }
-
-    .logout {
-      margin-top: 20px;
-      background: red;
-      color: white;
+      height:10px;
+      width:0%;
+      background:#ffcc00;
+      border-radius:20px;
     }
   </style>
 </head>
 
 <body>
 
-<header>BlueWave Logistics 🚚</header>
+<header>
+  BlueWave Logistics 🚚
+  <button onclick="unlockAdmin()">Admin</button>
+</header>
 
 <!-- LOGIN -->
 <div id="loginBox">
-  <h2>Login</h2>
+  <h2>Customer Login</h2>
   <input id="email" placeholder="Email"><br>
   <input id="password" type="password" placeholder="Password"><br>
   <button onclick="login()">Login</button>
@@ -108,7 +95,7 @@
 <div id="dashboard">
   <h2>Track Shipment</h2>
 
-  <input id="code" placeholder="Enter tracking code"><br>
+  <input id="code" placeholder="Tracking code"><br>
   <button onclick="track()">Track</button>
 
   <div id="result"></div>
@@ -119,132 +106,153 @@
 
   <p id="progressText"></p>
 
-  <button class="logout" onclick="logout()">Logout</button>
+  <button onclick="logout()" style="background:red;color:white;">Logout</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel">
+  <h3>Add Shipment</h3>
+
+  <input id="newLocation" placeholder="Location"><br>
+  <input id="newSender" placeholder="Sender"><br>
+  <input id="newReceiver" placeholder="Receiver"><br>
+  <input id="newWeight" placeholder="Weight"><br>
+  <input id="newDate" placeholder="Delivery Date"><br>
+
+  <input id="newStatus" placeholder="Status">
+
+  <div>
+    <button onclick="setStatus('Pending')">Pending</button>
+    <button onclick="setStatus('In Transit')">Transit</button>
+    <button onclick="setStatus('Out for Delivery')">Out</button>
+    <button onclick="setStatus('Delivered')">Delivered</button>
+  </div>
+
+  <button onclick="addShipment()">Add Shipment</button>
 </div>
 
 <script>
 
-// LOGIN
-function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+// LOAD DATA
+let shipments = JSON.parse(localStorage.getItem("shipments")) || {
+  "BW1001": {
+    status:"In Transit",
+    location:"New York",
+    sender:"BlueWave",
+    receiver:"John",
+    weight:"5kg",
+    deliveryDate:"25 March",
+    history:["Created - Italy","Transit"]
+  }
+};
 
-  if (email && password) {
-    localStorage.setItem("user", email);
+let counter = Object.keys(shipments).length + 1000;
+
+// SAVE
+function saveData(){
+  localStorage.setItem("shipments", JSON.stringify(shipments));
+}
+
+// LOGIN
+function login(){
+  if(email.value && password.value){
+    localStorage.setItem("user", email.value);
     showDashboard();
-  } else {
-    alert("Enter login details");
   }
 }
 
 // SHOW DASHBOARD
-function showDashboard() {
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
+function showDashboard(){
+  loginBox.style.display="none";
+  dashboard.style.display="block";
 }
 
 // AUTO LOGIN
-if (localStorage.getItem("user")) {
-  showDashboard();
-}
+if(localStorage.getItem("user")) showDashboard();
 
 // LOGOUT
-function logout() {
+function logout(){
   localStorage.removeItem("user");
   location.reload();
 }
 
-// SHIPMENTS
-let shipments = {
-  "BW1001": {
-    status: "In Transit",
-    location: "New York, USA",
-    history: ["Created - Italy", "Picked up", "In transit"]
-  },
-  "BW1002": {
-    status: "Delivered",
-    location: "London, UK",
-    history: ["Created", "Transit", "Delivered"]
-  },
-  "BW1003": {
-    status: "Out for Delivery",
-    location: "Berlin, Germany",
-    history: ["Created", "Transit", "Out for delivery"]
-  },
-  "BW1004": {
-    status: "Pending",
-    location: "Paris, France",
-    history: ["Shipment created"]
-  },
-  "BW1005": {
-    status: "In Transit",
-    location: "Madrid, Spain",
-    history: ["Created - Italy", "In transit"]
-  }
-};
+// ADMIN UNLOCK
+function unlockAdmin(){
+  const pass = prompt("Admin password");
+  if(pass==="admin123"){
+    adminPanel.style.display="block";
+  } else alert("Wrong password");
+}
+
+// STATUS BUTTON
+function setStatus(s){
+  newStatus.value = s;
+}
+
+// ADD SHIPMENT
+function addShipment(){
+  counter++;
+  const code="BW"+counter;
+
+  const status=newStatus.value;
+  const location=newLocation.value;
+
+  let history=[status+" - "+location];
+
+  shipments[code]={
+    status,
+    location,
+    sender:newSender.value,
+    receiver:newReceiver.value,
+    weight:newWeight.value,
+    deliveryDate:newDate.value,
+    history
+  };
+
+  saveData();
+  alert("Shipment created: "+code);
+}
 
 // TRACK
-function track() {
-  const code = document.getElementById("code").value.trim();
-  const data = shipments[code];
+function track(){
+  const code=document.getElementById("code").value;
+  const data=shipments[code];
 
-  if (!data) {
-    document.getElementById("result").innerHTML =
-      "<p style='color:red;'>Tracking code not found</p>";
+  if(!data){
+    result.innerHTML="❌ Not found";
     return;
   }
 
-  // STATUS COLOR
-  let color =
-    data.status === "Delivered" ? "green" :
-    data.status === "In Transit" ? "orange" :
-    data.status === "Out for Delivery" ? "gold" : "gray";
+  let color=
+    data.status==="Delivered"?"green":
+    data.status==="In Transit"?"orange":
+    data.status==="Out for Delivery"?"gold":"gray";
 
-  let statusHTML = `
-    <div style="
-      background:${color};
-      padding:8px 16px;
-      border-radius:20px;
-      display:inline-block;
-      font-weight:bold;
-      margin-bottom:10px;
-      color:${color === 'gold' ? 'black' : 'white'};
-    ">
-      ${data.status}
-    </div>
-  `;
+  let statusHTML=`<div style="background:${color};padding:6px 12px;border-radius:20px;">${data.status}</div>`;
 
-  // TIMELINE
-  let historyHTML = "";
-  data.history.forEach(item => {
-    historyHTML += `<div class="timeline-item">${item}</div>`;
+  let historyHTML="";
+  data.history.forEach(i=>{
+    historyHTML+=`<div>${i}</div>`;
   });
 
-  historyHTML = `<div class="timeline">${historyHTML}</div>`;
+  historyHTML=`<div class="timeline">${historyHTML}</div>`;
 
-  // PROGRESS
-  let progress = 0;
-  if (data.status === "Pending") progress = 25;
-  else if (data.status === "In Transit") progress = 50;
-  else if (data.status === "Out for Delivery") progress = 75;
-  else if (data.status === "Delivered") progress = 100;
+  let progress=0;
+  if(data.status==="Pending")progress=25;
+  else if(data.status==="In Transit")progress=50;
+  else if(data.status==="Out for Delivery")progress=75;
+  else if(data.status==="Delivered")progress=100;
 
-  const bar = document.getElementById("progressBar");
-  bar.style.width = "0%";
+  progressBar.style.width=progress+"%";
+  progressText.innerText="Progress: "+progress+"%";
 
-  setTimeout(() => {
-    bar.style.width = progress + "%";
-  }, 200);
-
-  document.getElementById("progressText").innerText =
-    "Progress: " + progress + "%";
-
-  // RESULT
-  document.getElementById("result").innerHTML =
-    statusHTML + `
-    <br>
-    <b>📍 Location:</b> ${data.location}<br><br>
-    ` + historyHTML;
+  result.innerHTML=
+    statusHTML+
+    `<br><b>${code}</b><br>
+    📍 ${data.location}<br>
+    👤 ${data.receiver}<br>
+    📦 ${data.weight}<br><br>`+
+    historyHTML;
 }
 
 </script>
