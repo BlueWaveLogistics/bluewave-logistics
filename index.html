@@ -162,15 +162,104 @@
 
 // LOAD STORAGE
 let shipments = JSON.parse(localStorage.getItem("shipments")) || {
+
   "BW1001": {
-    status: "Pending",
-    location: "Italy",
+    status: "In Transit",
+    location: "New York, USA",
     sender: "BlueWave",
     receiver: "John Doe",
     weight: "5kg",
     deliveryDate: "25 March 2026",
-    history: ["Shipment created - Italy"]
+    history: [
+      "Shipment created - Italy",
+      "Picked up",
+      "In transit"
+    ]
+  },
+
+  "BW1002": {
+    status: "Delivered",
+    location: "London, UK",
+    sender: "BlueWave",
+    receiver: "Emma Brown",
+    weight: "2kg",
+    deliveryDate: "20 March 2026",
+    history: [
+      "Shipment created - Italy",
+      "In transit",
+      "Out for delivery",
+      "Delivered"
+    ]
+  },
+
+  "BW1003": {
+    status: "Pending",
+    location: "Paris, France",
+    sender: "BlueWave",
+    receiver: "Lucas Martin",
+    weight: "3kg",
+    deliveryDate: "30 March 2026",
+    history: [
+      "Shipment created - Italy"
+    ]
+  },
+
+  "BW1004": {
+    status: "Out for Delivery",
+    location: "Berlin, Germany",
+    sender: "BlueWave",
+    receiver: "Sophia Klein",
+    weight: "4kg",
+    deliveryDate: "28 March 2026",
+    history: [
+      "Shipment created - Italy",
+      "Departed facility",
+      "In transit",
+      "Out for delivery"
+    ]
+  },
+
+  "BW1005": {
+    status: "In Transit",
+    location: "Madrid, Spain",
+    sender: "BlueWave",
+    receiver: "Carlos Diaz",
+    weight: "6kg",
+    deliveryDate: "27 March 2026",
+    history: [
+      "Shipment created - Italy",
+      "In transit to Spain"
+    ]
+  },
+
+  "BW1006": {
+    status: "Out for Delivery",
+    location: "Amsterdam, Netherlands",
+    sender: "BlueWave",
+    receiver: "Anna de Vries",
+    weight: "1.5kg",
+    deliveryDate: "26 March 2026",
+    history: [
+      "Shipment created - Italy",
+      "In transit",
+      "Out for delivery"
+    ]
+  },
+
+  "BW1007": {
+    status: "Delivered",
+    location: "Rome, Italy",
+    sender: "BlueWave",
+    receiver: "Marco Rossi",
+    weight: "2.5kg",
+    deliveryDate: "22 March 2026",
+    history: [
+      "Shipment created - Italy",
+      "In transit",
+      "Delivered"
+    ]
   }
+
 };
 
 let counter = Object.keys(shipments).length + 1000;
