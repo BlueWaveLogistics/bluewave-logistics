@@ -5,84 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0a0a0a;
-  color:white;
-}
-
-/* HEADER */
-header{
-  background:#ffcc00;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-  color:black;
-  font-weight:bold;
-}
-
-/* HERO */
-.hero{
-  background:url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
-  background-size:cover;
-  padding:120px 20px;
-  text-align:center;
-}
-
-.hero h1{
-  font-size:30px;
-}
-
-/* TRACK BOX */
-.track-box{
-  display:flex;
-  max-width:400px;
-  margin:20px auto;
-  border-radius:10px;
-  overflow:hidden;
-}
-
-.track-box input{
-  flex:1;
-  padding:15px;
-  border:none;
-}
-
-.track-box button{
-  background:#ffcc00;
-  border:none;
-  padding:15px;
-  font-weight:bold;
-}
-
-/* FEATURES */
-.features{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-  padding:20px;
-}
-
-.feature{
-  background:#1a1a1a;
-  padding:20px;
-  border-radius:15px;
-  text-align:center;
-}
-
-/* CARD */
-.card{
-  margin:20px;
-  padding:25px;
-  background:linear-gradient(145deg,#111,#1a1a1a);
-  border-radius:20px;
-}
-
-/* BUTTON */
-button{
-  cursor:pointer;
-}
+body{margin:0;font-family:Arial;background:#0a0a0a;color:white;}
+header{background:#ffcc00;padding:15px;display:flex;justify-content:space-between;color:black;font-weight:bold;}
+.page{display:none;padding:20px;}
+.active{display:block;}
+input{padding:12px;margin:5px;width:90%;border-radius:10px;border:none;background:#222;color:white;}
+button{padding:12px;border:none;border-radius:10px;background:#ffcc00;font-weight:bold;margin:5px;}
+.card{background:#111;padding:20px;border-radius:15px;margin:10px;}
+.track-box{display:flex;}
+.track-box input{flex:1;}
 </style>
 </head>
 
@@ -90,153 +21,194 @@ button{
 
 <header>
 BlueWave Logistics 🚚
-<span>Secure Delivery</span>
+<button onclick="show('login')">Login</button>
 </header>
 
-<!-- HERO -->
-<div class="hero">
-<h1>Live Shipment Tracking</h1>
+<!-- HOME -->
+<div id="home" class="page active">
+<h2>Track Shipment</h2>
 
 <div class="track-box">
-<input id="code" placeholder="Enter tracking number">
+<input id="code" placeholder="Tracking code">
 <button onclick="track()">Track</button>
 </div>
-</div>
 
-<!-- FEATURES -->
-<div class="features">
-<div class="feature">🚚 Fast Delivery</div>
-<div class="feature">✈️ International Shipping</div>
-<div class="feature">📦 Secure Packaging</div>
-<div class="feature">📍 Real-Time Tracking</div>
-</div>
-
-<!-- RESULT -->
 <div id="result"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="page">
+<h2>Login / Signup</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+<button onclick="signup()">Signup</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="page">
+<h2>Dashboard</h2>
+
+<button onclick="show('admin')">Add Shipment</button>
+<button onclick="logout()">Logout</button>
+
+<div id="shipments"></div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="page">
+<h2>Add Shipment</h2>
+
+<input id="location" placeholder="Location">
+<input id="receiver" placeholder="Receiver">
+<input id="weight" placeholder="Weight">
+<input id="date" placeholder="Delivery Date">
+<input id="status" placeholder="Status">
+
+<button onclick="addShipment()">Add</button>
+<button onclick="show('dashboard')">Back</button>
+</div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-// FIREBASE CONFIG
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  collection,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+// CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
   projectId: "bluewave-website",
-  storageBucket: "bluewave-website.appspot.com",
-  messagingSenderId: "116060669757",
-  appId: "1:116060669757:web:26d6ef7746c7feceeaa754"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const auth = getAuth();
+const db = getFirestore();
 
-// TRACK FUNCTION
+// NAVIGATION
+window.show = (id)=>{
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+};
+
+// SIGNUP
+window.signup = async ()=>{
+  try{
+    await createUserWithEmailAndPassword(auth,email.value,password.value);
+    alert("Account created");
+  }catch(e){alert(e.message);}
+};
+
+// LOGIN
+window.login = async ()=>{
+  try{
+    await signInWithEmailAndPassword(auth,email.value,password.value);
+    show("dashboard");
+    loadShipments();
+  }catch(e){alert("Invalid login");}
+};
+
+// LOGOUT
+window.logout = ()=>{
+  signOut(auth);
+  show("home");
+};
+
+// ADD SHIPMENT
+window.addShipment = async ()=>{
+  const code = "BW" + Math.floor(Math.random()*10000);
+
+  await setDoc(doc(db,"shipments",code),{
+    location: location.value,
+    receiver: receiver.value,
+    weight: weight.value,
+    deliveryDate: date.value,
+    status: status.value,
+    paid:false
+  });
+
+  alert("Created: "+code);
+};
+
+// LOAD DASHBOARD
+async function loadShipments(){
+  shipments.innerHTML="";
+  const snap = await getDocs(collection(db,"shipments"));
+
+  snap.forEach(docu=>{
+    const d = docu.data();
+
+    shipments.innerHTML += `
+    <div class="card">
+    <b>${docu.id}</b><br>
+    ${d.location}<br>
+    ${d.status}<br>
+    ${d.paid ? "✅ Paid" : "❌ Not Paid"}
+    </div>`;
+  });
+}
+
+// TRACK
 window.track = async ()=>{
-
-  const codeVal = document.getElementById("code").value.trim();
+  const codeVal = code.value;
   const ref = doc(db,"shipments",codeVal);
   const snap = await getDoc(ref);
 
   if(!snap.exists()){
-    result.innerHTML = "<p style='color:red; padding:20px;'>Tracking not found</p>";
+    result.innerHTML="Not found";
     return;
   }
 
   const d = snap.data();
 
-  const location = d.location || "Unknown";
-  const receiver = d.receiver || "Unknown";
-  const weight = d.weight || "N/A";
-  const date = d.deliveryDate || "Not available";
-  const status = d.status || "Pending";
-  const paid = d.paid || false;
-
-  const progress =
-    status==="Pending"?25:
-    status==="In Transit"?50:
-    status==="Out for Delivery"?75:100;
-
-  const paymentUI = paid
-  ? `<span style="color:lightgreen;">✅ Paid</span>`
+  const paymentUI = d.paid
+  ? "✅ Paid"
   : `
-    <span style="color:red;">❌ Not Paid</span><br><br>
-
-    <button onclick="payEmail('${codeVal}')">📧 Pay via Email</button>
-
-    <a href="https://www.paypal.me/shippingcompany015" target="_blank">
-      <button>💳 Pay with PayPal</button>
-    </a>
-
-    <button onclick="markPaid('${codeVal}')">✔ I Paid</button>
+  ❌ Not Paid<br>
+  <button onclick="payEmail('${codeVal}')">Email</button>
+  <a href="https://www.paypal.me/shippingcompany015" target="_blank">
+  <button>PayPal</button></a>
+  <button onclick="markPaid('${codeVal}')">I Paid</button>
   `;
 
   result.innerHTML = `
   <div class="card">
-
-    <h2>${codeVal}</h2>
-
-    📍 ${location}<br>
-    👤 ${receiver}<br>
-    📦 ${weight}<br>
-    📅 ${date}<br>
-    🚚 <b>${status}</b>
-
-    <br><br>
-
-    💳 Payment: ${paymentUI}
-
-    <div style="margin-top:20px;background:#333;border-radius:20px;">
-      <div style="
-        width:${progress}%;
-        height:10px;
-        background:#ffcc00;
-        border-radius:20px;
-      "></div>
-    </div>
-
-    <div style="
-      margin-top:20px;
-      font-size:14px;
-      color:#aaa;
-      border-left:2px solid #ffcc00;
-      padding-left:10px;
-    ">
-      ${progress >= 25 ? "✔ Shipment created<br>" : ""}
-      ${progress >= 50 ? "✔ In transit<br>" : ""}
-      ${progress >= 75 ? "✔ Out for delivery<br>" : ""}
-      ${progress === 100 ? "✔ Delivered<br>" : ""}
-    </div>
-
-  </div>
-  `;
+  <b>${codeVal}</b><br>
+  📍 ${d.location}<br>
+  👤 ${d.receiver}<br>
+  📦 ${d.weight}<br>
+  📅 ${d.deliveryDate}<br>
+  🚚 ${d.status}<br><br>
+  💳 ${paymentUI}
+  </div>`;
 };
 
-// EMAIL PAYMENT
+// EMAIL
 window.payEmail = (code)=>{
-  const subject = encodeURIComponent("Payment for Shipment " + code);
-
-  const body = encodeURIComponent(
-`Hello BlueWave Logistics,
-
-I want to make payment for shipment: ${code}
-
-Please confirm my payment.
-
-Thank you.`
-  );
-
   window.location.href =
-  "mailto:shippingcompanyservice015@gmail.com?subject=" + subject + "&body=" + body;
+  "mailto:shippingcompanyservice015@gmail.com?subject=Payment "+code;
 };
 
-// MARK PAID (DATABASE UPDATE)
+// MARK PAID
 window.markPaid = async (code)=>{
-  const ref = doc(db,"shipments",code);
-  await updateDoc(ref,{ paid:true });
-
-  alert("Payment confirmed ✅");
+  await updateDoc(doc(db,"shipments",code),{paid:true});
   track();
 };
 
