@@ -4,6 +4,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BlueWave Logistics</title>
 
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+
 <style>
 body {
   margin:0;
@@ -90,22 +93,21 @@ button {
 <button onclick="track()">Track</button>
 
 <div id="result"></div>
-<div id="mapBox"></div>
 
 <h3>My Shipments</h3>
 <div id="myShipments"></div>
 
-<!-- ADMIN PANEL -->
+<!-- ADMIN -->
 <div id="adminPanel" class="hidden">
-  <h3>Add Shipment (Admin)</h3>
+  <h3>Add Shipment</h3>
 
   <input id="newLocation" placeholder="Location"><br>
   <input id="newSender" placeholder="Sender"><br>
-  <input id="newReceiver" placeholder="Receiver Email"><br>
+  <input id="newReceiver" placeholder="Customer Email"><br>
   <input id="newWeight" placeholder="Weight"><br>
   <input id="newDate" placeholder="Delivery Date"><br>
 
-  <button onclick="addShipment()">Add Shipment</button>
+  <button onclick="addShipment()">Create Shipment</button>
 </div>
 
 <br>
@@ -151,10 +153,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
-// 🔐 SET ADMIN EMAIL
-const ADMIN_EMAIL = "your@email.com";
+// 🔐 ADMIN EMAIL
+const ADMIN_EMAIL = "taytaylor984@gmail.com";
 
-// UI SWITCH
+// UI
 window.showSignup = () => {
   loginBox.classList.add("hidden");
   signupBox.classList.remove("hidden");
@@ -224,7 +226,7 @@ window.addShipment = async () => {
     history:["Shipment created"]
   });
 
-  alert("Created: "+code);
+  alert("Shipment created: " + code);
 };
 
 // TRACK
@@ -254,20 +256,19 @@ window.track = async () => {
     📦 ${data.weight}<br>
     📅 ${data.deliveryDate}<br><br>
 
-    🚚 <b>${data.status}</b><br><br>
+    🚚 ${data.status}<br><br>
 
     <b>Timeline</b><br>
     ${historyHTML}
 
+    ${auth.currentUser.email === ADMIN_EMAIL ? `
     <br><br>
-
     <button onclick="updateStatus('${code}','In transit')">Transit</button>
     <button onclick="updateStatus('${code}','Out for delivery')">Out</button>
     <button onclick="updateStatus('${code}','Delivered')">Delivered</button>
+    ` : ""}
   </div>
   `;
-
-  simulateMap(data.status);
 };
 
 // UPDATE STATUS
@@ -310,19 +311,6 @@ async function loadMyShipments(email){
   });
 
   myShipments.innerHTML = html || "No shipments yet";
-}
-
-// 🚚 LIVE SIMULATION
-function simulateMap(status){
-
-  let msg = "";
-
-  if(status==="Pending") msg="📦 Preparing shipment...";
-  if(status==="In transit") msg="🚚 Moving to destination...";
-  if(status==="Out for delivery") msg="📍 Near your location...";
-  if(status==="Delivered") msg="✅ Delivered successfully";
-
-  mapBox.innerHTML = `<div class="card">${msg}</div>`;
 }
 
 </script>
