@@ -5,11 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { margin:0; font-family:Arial; background:#0a0a0a; color:white; }
-header { background:#ffcc00; color:black; padding:15px; display:flex; justify-content:space-between; }
+body {
+  margin:0;
+  font-family:Arial;
+  background:#0a0a0a;
+  color:white;
+}
+
+header {
+  background:#ffcc00;
+  color:black;
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  font-weight:bold;
+}
+
+/* PAGES */
 .page { display:none; padding:20px; }
 .active { display:block; }
 
+/* HERO */
 .hero {
   background:url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
   padding:100px 20px;
@@ -17,6 +33,7 @@ header { background:#ffcc00; color:black; padding:15px; display:flex; justify-co
   background-size:cover;
 }
 
+/* TRACK */
 .track {
   display:flex;
   max-width:400px;
@@ -26,8 +43,8 @@ header { background:#ffcc00; color:black; padding:15px; display:flex; justify-co
 .track input {
   flex:1;
   padding:15px;
-  border-radius:10px 0 0 10px;
   border:none;
+  border-radius:10px 0 0 10px;
 }
 
 .track button {
@@ -37,11 +54,14 @@ header { background:#ffcc00; color:black; padding:15px; display:flex; justify-co
   border-radius:0 10px 10px 0;
 }
 
+/* CARD */
 .card {
-  background:#111;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(10px);
   padding:20px;
-  border-radius:10px;
-  margin-top:10px;
+  border-radius:15px;
+  margin-top:20px;
+  box-shadow:0 5px 30px rgba(0,0,0,0.6);
 }
 
 input {
@@ -50,6 +70,8 @@ input {
   margin:5px;
   border-radius:10px;
   border:none;
+  background:#222;
+  color:white;
 }
 
 button {
@@ -71,8 +93,9 @@ BlueWave Logistics 🚚
 
 <!-- HOME -->
 <div id="home" class="page active">
+
 <div class="hero">
-<h1>Live Shipment Tracking</h1>
+<h1>Track Shipment</h1>
 
 <div class="track">
 <input id="code" placeholder="Tracking code">
@@ -81,6 +104,7 @@ BlueWave Logistics 🚚
 </div>
 
 <div id="result"></div>
+
 </div>
 
 <!-- LOGIN -->
@@ -96,16 +120,21 @@ BlueWave Logistics 🚚
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="page">
-<h2>Dashboard</h2>
 
-<button onclick="show('admin')">Admin Panel</button>
-<button onclick="logout()">Logout</button>
+<h2 style="text-align:center;">📦 Shipment Dashboard</h2>
+
+<div style="text-align:center;">
+<button onclick="show('admin')">➕ Add Shipment</button>
+<button onclick="logout()">🚪 Logout</button>
+</div>
 
 <div id="shipments"></div>
+
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="page">
+
 <h2>Add Shipment</h2>
 
 <input id="location" placeholder="Location">
@@ -116,6 +145,7 @@ BlueWave Logistics 🚚
 
 <button onclick="addShipment()">Add Shipment</button>
 <button onclick="show('dashboard')">Back</button>
+
 </div>
 
 <script type="module">
@@ -138,6 +168,7 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
+// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
@@ -196,7 +227,7 @@ window.addShipment = async () => {
     status: status.value
   });
 
-  alert("✅ Shipment Created: " + code);
+  alert("Shipment Created: " + code);
 };
 
 // TRACK
@@ -221,20 +252,53 @@ window.track = async () => {
   }
 };
 
-// LOAD DASHBOARD
+// LOAD DASHBOARD (ULTRA)
 async function loadShipments(){
+
   shipments.innerHTML = "";
 
   const snap = await getDocs(collection(db,"shipments"));
 
   snap.forEach(doc => {
+
     const d = doc.data();
+
+    let color = "gray";
+    let progress = 25;
+
+    if(d.status === "In Transit"){ color="orange"; progress=50; }
+    else if(d.status === "Out for Delivery"){ color="gold"; progress=75; }
+    else if(d.status === "Delivered"){ color="green"; progress=100; }
 
     shipments.innerHTML += `
       <div class="card">
-        ${doc.id}<br>
-        ${d.location}<br>
-        ${d.status}
+
+        <b>📦 ${doc.id}</b><br><br>
+
+        📍 ${d.location}<br>
+        👤 ${d.receiver}<br>
+        ⚖️ ${d.weight}<br>
+        📅 ${d.deliveryDate}<br><br>
+
+        <span style="
+          background:${color};
+          padding:6px 12px;
+          border-radius:20px;
+          font-weight:bold;
+          color:${color==='gold'?'black':'white'};
+        ">
+          ${d.status}
+        </span>
+
+        <div style="margin-top:15px;background:#333;border-radius:20px;">
+          <div style="
+            width:${progress}%;
+            height:10px;
+            background:${color};
+            border-radius:20px;
+          "></div>
+        </div>
+
       </div>
     `;
   });
