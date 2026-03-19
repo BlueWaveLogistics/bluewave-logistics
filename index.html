@@ -41,8 +41,6 @@ button {
   margin:5px;
 }
 
-.hidden { display:none; }
-
 .card {
   margin:15px auto;
   padding:15px;
@@ -52,6 +50,8 @@ button {
   border-radius:12px;
   text-align:left;
 }
+
+.hidden { display:none; }
 
 .logout {
   background:red;
@@ -90,22 +90,25 @@ button {
 <button onclick="track()">Track</button>
 
 <div id="result"></div>
+<div id="mapBox"></div>
 
 <h3>My Shipments</h3>
 <div id="myShipments"></div>
 
-<h3>Add Shipment (Admin)</h3>
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="hidden">
+  <h3>Add Shipment (Admin)</h3>
 
-<input id="newLocation" placeholder="Location"><br>
-<input id="newSender" placeholder="Sender"><br>
-<input id="newReceiver" placeholder="Receiver Email"><br>
-<input id="newWeight" placeholder="Weight"><br>
-<input id="newDate" placeholder="Delivery Date"><br>
-<input id="newStatus" placeholder="Status"><br>
+  <input id="newLocation" placeholder="Location"><br>
+  <input id="newSender" placeholder="Sender"><br>
+  <input id="newReceiver" placeholder="Receiver Email"><br>
+  <input id="newWeight" placeholder="Weight"><br>
+  <input id="newDate" placeholder="Delivery Date"><br>
 
-<button onclick="addShipment()">Add Shipment</button>
+  <button onclick="addShipment()">Add Shipment</button>
+</div>
 
-<br><br>
+<br>
 <button onclick="logout()" class="logout">Logout</button>
 
 </div>
@@ -113,6 +116,7 @@ button {
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -126,13 +130,14 @@ import {
   doc,
   setDoc,
   getDoc,
+  updateDoc,
   collection,
   getDocs,
   query,
   where
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-// CONFIG
+// 🔑 CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
@@ -145,6 +150,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
+
+// 🔐 SET ADMIN EMAIL
+const ADMIN_EMAIL = "your@email.com";
 
 // UI SWITCH
 window.showSignup = () => {
@@ -165,9 +173,13 @@ window.showDashboard = () => {
 
 // AUTO LOGIN
 onAuthStateChanged(auth, (user) => {
-  if (user) {
+  if(user){
     showDashboard();
     loadMyShipments(user.email);
+
+    if(user.email === ADMIN_EMAIL){
+      adminPanel.classList.remove("hidden");
+    }
   }
 });
 
@@ -176,7 +188,6 @@ window.signup = async () => {
   try{
     await createUserWithEmailAndPassword(auth, signupEmail.value, signupPass.value);
     alert("Account created");
-    showDashboard();
   }catch(e){
     alert(e.message);
   }
@@ -200,34 +211,20 @@ window.logout = () => {
 // ADD SHIPMENT
 window.addShipment = async () => {
 
-  if (!newLocation.value || !newReceiver.value) {
-    alert("Fill all fields");
-    return;
-  }
-
   const code = "BW" + Date.now().toString().slice(-6);
 
-  await setDoc(doc(db, "shipments", code), {
-    owner: newReceiver.value.toLowerCase(),
-    location: newLocation.value,
-    sender: newSender.value,
-    receiver: newReceiver.value,
-    weight: newWeight.value,
-    deliveryDate: newDate.value,
-    status: newStatus.value,
-    history: [
-      "Shipment created",
-      "Processing",
-      "In transit"
-    ]
+  await setDoc(doc(db,"shipments",code),{
+    owner:newReceiver.value.toLowerCase(),
+    location:newLocation.value,
+    sender:newSender.value,
+    receiver:newReceiver.value,
+    weight:newWeight.value,
+    deliveryDate:newDate.value,
+    status:"Pending",
+    history:["Shipment created"]
   });
 
-  result.innerHTML = `
-    <div class="card">
-      ✅ Shipment created<br>
-      <b>${code}</b>
-    </div>
-  `;
+  alert("Created: "+code);
 };
 
 // TRACK
@@ -237,54 +234,95 @@ window.track = async () => {
   const docSnap = await getDoc(doc(db,"shipments",code));
 
   if(!docSnap.exists()){
-    result.innerHTML = `<div class="card" style="color:red;">❌ Not found</div>`;
+    result.innerHTML="<div class='card'>❌ Not found</div>";
     return;
   }
 
   const data = docSnap.data();
 
   let historyHTML = "";
-  data.history.forEach(item=>{
-    historyHTML += `<div>• ${item}</div>`;
+  data.history.forEach(h=>{
+    historyHTML += `<div>• ${h}</div>`;
   });
 
   result.innerHTML = `
-    <div class="card">
-      <b>${code}</b><br><br>
+  <div class="card">
+    <b>${code}</b><br><br>
 
-      📍 ${data.location}<br>
-      👤 ${data.receiver}<br>
-      📦 ${data.weight}<br>
-      📅 ${data.deliveryDate}<br>
-      🚚 ${data.status}<br><br>
+    📍 ${data.location}<br>
+    👤 ${data.receiver}<br>
+    📦 ${data.weight}<br>
+    📅 ${data.deliveryDate}<br><br>
 
-      <b>Timeline:</b><br>
-      ${historyHTML}
-    </div>
+    🚚 <b>${data.status}</b><br><br>
+
+    <b>Timeline</b><br>
+    ${historyHTML}
+
+    <br><br>
+
+    <button onclick="updateStatus('${code}','In transit')">Transit</button>
+    <button onclick="updateStatus('${code}','Out for delivery')">Out</button>
+    <button onclick="updateStatus('${code}','Delivered')">Delivered</button>
+  </div>
   `;
+
+  simulateMap(data.status);
+};
+
+// UPDATE STATUS
+window.updateStatus = async (code,status)=>{
+
+  const ref = doc(db,"shipments",code);
+  const snap = await getDoc(ref);
+
+  let data = snap.data();
+  let history = data.history || [];
+
+  history.push(status);
+
+  await updateDoc(ref,{
+    status:status,
+    history:history
+  });
+
+  track();
 };
 
 // LOAD USER SHIPMENTS
 async function loadMyShipments(email){
 
-  const q = query(collection(db,"shipments"), where("owner","==",email.toLowerCase()));
-  const querySnapshot = await getDocs(q);
+  const q = query(collection(db,"shipments"),where("owner","==",email.toLowerCase()));
+  const snap = await getDocs(q);
 
   let html = "";
 
-  querySnapshot.forEach(doc=>{
-    const data = doc.data();
+  snap.forEach(doc=>{
+    const d = doc.data();
 
     html += `
       <div class="card">
         <b>${doc.id}</b><br>
-        ${data.status}<br>
-        ${data.location}
+        ${d.status}<br>
+        ${d.location}
       </div>
     `;
   });
 
   myShipments.innerHTML = html || "No shipments yet";
+}
+
+// 🚚 LIVE SIMULATION
+function simulateMap(status){
+
+  let msg = "";
+
+  if(status==="Pending") msg="📦 Preparing shipment...";
+  if(status==="In transit") msg="🚚 Moving to destination...";
+  if(status==="Out for delivery") msg="📍 Near your location...";
+  if(status==="Delivered") msg="✅ Delivered successfully";
+
+  mapBox.innerHTML = `<div class="card">${msg}</div>`;
 }
 
 </script>
