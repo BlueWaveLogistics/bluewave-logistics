@@ -7,12 +7,13 @@
 
   <!-- LEAFLET -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
     body {
       margin: 0;
       font-family: Arial;
-      background: #111;
+      background: #0b0b0b;
       color: white;
       text-align: center;
     }
@@ -21,15 +22,13 @@
       background: #ffcc00;
       color: black;
       padding: 15px;
-      font-size: 20px;
       font-weight: bold;
+      font-size: 20px;
     }
 
-    /* HERO */
     .hero {
       background:url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d');
       background-size:cover;
-      background-position:center;
       padding:80px 20px;
     }
 
@@ -52,12 +51,10 @@
     .search-box button {
       background:#ffcc00;
       border:none;
-      padding:12px 20px;
+      padding:12px;
       font-weight:bold;
-      cursor:pointer;
     }
 
-    /* CARDS */
     .grid {
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -71,20 +68,24 @@
       border-radius:10px;
     }
 
-    /* RESULT */
     #result {
       margin:20px;
       padding:20px;
       background:#1a1a1a;
+      border-left:5px solid #ffcc00;
       border-radius:10px;
       text-align:left;
-      border-left:5px solid #ffcc00;
+    }
+
+    .timeline {
+      border-left:2px solid #ffcc00;
+      padding-left:10px;
+      margin-top:10px;
     }
 
     #progressContainer {
       width:80%;
-      max-width:350px;
-      margin:20px auto;
+      margin:auto;
       background:#333;
       border-radius:20px;
     }
@@ -101,12 +102,7 @@
       height:320px;
       margin:20px auto;
       border-radius:10px;
-    }
-
-    .timeline {
-      margin-top:15px;
-      border-left:2px solid #ffcc00;
-      padding-left:15px;
+      display:none;
     }
   </style>
 </head>
@@ -115,9 +111,8 @@
 
 <header>BlueWave Logistics 🚚</header>
 
-<!-- HERO -->
 <div class="hero">
-  <h1>Track Your Shipment</h1>
+  <h1>Live Shipment Tracking</h1>
 
   <div class="search-box">
     <input id="code" placeholder="Enter tracking number">
@@ -125,7 +120,6 @@
   </div>
 </div>
 
-<!-- FEATURES -->
 <div class="grid">
   <div class="card">🚚 Fast Delivery</div>
   <div class="card">✈️ International Shipping</div>
@@ -133,51 +127,90 @@
   <div class="card">📍 Real-Time Tracking</div>
 </div>
 
-<!-- RESULT -->
 <div id="result"></div>
 
-<!-- PROGRESS -->
 <div id="progressContainer">
   <div id="progressBar"></div>
 </div>
 
 <p id="progressText"></p>
 
-<!-- MAP -->
 <div id="map"></div>
-
-<!-- LEAFLET -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
 let map, marker, routeLine, interval;
 
-// INIT MAP
-function initMap() {
-  map = L.map('map').setView([41.9028, 12.4964], 4);
+// MULTIPLE SHIPMENTS
+let shipments = {
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+  "BW1001": {
+    route: [
+      [41.9028, 12.4964],
+      [48.8566, 2.3522],
+      [52.52, 13.405],
+      [51.5074, -0.1278],
+      [40.7128, -74.0060]
+    ],
+    history: ["Italy created", "Paris transit", "Berlin hub", "London hub"]
+  },
+
+  "BW1002": {
+    route: [
+      [45.4642, 9.19],
+      [50.1109, 8.6821],
+      [52.52, 13.405],
+      [59.3293, 18.0686]
+    ],
+    history: ["Milan", "Frankfurt", "Berlin", "Stockholm"]
+  },
+
+  "BW1003": {
+    route: [
+      [40.4168, -3.7038],
+      [48.8566, 2.3522],
+      [51.5074, -0.1278],
+      [40.7128, -74.0060]
+    ],
+    history: ["Madrid", "Paris", "London", "USA"]
+  }
+
+};
+
+// MAP INIT
+function initMap() {
+  map = L.map('map').setView([45, 10], 4);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+    .addTo(map);
 }
 
 // DRAW ROUTE
 function drawRoute(route) {
   if (routeLine) map.removeLayer(routeLine);
-  routeLine = L.polyline(route, { color: 'orange', weight: 4 }).addTo(map);
+
+  routeLine = L.polyline(route, {
+    color: '#ffcc00',
+    weight: 5
+  }).addTo(map);
+
+  map.fitBounds(route);
 }
 
-// REAL-TIME TRUCK
+// MOVE TRUCK
 function moveTruck(route) {
+
   if (interval) clearInterval(interval);
 
   let i = 0;
-  let progressStep = 0;
+  let progress = 0;
 
-  if (marker) map.removeLayer(marker);
+  const truckIcon = L.icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/1995/1995470.png",
+    iconSize: [40, 40]
+  });
 
-  marker = L.marker(route[0]).addTo(map);
+  marker = L.marker(route[0], { icon: truckIcon }).addTo(map);
 
   interval = setInterval(() => {
 
@@ -191,18 +224,18 @@ function moveTruck(route) {
     let start = route[i];
     let end = route[i + 1];
 
-    let lat = start[0] + (end[0] - start[0]) * progressStep;
-    let lng = start[1] + (end[1] - start[1]) * progressStep;
+    let lat = start[0] + (end[0] - start[0]) * progress;
+    let lng = start[1] + (end[1] - start[1]) * progress;
 
     marker.setLatLng([lat, lng]);
 
     document.getElementById("progressText").innerText =
-      `📍 Live: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      `📍 ${lat.toFixed(3)}, ${lng.toFixed(3)}`;
 
-    progressStep += 0.01;
+    progress += 0.02;
 
-    if (progressStep >= 1) {
-      progressStep = 0;
+    if (progress >= 1) {
+      progress = 0;
       i++;
       updateProgress(i, route.length);
     }
@@ -212,48 +245,40 @@ function moveTruck(route) {
 
 // PROGRESS
 function updateProgress(step, total) {
-  let progress = (step / (total - 1)) * 100;
-  document.getElementById("progressBar").style.width = progress + "%";
+  let percent = (step / (total - 1)) * 100;
+  document.getElementById("progressBar").style.width = percent + "%";
 }
 
-// GLOBAL TRACK FUNCTION (FIXED)
-window.track = function () {
+// TRACK
+function track() {
 
-  const code = document.getElementById("code").value;
+  const code = document.getElementById("code").value.trim();
 
-  if (!code) {
-    alert("Enter tracking code");
+  if (!shipments[code]) {
+    document.getElementById("result").innerHTML = "❌ Tracking not found";
     return;
   }
 
-  const route = [
-    [41.9028, 12.4964],
-    [52.52, 13.405],
-    [51.5074, -0.1278],
-    [40.7128, -74.0060]
-  ];
+  const data = shipments[code];
+
+  document.getElementById("map").style.display = "block";
 
   initMap();
-  drawRoute(route);
-  moveTruck(route);
+  drawRoute(data.route);
+  moveTruck(data.route);
 
-  let timeline = `
-  <div class="timeline">
-    <div>📦 Shipment created - Italy</div>
-    <div>🚚 Berlin transit</div>
-    <div>✈️ London hub</div>
-    <div>🏠 New York delivery</div>
-  </div>`;
+  let historyHTML = "<div class='timeline'>";
+  data.history.forEach(item => {
+    historyHTML += `<div>${item}</div>`;
+  });
+  historyHTML += "</div>";
 
   document.getElementById("result").innerHTML = `
-    <b>📦 Tracking ID:</b> ${code}<br><br>
-    🚚 Live tracking started
-    ${timeline}
+    <b>📦 ${code}</b><br><br>
+    🚚 Shipment in transit
+    ${historyHTML}
   `;
-};
-
-// LOAD MAP
-initMap();
+}
 
 </script>
 
