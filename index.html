@@ -5,7 +5,7 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ✅ PWA -->
+  <!-- PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffcc00">
 
@@ -56,6 +56,7 @@
       border: none;
       background: #ffcc00;
       font-weight: bold;
+      cursor: pointer;
     }
 
     .card {
@@ -95,14 +96,26 @@
 
 <div class="container">
 
-  <h3>Track Shipment</h3>
-
   <input id="code" placeholder="Enter tracking code">
   <button onclick="track()">Track</button>
+
+  <button onclick="showAllData()">📦 View All Shipments</button>
+  <button onclick="exportData()">⬇ Download Data</button>
 
   <div id="result" class="card"></div>
 
   <div id="progressBar"></div>
+
+  <h3>Add Shipment</h3>
+
+  <input id="newLocation" placeholder="Location">
+  <input id="newStatus" placeholder="Status">
+
+  <button onclick="setStatus('Pending')">Pending</button>
+  <button onclick="setStatus('In Transit')">Transit</button>
+  <button onclick="setStatus('Delivered')">Delivered</button>
+
+  <button onclick="addShipment()">Add Shipment</button>
 
 </div>
 
@@ -110,7 +123,7 @@
 
 <script>
 
-// 💾 DATABASE (SAVED)
+// 💾 DATABASE
 let shipments = JSON.parse(localStorage.getItem("shipments")) || {
   "BW1001": {
     status: "In Transit",
@@ -123,6 +136,8 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     history: ["Shipment created - Italy", "Delivered"]
   }
 };
+
+let counter = Object.keys(shipments).length + 1000;
 
 function saveData() {
   localStorage.setItem("shipments", JSON.stringify(shipments));
@@ -159,14 +174,66 @@ function track() {
   document.getElementById("progressBar").style.width = progress + "%";
 }
 
+// SHOW ALL DATA
+function showAllData() {
+  let output = "";
+
+  for (let code in shipments) {
+    let s = shipments[code];
+
+    output += `
+      <div class="card">
+        <b>${code}</b><br>
+        📍 ${s.location}<br>
+        📦 ${s.status}
+      </div>
+    `;
+  }
+
+  result.innerHTML = output;
+}
+
+// ADD SHIPMENT
+function addShipment() {
+  counter++;
+  const code = "BW" + counter;
+
+  const status = document.getElementById("newStatus").value;
+  const location = document.getElementById("newLocation").value;
+
+  shipments[code] = {
+    status,
+    location,
+    history: [status + " - " + location]
+  };
+
+  saveData();
+
+  alert("Created: " + code);
+}
+
+// SET STATUS
+function setStatus(status) {
+  document.getElementById("newStatus").value = status;
+}
+
+// EXPORT DATA
+function exportData() {
+  const dataStr = JSON.stringify(shipments, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "shipments.json";
+  a.click();
+}
+
 </script>
 
-<!-- ✅ SERVICE WORKER CONNECT -->
+<!-- SERVICE WORKER -->
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(() => console.log("PWA Ready"))
-    .catch(err => console.log(err));
+  navigator.serviceWorker.register('service-worker.js');
 }
 </script>
 
