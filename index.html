@@ -83,6 +83,12 @@
       border-radius: 20px;
       transition: 0.5s;
     }
+
+    .logout {
+      margin-top: 20px;
+      background: red;
+      color: white;
+    }
   </style>
 </head>
 
@@ -112,11 +118,13 @@
   </div>
 
   <p id="progressText"></p>
+
+  <button class="logout" onclick="logout()">Logout</button>
 </div>
 
 <script>
 
-// SIMPLE LOGIN
+// LOGIN
 function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -129,6 +137,7 @@ function login() {
   }
 }
 
+// SHOW DASHBOARD
 function showDashboard() {
   document.getElementById("loginBox").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
@@ -139,7 +148,13 @@ if (localStorage.getItem("user")) {
   showDashboard();
 }
 
-// SHIPMENTS DATA
+// LOGOUT
+function logout() {
+  localStorage.removeItem("user");
+  location.reload();
+}
+
+// SHIPMENTS
 let shipments = {
   "BW1001": {
     status: "In Transit",
@@ -155,10 +170,20 @@ let shipments = {
     status: "Out for Delivery",
     location: "Berlin, Germany",
     history: ["Created", "Transit", "Out for delivery"]
+  },
+  "BW1004": {
+    status: "Pending",
+    location: "Paris, France",
+    history: ["Shipment created"]
+  },
+  "BW1005": {
+    status: "In Transit",
+    location: "Madrid, Spain",
+    history: ["Created - Italy", "In transit"]
   }
 };
 
-// TRACK FUNCTION
+// TRACK
 function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
