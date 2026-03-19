@@ -5,6 +5,9 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- LEAFLET CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
   <style>
     body {
       margin: 0;
@@ -20,10 +23,6 @@
       padding: 15px;
       font-size: 20px;
       font-weight: bold;
-    }
-
-    .hero {
-      padding: 40px 20px;
     }
 
     input {
@@ -81,7 +80,7 @@
 
     #map {
       width: 90%;
-      height: 300px;
+      height: 320px;
       margin: 20px auto;
       border-radius: 10px;
     }
@@ -92,13 +91,11 @@
 
 <header>BlueWave Logistics 🚚</header>
 
-<div class="hero">
-  <h2>Track Your Shipment</h2>
+<h2>Track Shipment</h2>
 
-  <input id="code" placeholder="Enter tracking number">
-  <br>
-  <button onclick="track()">Track</button>
-</div>
+<input id="code" placeholder="Enter tracking code">
+<br>
+<button onclick="track()">Track</button>
 
 <div id="result"></div>
 
@@ -108,59 +105,68 @@
 
 <div id="map"></div>
 
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
 
-// MAP
-let map, marker;
+let map, marker, routeLine;
 
-function initMap(lat = 6.5244, lng = 3.3792) {
-  map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 5,
-    center: { lat, lng }
-  });
+// INIT MAP
+function initMap() {
+  map = L.map('map').setView([41.9028, 12.4964], 4);
 
-  marker = new google.maps.Marker({
-    position: { lat, lng },
-    map: map
-  });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+}
+
+// DRAW ROUTE
+function drawRoute(route) {
+  if (routeLine) map.removeLayer(routeLine);
+
+  routeLine = L.polyline(route, { color: 'orange' }).addTo(map);
 }
 
 // MOVE TRUCK
-function moveTruck(lat, lng) {
-  let step = 0;
+function moveTruck(route) {
+  let index = 0;
+
+  if (marker) map.removeLayer(marker);
+
+  marker = L.marker(route[0]).addTo(map);
 
   const interval = setInterval(() => {
-    step += 0.01;
+    index++;
 
-    marker.setPosition({
-      lat: lat + step,
-      lng: lng + step
-    });
+    if (index >= route.length) {
+      clearInterval(interval);
+      return;
+    }
 
-    if (step > 1) clearInterval(interval);
-  }, 200);
+    marker.setLatLng(route[index]);
+  }, 1500);
 }
 
-// TRACK
+// TRACK FUNCTION
 function track() {
   const code = document.getElementById("code").value;
 
-  const locations = {
-    "New York": [40.7128, -74.0060],
-    "London": [51.5074, -0.1278],
-    "Berlin": [52.52, 13.405],
-    "Paris": [48.8566, 2.3522]
-  };
+  // ROUTE (MULTI-STOPS)
+  const route = [
+    [41.9028, 12.4964], // Italy
+    [52.52, 13.405],    // Berlin
+    [51.5074, -0.1278], // London
+    [40.7128, -74.0060] // New York
+  ];
 
-  const cities = Object.keys(locations);
-  const city = cities[Math.floor(Math.random() * cities.length)];
-  const coords = locations[city];
+  initMap();
+  drawRoute(route);
+  moveTruck(route);
 
-  initMap(coords[0], coords[1]);
-  moveTruck(coords[0], coords[1]);
-
+  // RANDOM STATUS
   const statuses = ["Pending", "In Transit", "Out for Delivery", "Delivered"];
-  const status = statuses[Math.floor(Math.random() * statuses.length)];
+  const status = statuses[Math.floor(Math.random()*statuses.length)];
 
   let progress = 25;
   if (status === "In Transit") progress = 50;
@@ -169,29 +175,26 @@ function track() {
 
   document.getElementById("progressBar").style.width = progress + "%";
 
-  let history = `
-    <div class="timeline">
-      <div class="timeline-item">Shipment created - Italy</div>
-      <div class="timeline-item">${status}</div>
-    </div>
-  `;
+  // TIMELINE
+  let historyHTML = `<div class="timeline">
+    <div class="timeline-item">Italy Warehouse</div>
+    <div class="timeline-item">Berlin Facility</div>
+    <div class="timeline-item">London Hub</div>
+    <div class="timeline-item">New York Destination</div>
+  </div>`;
 
+  // RESULT
   document.getElementById("result").innerHTML = `
     <b>📦 ${code}</b><br><br>
-    📍 Location: ${city}<br>
-    📦 Status: ${status}<br>
-    ${status === "Out for Delivery" ? "🚚 Arriving Today<br>" : ""}
-    ${history}
+    📦 Status: ${status}<br><br>
+    ${historyHTML}
   `;
 }
 
-// DEFAULT MAP
+// LOAD MAP
 initMap();
 
 </script>
-
-<!-- GOOGLE MAP -->
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_KEY"></script>
 
 </body>
 </html>
