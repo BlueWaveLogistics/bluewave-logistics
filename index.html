@@ -18,11 +18,10 @@ header {
   color:black;
   padding:15px;
   font-weight:bold;
-  font-size:18px;
 }
 
 input {
-  padding:14px;
+  padding:12px;
   margin:10px;
   width:85%;
   max-width:320px;
@@ -33,7 +32,7 @@ input {
 }
 
 button {
-  padding:12px 20px;
+  padding:12px;
   background:#ffcc00;
   border:none;
   border-radius:10px;
@@ -45,21 +44,13 @@ button {
 .hidden { display:none; }
 
 .card {
-  margin:20px auto;
-  padding:20px;
+  margin:15px auto;
+  padding:15px;
   max-width:350px;
   background:#1a1a1a;
   border-left:5px solid #ffcc00;
   border-radius:12px;
   text-align:left;
-}
-
-.status {
-  padding:6px 12px;
-  border-radius:20px;
-  display:inline-block;
-  margin-bottom:10px;
-  font-weight:bold;
 }
 
 .logout {
@@ -95,16 +86,19 @@ button {
 <div id="dashboard" class="hidden">
 
 <h2>Track Shipment</h2>
-<input id="code" placeholder="Tracking code"><br>
+<input id="codeInput" placeholder="Tracking code"><br>
 <button onclick="track()">Track</button>
 
 <div id="result"></div>
+
+<h3>My Shipments</h3>
+<div id="myShipments"></div>
 
 <h3>Add Shipment (Admin)</h3>
 
 <input id="newLocation" placeholder="Location"><br>
 <input id="newSender" placeholder="Sender"><br>
-<input id="newReceiver" placeholder="Receiver"><br>
+<input id="newReceiver" placeholder="Receiver Email"><br>
 <input id="newWeight" placeholder="Weight"><br>
 <input id="newDate" placeholder="Delivery Date"><br>
 <input id="newStatus" placeholder="Status"><br>
@@ -131,10 +125,14 @@ import {
   getFirestore,
   doc,
   setDoc,
-  getDoc
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-// 🔑 CONFIG
+// CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
@@ -144,7 +142,6 @@ const firebaseConfig = {
   appId: "1:116060669757:web:26d6ef7746c7feceeaa754"
 };
 
-// INIT
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
@@ -168,36 +165,29 @@ window.showDashboard = () => {
 
 // AUTO LOGIN
 onAuthStateChanged(auth, (user) => {
-  if (user) showDashboard();
+  if (user) {
+    showDashboard();
+    loadMyShipments(user.email);
+  }
 });
 
 // SIGNUP
 window.signup = async () => {
-  try {
-    await createUserWithEmailAndPassword(
-      auth,
-      signupEmail.value,
-      signupPass.value
-    );
-    alert("✅ Account created");
+  try{
+    await createUserWithEmailAndPassword(auth, signupEmail.value, signupPass.value);
+    alert("Account created");
     showDashboard();
-  } catch (e) {
+  }catch(e){
     alert(e.message);
   }
 };
 
 // LOGIN
 window.login = async () => {
-  try {
-    await signInWithEmailAndPassword(
-      auth,
-      loginEmail.value,
-      loginPass.value
-    );
-    alert("✅ Login success");
-    showDashboard();
-  } catch (e) {
-    alert("❌ " + e.message);
+  try{
+    await signInWithEmailAndPassword(auth, loginEmail.value, loginPass.value);
+  }catch(e){
+    alert(e.message);
   }
 };
 
@@ -218,17 +208,23 @@ window.addShipment = async () => {
   const code = "BW" + Date.now().toString().slice(-6);
 
   await setDoc(doc(db, "shipments", code), {
+    owner: newReceiver.value.toLowerCase(),
     location: newLocation.value,
     sender: newSender.value,
     receiver: newReceiver.value,
     weight: newWeight.value,
     deliveryDate: newDate.value,
-    status: newStatus.value
+    status: newStatus.value,
+    history: [
+      "Shipment created",
+      "Processing",
+      "In transit"
+    ]
   });
 
   result.innerHTML = `
     <div class="card">
-      ✅ Shipment created<br><br>
+      ✅ Shipment created<br>
       <b>${code}</b>
     </div>
   `;
@@ -237,41 +233,59 @@ window.addShipment = async () => {
 // TRACK
 window.track = async () => {
 
-  const code = document.getElementById("code").value;
+  const code = codeInput.value;
+  const docSnap = await getDoc(doc(db,"shipments",code));
 
-  const docSnap = await getDoc(doc(db, "shipments", code));
-
-  if (!docSnap.exists()) {
-    result.innerHTML = `
-      <div class="card" style="color:red;">
-        ❌ Tracking code not found
-      </div>
-    `;
+  if(!docSnap.exists()){
+    result.innerHTML = `<div class="card" style="color:red;">❌ Not found</div>`;
     return;
   }
 
   const data = docSnap.data();
 
-  let color =
-    data.status === "Delivered" ? "green" :
-    data.status === "Out for delivery" ? "gold" :
-    data.status === "In transit" ? "orange" : "gray";
+  let historyHTML = "";
+  data.history.forEach(item=>{
+    historyHTML += `<div>• ${item}</div>`;
+  });
 
   result.innerHTML = `
     <div class="card">
-      <div class="status" style="background:${color};color:${color==="gold"?"black":"white"};">
-        ${data.status}
-      </div>
-
       <b>${code}</b><br><br>
 
       📍 ${data.location}<br>
       👤 ${data.receiver}<br>
       📦 ${data.weight}<br>
-      📅 ${data.deliveryDate}
+      📅 ${data.deliveryDate}<br>
+      🚚 ${data.status}<br><br>
+
+      <b>Timeline:</b><br>
+      ${historyHTML}
     </div>
   `;
 };
+
+// LOAD USER SHIPMENTS
+async function loadMyShipments(email){
+
+  const q = query(collection(db,"shipments"), where("owner","==",email.toLowerCase()));
+  const querySnapshot = await getDocs(q);
+
+  let html = "";
+
+  querySnapshot.forEach(doc=>{
+    const data = doc.data();
+
+    html += `
+      <div class="card">
+        <b>${doc.id}</b><br>
+        ${data.status}<br>
+        ${data.location}
+      </div>
+    `;
+  });
+
+  myShipments.innerHTML = html || "No shipments yet";
+}
 
 </script>
 
