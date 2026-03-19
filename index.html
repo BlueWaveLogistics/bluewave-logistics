@@ -41,6 +41,7 @@
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
+      margin: 5px;
     }
 
     #result {
@@ -57,6 +58,10 @@
       margin-top: 10px;
       border-left: 2px solid #ffcc00;
       padding-left: 10px;
+    }
+
+    .timeline-item {
+      margin-bottom: 10px;
     }
 
     #progressContainer {
@@ -78,6 +83,9 @@
     #adminPanel {
       display: none;
       margin-top: 20px;
+      background: #141414;
+      padding: 20px;
+      border-radius: 12px;
     }
   </style>
 </head>
@@ -116,14 +124,23 @@
   <input id="newReceiver" placeholder="Receiver"><br>
   <input id="newWeight" placeholder="Weight"><br>
   <input id="newDate" placeholder="Delivery Date"><br>
+
   <input id="newStatus" placeholder="Status"><br>
+
+  <!-- STATUS BUTTONS -->
+  <div>
+    <button onclick="setStatus('Pending')">Pending</button>
+    <button onclick="setStatus('In Transit')">Transit</button>
+    <button onclick="setStatus('Out for Delivery')">Out</button>
+    <button onclick="setStatus('Delivered')">Delivered</button>
+  </div>
 
   <button onclick="addShipment()">Add Shipment</button>
 </div>
 
 <script>
 
-// LOAD DATA
+// LOAD OR CREATE STORAGE
 let shipments = JSON.parse(localStorage.getItem("shipments")) || {
   "BW1001": {
     status: "In Transit",
@@ -132,15 +149,24 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     receiver: "John Doe",
     weight: "5kg",
     deliveryDate: "25 March 2026",
-    history: ["Shipment created - Italy", "In transit"]
+    history: [
+      "Shipment created - Italy",
+      "Picked up",
+      "In transit"
+    ]
   }
 };
 
 let counter = Object.keys(shipments).length + 1000;
 
-// SAVE FUNCTION
+// SAVE
 function saveData() {
   localStorage.setItem("shipments", JSON.stringify(shipments));
+}
+
+// STATUS BUTTON
+function setStatus(status) {
+  document.getElementById("newStatus").value = status;
 }
 
 // TRACK
@@ -149,14 +175,36 @@ function track() {
   const data = shipments[code];
 
   if (!data) {
-    document.getElementById("result").innerHTML = "Tracking not found";
+    document.getElementById("result").innerHTML =
+      "<p style='color:red;'>Tracking code not found</p>";
     return;
   }
 
+  let color =
+    data.status === "Delivered" ? "green" :
+    data.status === "In Transit" ? "orange" :
+    data.status === "Out for Delivery" ? "gold" : "gray";
+
+  let statusHTML = `
+    <div style="
+      background:${color};
+      padding:8px 16px;
+      border-radius:20px;
+      display:inline-block;
+      font-weight:bold;
+      margin-bottom:10px;
+      color:${color === 'gold' ? 'black' : 'white'};
+    ">
+      ${data.status}
+    </div>
+  `;
+
   let historyHTML = "";
   data.history.forEach(item => {
-    historyHTML += `<div>${item}</div>`;
+    historyHTML += `<div class="timeline-item">${item}</div>`;
   });
+
+  historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
   let progress = 0;
   if (data.status === "Pending") progress = 25;
@@ -164,19 +212,26 @@ function track() {
   else if (data.status === "Out for Delivery") progress = 75;
   else if (data.status === "Delivered") progress = 100;
 
-  document.getElementById("progressBar").style.width = progress + "%";
+  const bar = document.getElementById("progressBar");
+  bar.style.width = "0%";
+
+  setTimeout(() => {
+    bar.style.width = progress + "%";
+  }, 200);
+
   document.getElementById("progressText").innerText =
     "Progress: " + progress + "%";
 
-  document.getElementById("result").innerHTML = `
-    <b>Status:</b> ${data.status}<br>
-    <b>Location:</b> ${data.location}<br>
-    <b>Sender:</b> ${data.sender}<br>
-    <b>Receiver:</b> ${data.receiver}<br>
-    <b>Weight:</b> ${data.weight}<br>
-    <b>Date:</b> ${data.deliveryDate}<br>
-    <div class="timeline">${historyHTML}</div>
-  `;
+  document.getElementById("result").innerHTML =
+    statusHTML + `
+    <br>
+    <b>📦 Tracking ID:</b> ${code}<br><br>
+    📍 ${data.location}<br>
+    📦 ${data.sender}<br>
+    👤 ${data.receiver}<br>
+    ⚖️ ${data.weight}<br>
+    📅 ${data.deliveryDate}<br>
+    ` + historyHTML;
 }
 
 // ADMIN LOGIN
@@ -184,6 +239,8 @@ function unlockAdmin() {
   const pass = prompt("Enter admin password:");
   if (pass === "admin123") {
     document.getElementById("adminPanel").style.display = "block";
+  } else {
+    alert("Wrong password");
   }
 }
 
@@ -195,6 +252,13 @@ function addShipment() {
   const status = document.getElementById("newStatus").value;
   const location = document.getElementById("newLocation").value;
 
+  let history = [];
+
+  if (status === "Pending") history.push("Shipment created - " + location);
+  if (status === "In Transit") history.push("Shipment in transit - " + location);
+  if (status === "Out for Delivery") history.push("Out for delivery - " + location);
+  if (status === "Delivered") history.push("Delivered at " + location);
+
   shipments[code] = {
     status,
     location,
@@ -202,12 +266,12 @@ function addShipment() {
     receiver: document.getElementById("newReceiver").value,
     weight: document.getElementById("newWeight").value,
     deliveryDate: document.getElementById("newDate").value,
-    history: [status + " - " + location]
+    history
   };
 
   saveData();
 
-  alert("Shipment created: " + code);
+  alert("✅ Shipment created: " + code);
 }
 
 </script>
