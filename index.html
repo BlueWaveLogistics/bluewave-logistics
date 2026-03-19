@@ -72,7 +72,6 @@
       width: 0%;
       background: #ffcc00;
       border-radius: 20px;
-      transition: 0.3s;
     }
 
     #progressText {
@@ -124,6 +123,7 @@
 
 <script>
 
+// GLOBAL VARIABLES
 let map, marker, routeLine, interval;
 
 // INIT MAP
@@ -138,11 +138,10 @@ function initMap() {
 // DRAW ROUTE
 function drawRoute(route) {
   if (routeLine) map.removeLayer(routeLine);
-
   routeLine = L.polyline(route, { color: 'orange', weight: 4 }).addTo(map);
 }
 
-// 🚚 REAL-TIME MOVEMENT
+// REAL-TIME TRUCK
 function moveTruckLive(route) {
   if (interval) clearInterval(interval);
 
@@ -171,7 +170,6 @@ function moveTruckLive(route) {
 
     marker.setLatLng([lat, lng]);
 
-    // 📍 LIVE LOCATION
     document.getElementById("progressText").innerText =
       `📍 Live: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 
@@ -186,14 +184,15 @@ function moveTruckLive(route) {
   }, 100);
 }
 
-// 📊 PROGRESS
+// PROGRESS
 function updateProgress(step, total) {
   let progress = (step / (total - 1)) * 100;
   document.getElementById("progressBar").style.width = progress + "%";
 }
 
-// TRACK FUNCTION
-function track() {
+// 🚨 IMPORTANT: GLOBAL FUNCTION (FIXED)
+window.track = function () {
+
   const code = document.getElementById("code").value;
 
   if (!code) {
@@ -202,17 +201,16 @@ function track() {
   }
 
   const route = [
-    [41.9028, 12.4964], // Italy
-    [52.52, 13.405],    // Berlin
-    [51.5074, -0.1278], // London
-    [40.7128, -74.0060] // New York
+    [41.9028, 12.4964],
+    [52.52, 13.405],
+    [51.5074, -0.1278],
+    [40.7128, -74.0060]
   ];
 
   initMap();
   drawRoute(route);
   moveTruckLive(route);
 
-  // TIMELINE
   let historyHTML = `
   <div class="timeline">
     <div class="timeline-item">📦 Shipment created - Italy</div>
@@ -226,7 +224,7 @@ function track() {
     🚚 Live tracking started...
     ${historyHTML}
   `;
-}
+};
 
 // LOAD MAP
 initMap();
