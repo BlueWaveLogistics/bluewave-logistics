@@ -9,7 +9,7 @@
     body {
       margin: 0;
       font-family: Arial;
-      background: #0b0b0b;
+      background: #111;
       color: white;
       text-align: center;
     }
@@ -18,16 +18,15 @@
       background: #ffcc00;
       color: black;
       padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
     }
 
     input {
       padding: 12px;
       width: 80%;
       max-width: 300px;
-      margin: 8px;
+      margin: 10px;
       border-radius: 8px;
       border: none;
       background: #222;
@@ -35,20 +34,19 @@
     }
 
     button {
-      padding: 10px 18px;
+      padding: 10px 20px;
       background: #ffcc00;
       border: none;
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
-      margin: 5px;
     }
 
     #result {
       margin: 20px auto;
       padding: 20px;
       max-width: 350px;
-      background: #141414;
+      background: #1a1a1a;
       border-left: 4px solid #ffcc00;
       border-radius: 12px;
       text-align: left;
@@ -61,7 +59,7 @@
     }
 
     .timeline-item {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     #progressContainer {
@@ -75,21 +73,9 @@
     #progressBar {
       height: 10px;
       width: 0%;
-      background: linear-gradient(90deg, #ffcc00, orange);
+      background: #ffcc00;
       border-radius: 20px;
-      transition: 1s ease;
-    }
-
-    #adminPanel {
-      display: none;
-      margin-top: 20px;
-      background: #141414;
-      padding: 20px;
-      border-radius: 12px;
-    }
-
-    #etaText {
-      color: #aaa;
+      transition: 0.5s;
     }
   </style>
 </head>
@@ -97,12 +83,7 @@
 <body>
 
 <header>
-  <div style="display:flex; align-items:center; gap:10px;">
-    <img src="https://via.placeholder.com/80x40?text=Logo" style="height:40px;">
-    <b>BlueWave Logistics</b>
-  </div>
-
-  <button onclick="unlockAdmin()">Admin</button>
+  BlueWave Logistics 🚚
 </header>
 
 <h2>Track Shipment</h2>
@@ -118,50 +99,11 @@
 </div>
 
 <p id="progressText"></p>
-<p id="etaText"></p>
-
-<!-- ADMIN PANEL -->
-<div id="adminPanel">
-  <h3>Create Shipment</h3>
-
-  <input id="newLocation" placeholder="Location"><br>
-  <input id="newSender" placeholder="Sender"><br>
-  <input id="newReceiver" placeholder="Receiver"><br>
-  <input id="newWeight" placeholder="Weight"><br>
-  <input id="newDate" placeholder="Delivery Date"><br>
-
-  <input id="newStatus" placeholder="Status"><br>
-
-  <div>
-    <button onclick="setStatus('Pending')">Pending</button>
-    <button onclick="setStatus('In Transit')">Transit</button>
-    <button onclick="setStatus('Out for Delivery')">Out</button>
-    <button onclick="setStatus('Delivered')">Delivered</button>
-  </div>
-
-  <button onclick="addShipment()">Add Shipment</button>
-
-  <hr>
-
-  <h3>Update Shipment</h3>
-
-  <input id="updateCode" placeholder="Tracking Code"><br>
-  <input id="updateLocation" placeholder="New Location"><br>
-  <input id="updateStatus" placeholder="New Status"><br>
-
-  <div>
-    <button onclick="setUpdateStatus('In Transit')">Transit</button>
-    <button onclick="setUpdateStatus('Out for Delivery')">Out</button>
-    <button onclick="setUpdateStatus('Delivered')">Delivered</button>
-  </div>
-
-  <button onclick="updateShipment()">Update Shipment</button>
-</div>
 
 <script>
 
-// LOAD STORAGE
-let shipments = JSON.parse(localStorage.getItem("shipments")) || {
+// 🔥 MULTIPLE TRACKING DATA (NO LOCAL STORAGE ISSUE)
+let shipments = {
 
   "BW1001": {
     status: "In Transit",
@@ -170,11 +112,7 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     receiver: "John Doe",
     weight: "5kg",
     deliveryDate: "25 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "Picked up",
-      "In transit"
-    ]
+    history: ["Shipment created - Italy", "Picked up", "In transit"]
   },
 
   "BW1002": {
@@ -184,12 +122,7 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     receiver: "Emma Brown",
     weight: "2kg",
     deliveryDate: "20 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "In transit",
-      "Out for delivery",
-      "Delivered"
-    ]
+    history: ["Shipment created - Italy", "Delivered"]
   },
 
   "BW1003": {
@@ -199,9 +132,7 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     receiver: "Lucas Martin",
     weight: "3kg",
     deliveryDate: "30 March 2026",
-    history: [
-      "Shipment created - Italy"
-    ]
+    history: ["Shipment created - Italy"]
   },
 
   "BW1004": {
@@ -211,12 +142,7 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     receiver: "Sophia Klein",
     weight: "4kg",
     deliveryDate: "28 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "Departed facility",
-      "In transit",
-      "Out for delivery"
-    ]
+    history: ["Shipment created - Italy", "In transit", "Out for delivery"]
   },
 
   "BW1005": {
@@ -226,10 +152,7 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     receiver: "Carlos Diaz",
     weight: "6kg",
     deliveryDate: "27 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "In transit to Spain"
-    ]
+    history: ["Shipment created - Italy", "In transit"]
   },
 
   "BW1006": {
@@ -239,45 +162,12 @@ let shipments = JSON.parse(localStorage.getItem("shipments")) || {
     receiver: "Anna de Vries",
     weight: "1.5kg",
     deliveryDate: "26 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "In transit",
-      "Out for delivery"
-    ]
-  },
-
-  "BW1007": {
-    status: "Delivered",
-    location: "Rome, Italy",
-    sender: "BlueWave",
-    receiver: "Marco Rossi",
-    weight: "2.5kg",
-    deliveryDate: "22 March 2026",
-    history: [
-      "Shipment created - Italy",
-      "In transit",
-      "Delivered"
-    ]
+    history: ["Shipment created - Italy", "In transit", "Out for delivery"]
   }
 
 };
 
-let counter = Object.keys(shipments).length + 1000;
-
-function saveData() {
-  localStorage.setItem("shipments", JSON.stringify(shipments));
-}
-
-// STATUS SET
-function setStatus(status) {
-  document.getElementById("newStatus").value = status;
-}
-
-function setUpdateStatus(status) {
-  document.getElementById("updateStatus").value = status;
-}
-
-// TRACK
+// 🚀 TRACK FUNCTION
 function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
@@ -285,9 +175,13 @@ function track() {
   if (!data) {
     document.getElementById("result").innerHTML =
       "<p style='color:red;'>Tracking code not found</p>";
+
+    document.getElementById("progressBar").style.width = "0%";
+    document.getElementById("progressText").innerText = "";
     return;
   }
 
+  // STATUS COLOR
   let color =
     data.status === "Delivered" ? "green" :
     data.status === "In Transit" ? "orange" :
@@ -298,8 +192,8 @@ function track() {
       background:${color};
       padding:8px 16px;
       border-radius:20px;
-      font-weight:bold;
       display:inline-block;
+      font-weight:bold;
       margin-bottom:10px;
       color:${color === 'gold' ? 'black' : 'white'};
     ">
@@ -307,6 +201,7 @@ function track() {
     </div>
   `;
 
+  // TIMELINE
   let historyHTML = "";
   data.history.forEach(item => {
     historyHTML += `<div class="timeline-item">${item}</div>`;
@@ -314,29 +209,18 @@ function track() {
 
   historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
-  let progress = 25;
-  if (data.status === "In Transit") progress = 50;
-  if (data.status === "Out for Delivery") progress = 75;
-  if (data.status === "Delivered") progress = 100;
+  // PROGRESS
+  let progress = 0;
+  if (data.status === "Pending") progress = 25;
+  else if (data.status === "In Transit") progress = 50;
+  else if (data.status === "Out for Delivery") progress = 75;
+  else if (data.status === "Delivered") progress = 100;
 
-  const bar = document.getElementById("progressBar");
-  bar.style.width = "0%";
-
-  setTimeout(() => {
-    bar.style.width = progress + "%";
-  }, 200);
-
+  document.getElementById("progressBar").style.width = progress + "%";
   document.getElementById("progressText").innerText =
     "Progress: " + progress + "%";
 
-  let eta =
-    data.status === "Pending" ? "Estimated: 5 days" :
-    data.status === "In Transit" ? "Estimated: 2–3 days" :
-    data.status === "Out for Delivery" ? "Arriving today 🚚" :
-    "Delivered successfully ✅";
-
-  document.getElementById("etaText").innerText = eta;
-
+  // RESULT
   document.getElementById("result").innerHTML =
     statusHTML + `
     <br>
@@ -348,68 +232,6 @@ function track() {
     📅 ${data.deliveryDate}<br>
     ` + historyHTML;
 }
-
-// ADMIN LOGIN
-function unlockAdmin() {
-  const pass = prompt("Enter admin password:");
-  if (pass === "admin123") {
-    document.getElementById("adminPanel").style.display = "block";
-  }
-}
-
-// ADD
-function addShipment() {
-  counter++;
-  const code = "BW" + counter;
-
-  const status = document.getElementById("newStatus").value;
-  const location = document.getElementById("newLocation").value;
-
-  shipments[code] = {
-    status,
-    location,
-    sender: document.getElementById("newSender").value,
-    receiver: document.getElementById("newReceiver").value,
-    weight: document.getElementById("newWeight").value,
-    deliveryDate: document.getElementById("newDate").value,
-    history: [status + " - " + location]
-  };
-
-  saveData();
-  alert("Shipment Created: " + code);
-}
-
-// UPDATE
-function updateShipment() {
-  const code = document.getElementById("updateCode").value;
-  const status = document.getElementById("updateStatus").value;
-  const location = document.getElementById("updateLocation").value;
-
-  if (!shipments[code]) {
-    alert("Not found");
-    return;
-  }
-
-  shipments[code].status = status;
-  shipments[code].location = location;
-  shipments[code].history.push(status + " - " + location);
-
-  saveData();
-  alert("Shipment Updated");
-}
-
-// AUTO SIMULATION
-setInterval(() => {
-  for (let code in shipments) {
-    let s = shipments[code];
-
-    if (s.status === "Pending") s.status = "In Transit";
-    else if (s.status === "In Transit") s.status = "Out for Delivery";
-    else if (s.status === "Out for Delivery") s.status = "Delivered";
-  }
-
-  saveData();
-}, 20000);
 
 </script>
 
