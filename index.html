@@ -2,8 +2,12 @@
 <html>
 
 <head>
-  <title>BlueWave Logistics App</title>
+  <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ✅ PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffcc00">
 
   <style>
     body {
@@ -14,34 +18,24 @@
       justify-content: center;
     }
 
-    /* APP CONTAINER */
     .app {
       width: 100%;
       max-width: 420px;
       min-height: 100vh;
       background: #111;
       color: white;
-      display: flex;
-      flex-direction: column;
     }
 
     header {
       background: #ffcc00;
       color: black;
       padding: 15px;
-      font-weight: bold;
       text-align: center;
-      font-size: 20px;
+      font-weight: bold;
     }
 
-    .screen {
-      flex: 1;
+    .container {
       padding: 20px;
-      display: none;
-    }
-
-    .active {
-      display: block;
     }
 
     input {
@@ -67,21 +61,20 @@
     .card {
       background: #1a1a1a;
       padding: 15px;
-      border-radius: 15px;
+      border-radius: 12px;
       margin-top: 15px;
     }
 
     .status {
       padding: 6px 12px;
       border-radius: 20px;
-      display: inline-block;
       font-weight: bold;
+      display: inline-block;
       margin-bottom: 10px;
     }
 
     .pending { background: gray; }
     .transit { background: orange; }
-    .out { background: gold; color: black; }
     .delivered { background: green; }
 
     #progressBar {
@@ -90,24 +83,6 @@
       background: #ffcc00;
       border-radius: 10px;
       margin-top: 10px;
-    }
-
-    /* BOTTOM NAV */
-    .nav {
-      display: flex;
-      background: #111;
-      border-top: 1px solid #333;
-    }
-
-    .nav button {
-      flex: 1;
-      background: none;
-      color: white;
-      padding: 12px;
-    }
-
-    .nav button.activeTab {
-      color: #ffcc00;
     }
   </style>
 </head>
@@ -118,8 +93,7 @@
 
 <header>BlueWave Logistics 🚚</header>
 
-<!-- TRACK SCREEN -->
-<div id="trackScreen" class="screen active">
+<div class="container">
 
   <h3>Track Shipment</h3>
 
@@ -132,62 +106,26 @@
 
 </div>
 
-<!-- ADMIN SCREEN -->
-<div id="adminScreen" class="screen">
-
-  <h3>Admin Panel</h3>
-
-  <input id="newLocation" placeholder="Location">
-  <input id="newStatus" placeholder="Status">
-
-  <button onclick="setStatus('Pending')">Pending</button>
-  <button onclick="setStatus('In Transit')">Transit</button>
-  <button onclick="setStatus('Delivered')">Delivered</button>
-
-  <button onclick="addShipment()">Add Shipment</button>
-
-  <div id="shipmentList"></div>
-
-</div>
-
-<!-- NAVIGATION -->
-<div class="nav">
-  <button onclick="switchTab('track')" class="activeTab">Track</button>
-  <button onclick="switchTab('admin')">Admin</button>
-</div>
-
 </div>
 
 <script>
 
-// DATABASE
+// 💾 DATABASE (SAVED)
 let shipments = JSON.parse(localStorage.getItem("shipments")) || {
   "BW1001": {
     status: "In Transit",
     location: "New York",
-    history: ["Shipment created", "In transit"]
+    history: ["Shipment created - Italy", "In transit"]
+  },
+  "BW1002": {
+    status: "Delivered",
+    location: "London",
+    history: ["Shipment created - Italy", "Delivered"]
   }
 };
 
 function saveData() {
   localStorage.setItem("shipments", JSON.stringify(shipments));
-}
-
-// NAVIGATION
-function switchTab(tab) {
-  document.getElementById("trackScreen").classList.remove("active");
-  document.getElementById("adminScreen").classList.remove("active");
-
-  document.querySelectorAll(".nav button").forEach(btn => btn.classList.remove("activeTab"));
-
-  if (tab === "track") {
-    trackScreen.classList.add("active");
-    document.querySelectorAll(".nav button")[0].classList.add("activeTab");
-  } else {
-    adminScreen.classList.add("active");
-    document.querySelectorAll(".nav button")[1].classList.add("activeTab");
-    loadShipments();
-  }
 }
 
 // TRACK
@@ -196,14 +134,13 @@ function track() {
   const data = shipments[code];
 
   if (!data) {
-    result.innerHTML = "Not found";
+    result.innerHTML = "❌ Not found";
     return;
   }
 
   let cls =
     data.status === "Delivered" ? "delivered" :
-    data.status === "In Transit" ? "transit" :
-    data.status === "Out for Delivery" ? "out" : "pending";
+    data.status === "In Transit" ? "transit" : "pending";
 
   let historyHTML = "";
   data.history.forEach(h => {
@@ -222,37 +159,15 @@ function track() {
   document.getElementById("progressBar").style.width = progress + "%";
 }
 
-// ADD
-function addShipment() {
-  const code = "BW" + Math.floor(Math.random() * 9000);
+</script>
 
-  shipments[code] = {
-    status: document.getElementById("newStatus").value,
-    location: document.getElementById("newLocation").value,
-    history: ["Shipment created"]
-  };
-
-  saveData();
-  alert("Created: " + code);
-  loadShipments();
+<!-- ✅ SERVICE WORKER CONNECT -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log("PWA Ready"))
+    .catch(err => console.log(err));
 }
-
-// LOAD
-function loadShipments() {
-  let html = "";
-
-  for (let code in shipments) {
-    html += `<div class="card">${code} - ${shipments[code].status}</div>`;
-  }
-
-  shipmentList.innerHTML = html;
-}
-
-// STATUS
-function setStatus(status) {
-  document.getElementById("newStatus").value = status;
-}
-
 </script>
 
 </body>
