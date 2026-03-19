@@ -17,8 +17,8 @@
     .app {
       width: 100%;
       max-width: 420px;
-      background: #111;
       min-height: 100vh;
+      background: #111;
       color: white;
     }
 
@@ -61,16 +61,6 @@
       border-radius: 12px;
       margin-top: 15px;
     }
-
-    .timeline {
-      margin-top: 10px;
-      border-left: 2px solid #ffcc00;
-      padding-left: 10px;
-    }
-
-    .timeline-item {
-      margin-bottom: 8px;
-    }
   </style>
 </head>
 
@@ -78,45 +68,64 @@
 
 <div class="app">
 
-<header>
-  BlueWave Logistics 🚚
-  <button onclick="unlockAdmin()" style="float:right;">Admin</button>
-</header>
+<header>BlueWave Logistics 🚚</header>
 
 <div class="container">
+
+  <!-- LOGIN -->
+  <div class="card">
+    <h3>Account</h3>
+
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="signup()">Sign Up</button>
+    <button onclick="login()">Login</button>
+    <button onclick="logout()">Logout</button>
+
+    <p id="userInfo">Not logged in</p>
+
+    <button onclick="myShipments()">📦 My Shipments</button>
+  </div>
 
   <!-- TRACK -->
   <input id="code" placeholder="Enter tracking code">
   <button onclick="track()">Track</button>
 
-  <button onclick="showAllShipments()">📦 Dashboard</button>
-
   <div id="result" class="card"></div>
 
-  <!-- ADMIN PANEL -->
-  <div id="adminPanel" style="display:none;" class="card">
-
-    <h3>Add Shipment</h3>
+  <!-- ADMIN -->
+  <div class="card">
+    <h3>Add Shipment (Admin)</h3>
 
     <input id="newLocation" placeholder="Location">
     <input id="newReceiver" placeholder="Receiver">
     <input id="newStatus" placeholder="Status">
 
     <button onclick="addShipment()">Add Shipment</button>
-
   </div>
 
 </div>
 
 </div>
 
-<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-// 🔥 YOUR FIREBASE CONFIG
+import { 
+  getFirestore, doc, getDoc, setDoc, getDocs, collection, query, where 
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+// 🔥 YOUR CONFIG
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_KEY",
   authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
@@ -125,6 +134,41 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// 👤 SIGNUP
+window.signup = async function () {
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+
+  await createUserWithEmailAndPassword(auth, email, pass);
+  alert("Account created!");
+};
+
+// 🔐 LOGIN
+window.login = async function () {
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("password").value;
+
+  await signInWithEmailAndPassword(auth, email, pass);
+  alert("Logged in!");
+};
+
+// 🚪 LOGOUT
+window.logout = function () {
+  signOut(auth);
+};
+
+// 👀 AUTH STATE
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById("userInfo").innerText =
+      "Logged in: " + user.email;
+  } else {
+    document.getElementById("userInfo").innerText =
+      "Not logged in";
+  }
+});
 
 // 🚀 TRACK
 window.track = async function () {
@@ -141,66 +185,66 @@ window.track = async function () {
 
   const data = snap.data();
 
-  let historyHTML = "";
-  if (data.history) {
-    data.history.forEach(h => {
-      historyHTML += `<div class="timeline-item">${h}</div>`;
-    });
-  }
-
   document.getElementById("result").innerHTML = `
     <b>📦 ${code}</b><br><br>
     📍 ${data.location}<br>
     👤 ${data.receiver}<br>
-    📦 ${data.status}<br>
-    <div class="timeline">${historyHTML}</div>
+    📦 ${data.status}
   `;
 };
 
 // ➕ ADD SHIPMENT
 window.addShipment = async function () {
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Login first");
+    return;
+  }
+
   const code = "BW" + Math.floor(Math.random() * 10000);
 
   await setDoc(doc(db, "shipments", code), {
     location: document.getElementById("newLocation").value,
     receiver: document.getElementById("newReceiver").value,
     status: document.getElementById("newStatus").value,
-    history: ["Shipment created"]
+    user: user.email
   });
 
-  alert("Created: " + code);
+  alert("Shipment created: " + code);
 };
 
-// 📦 DASHBOARD
-window.showAllShipments = async function () {
-  const querySnapshot = await getDocs(collection(db, "shipments"));
+// 📦 USER SHIPMENTS
+window.myShipments = async function () {
+  const user = auth.currentUser;
 
-  let output = "<h3>All Shipments</h3>";
+  if (!user) {
+    alert("Login first");
+    return;
+  }
 
-  querySnapshot.forEach(docSnap => {
+  const q = query(
+    collection(db, "shipments"),
+    where("user", "==", user.email)
+  );
+
+  const snapshot = await getDocs(q);
+
+  let output = "<h3>My Shipments</h3>";
+
+  snapshot.forEach(docSnap => {
     const s = docSnap.data();
 
     output += `
       <div class="card">
         <b>${docSnap.id}</b><br>
-        📍 ${s.location}<br>
-        📦 ${s.status}
+        ${s.location}<br>
+        ${s.status}
       </div>
     `;
   });
 
   document.getElementById("result").innerHTML = output;
-};
-
-// 🔐 ADMIN LOGIN
-window.unlockAdmin = function () {
-  const pass = prompt("Admin password");
-
-  if (pass === "admin123") {
-    document.getElementById("adminPanel").style.display = "block";
-  } else {
-    alert("Wrong password");
-  }
 };
 
 </script>
