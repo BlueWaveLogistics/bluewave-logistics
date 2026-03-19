@@ -8,86 +8,55 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #111;
       color: white;
-    }
-
-    /* HEADER */
-    header {
-      background: #ffcc00;
-      color: black;
-      padding: 15px 20px;
-      font-weight: bold;
-      font-size: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* HERO */
-    .hero {
-      background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)),
-      url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
-      background-size: cover;
-      padding: 50px 20px;
       text-align: center;
     }
 
-    .hero h1 {
-      margin-bottom: 20px;
+    header {
+      background: #ffcc00;
+      color: black;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
     }
 
-    .track-box {
-      background: white;
-      padding: 10px;
+    .hero {
+      padding: 40px 20px;
+    }
+
+    input {
+      padding: 14px;
+      width: 80%;
+      max-width: 300px;
       border-radius: 8px;
-      display: inline-flex;
-      width: 90%;
-      max-width: 400px;
-    }
-
-    .track-box input {
-      flex: 1;
-      padding: 12px;
       border: none;
-      outline: none;
+      margin: 10px;
     }
 
-    .track-box button {
+    button {
+      padding: 14px 20px;
+      border-radius: 8px;
       background: #ffcc00;
       border: none;
-      padding: 12px 20px;
       font-weight: bold;
       cursor: pointer;
     }
 
-    /* RESULT CARD */
     #result {
       margin: 20px;
-      background: #1a1a1a;
       padding: 20px;
+      background: #1a1a1a;
       border-radius: 10px;
+      text-align: left;
       border-left: 6px solid #ffcc00;
     }
 
-    /* STATUS BADGE */
-    .status {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-weight: bold;
-      display: inline-block;
-      margin-bottom: 10px;
-    }
-
-    .pending { background: gray; }
-    .transit { background: orange; }
-    .out { background: gold; color: black; }
-    .delivered { background: green; }
-
-    /* PROGRESS */
     #progressContainer {
-      margin: 20px;
+      width: 80%;
+      max-width: 300px;
+      margin: 20px auto;
       background: #333;
       border-radius: 20px;
     }
@@ -100,67 +69,35 @@
       transition: 0.5s;
     }
 
-    /* TIMELINE */
     .timeline {
-      margin-top: 20px;
+      margin-top: 15px;
       border-left: 2px solid #ffcc00;
       padding-left: 15px;
     }
 
     .timeline-item {
       margin-bottom: 10px;
-      position: relative;
     }
 
-    .timeline-item::before {
-      content: "";
-      width: 10px;
-      height: 10px;
-      background: #ffcc00;
-      border-radius: 50%;
-      position: absolute;
-      left: -21px;
-      top: 5px;
-    }
-
-    /* SERVICES */
-    .services {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 20px;
-    }
-
-    .service {
-      background: #1a1a1a;
-      padding: 20px;
+    #map {
+      width: 90%;
+      height: 300px;
+      margin: 20px auto;
       border-radius: 10px;
     }
-
-    footer {
-      background: #000;
-      padding: 20px;
-      text-align: center;
-      border-top: 2px solid #ffcc00;
-    }
-
   </style>
 </head>
 
 <body>
 
-<header>
-  <div>BlueWave Logistics 🚚</div>
-  <div>Express Delivery</div>
-</header>
+<header>BlueWave Logistics 🚚</header>
 
 <div class="hero">
-  <h1>Track Your Shipment</h1>
+  <h2>Track Your Shipment</h2>
 
-  <div class="track-box">
-    <input id="code" placeholder="Enter tracking number">
-    <button onclick="track()">Track</button>
-  </div>
+  <input id="code" placeholder="Enter tracking number">
+  <br>
+  <button onclick="track()">Track</button>
 </div>
 
 <div id="result"></div>
@@ -169,40 +106,61 @@
   <div id="progressBar"></div>
 </div>
 
-<!-- SERVICES -->
-<div class="services">
-  <div class="service">🚚 Fast Delivery</div>
-  <div class="service">✈️ International Shipping</div>
-  <div class="service">📦 Secure Packaging</div>
-  <div class="service">📍 Real-Time Tracking</div>
-</div>
-
-<footer>
-  <p>📧 support@bluewavelogistics.com</p>
-  <p>© 2026 BlueWave Logistics</p>
-</footer>
+<div id="map"></div>
 
 <script>
 
-// AUTO SYSTEM
+// MAP
+let map, marker;
+
+function initMap(lat = 6.5244, lng = 3.3792) {
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 5,
+    center: { lat, lng }
+  });
+
+  marker = new google.maps.Marker({
+    position: { lat, lng },
+    map: map
+  });
+}
+
+// MOVE TRUCK
+function moveTruck(lat, lng) {
+  let step = 0;
+
+  const interval = setInterval(() => {
+    step += 0.01;
+
+    marker.setPosition({
+      lat: lat + step,
+      lng: lng + step
+    });
+
+    if (step > 1) clearInterval(interval);
+  }, 200);
+}
+
+// TRACK
 function track() {
   const code = document.getElementById("code").value;
 
+  const locations = {
+    "New York": [40.7128, -74.0060],
+    "London": [51.5074, -0.1278],
+    "Berlin": [52.52, 13.405],
+    "Paris": [48.8566, 2.3522]
+  };
+
+  const cities = Object.keys(locations);
+  const city = cities[Math.floor(Math.random() * cities.length)];
+  const coords = locations[city];
+
+  initMap(coords[0], coords[1]);
+  moveTruck(coords[0], coords[1]);
+
   const statuses = ["Pending", "In Transit", "Out for Delivery", "Delivered"];
-  const status = statuses[Math.floor(Math.random()*statuses.length)];
-
-  let statusClass = "";
-  if (status === "Pending") statusClass = "pending";
-  if (status === "In Transit") statusClass = "transit";
-  if (status === "Out for Delivery") statusClass = "out";
-  if (status === "Delivered") statusClass = "delivered";
-
-  let history = `
-    <div class="timeline">
-      <div class="timeline-item">Shipment created - Italy</div>
-      <div class="timeline-item">${status}</div>
-    </div>
-  `;
+  const status = statuses[Math.floor(Math.random() * statuses.length)];
 
   let progress = 25;
   if (status === "In Transit") progress = 50;
@@ -211,16 +169,29 @@ function track() {
 
   document.getElementById("progressBar").style.width = progress + "%";
 
+  let history = `
+    <div class="timeline">
+      <div class="timeline-item">Shipment created - Italy</div>
+      <div class="timeline-item">${status}</div>
+    </div>
+  `;
+
   document.getElementById("result").innerHTML = `
-    <div class="status ${statusClass}">${status}</div>
-    <br>
-    📦 ${code}<br>
-    📍 Location: ${["New York","London","Berlin"][Math.floor(Math.random()*3)]}
+    <b>📦 ${code}</b><br><br>
+    📍 Location: ${city}<br>
+    📦 Status: ${status}<br>
+    ${status === "Out for Delivery" ? "🚚 Arriving Today<br>" : ""}
     ${history}
   `;
 }
 
+// DEFAULT MAP
+initMap();
+
 </script>
+
+<!-- GOOGLE MAP -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_KEY"></script>
 
 </body>
 </html>
