@@ -1,9 +1,9 @@
 const CACHE_NAME = "bluewave-cache-v1";
 
-self.addEventListener("install", event => {
+self.addEventListener("install", e => {
   console.log("Service Worker Installed");
 });
 
-self.addEventListener("fetch", event => {
-  event.respondWith(fetch(event.request));
+self.addEventListener("fetch", e => {
+  e.respondWith(fetch(e.request));
 });
