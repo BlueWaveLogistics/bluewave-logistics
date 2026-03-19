@@ -5,10 +5,6 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ffcc00">
-
   <style>
     body {
       margin: 0;
@@ -66,25 +62,30 @@
       margin-top: 15px;
     }
 
-    .status {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-weight: bold;
-      display: inline-block;
-      margin-bottom: 10px;
+    .timeline {
+      margin-top: 15px;
+      border-left: 2px solid #ffcc00;
+      padding-left: 10px;
     }
 
-    .pending { background: gray; }
-    .transit { background: orange; }
-    .delivered { background: green; }
+    .timeline-item {
+      margin-bottom: 8px;
+    }
+
+    #progressContainer {
+      margin-top: 15px;
+      background: #333;
+      border-radius: 10px;
+    }
 
     #progressBar {
-      height: 8px;
+      height: 10px;
       width: 0%;
       background: #ffcc00;
       border-radius: 10px;
-      margin-top: 10px;
+      transition: 0.5s;
     }
+
   </style>
 </head>
 
@@ -99,12 +100,13 @@
   <input id="code" placeholder="Enter tracking code">
   <button onclick="track()">Track</button>
 
-  <button onclick="showAllData()">📦 View All Shipments</button>
-  <button onclick="exportData()">⬇ Download Data</button>
-
   <div id="result" class="card"></div>
 
-  <div id="progressBar"></div>
+  <div id="progressContainer">
+    <div id="progressBar"></div>
+  </div>
+
+  <p id="progressText"></p>
 
   <h3>Add Shipment</h3>
 
@@ -113,6 +115,7 @@
 
   <button onclick="setStatus('Pending')">Pending</button>
   <button onclick="setStatus('In Transit')">Transit</button>
+  <button onclick="setStatus('Out for Delivery')">Out</button>
   <button onclick="setStatus('Delivered')">Delivered</button>
 
   <button onclick="addShipment()">Add Shipment</button>
@@ -123,17 +126,19 @@
 
 <script>
 
-// 💾 DATABASE
+// 💾 STORAGE
 let shipments = JSON.parse(localStorage.getItem("shipments")) || {
   "BW1001": {
     status: "In Transit",
     location: "New York",
-    history: ["Shipment created - Italy", "In transit"]
-  },
-  "BW1002": {
-    status: "Delivered",
-    location: "London",
-    history: ["Shipment created - Italy", "Delivered"]
+    sender: "BlueWave",
+    receiver: "John Doe",
+    weight: "5kg",
+    deliveryDate: "25 March 2026",
+    history: [
+      "Shipment created - Italy",
+      "In transit"
+    ]
   }
 };
 
@@ -143,57 +148,100 @@ function saveData() {
   localStorage.setItem("shipments", JSON.stringify(shipments));
 }
 
-// TRACK
+// 🚀 TRACK (AUTO SYSTEM)
 function track() {
-  const code = document.getElementById("code").value.trim();
-  const data = shipments[code];
+  const code = document.getElementById("code").value.trim().toUpperCase();
 
+  let data = shipments[code];
+
+  // AUTO GENERATE
   if (!data) {
-    result.innerHTML = "❌ Not found";
-    return;
+
+    const locations = ["New York", "London", "Berlin", "Paris", "Madrid", "Rome", "Dubai"];
+    const names = ["John Doe", "Maria Lopez", "James Smith", "Ali Khan", "Sophia Klein"];
+
+    const randomLocation = locations[Math.floor(Math.random() * locations.length)];
+    const randomName = names[Math.floor(Math.random() * names.length)];
+
+    const statuses = ["Pending", "In Transit", "Out for Delivery", "Delivered"];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+
+    let history = [];
+
+    if (status === "Pending") history = ["Shipment created - Italy"];
+    if (status === "In Transit") history = ["Shipment created - Italy", "In transit"];
+    if (status === "Out for Delivery") history = ["Shipment created - Italy", "Out for delivery"];
+    if (status === "Delivered") history = ["Shipment created - Italy", "Delivered"];
+
+    data = {
+      status,
+      location: randomLocation,
+      sender: "BlueWave",
+      receiver: randomName,
+      weight: Math.floor(Math.random() * 10 + 1) + "kg",
+      deliveryDate: "Arriving soon",
+      history
+    };
   }
 
-  let cls =
-    data.status === "Delivered" ? "delivered" :
-    data.status === "In Transit" ? "transit" : "pending";
+  // STATUS STYLE
+  let color =
+    data.status === "Delivered" ? "green" :
+    data.status === "In Transit" ? "orange" :
+    data.status === "Out for Delivery" ? "gold" : "gray";
 
+  let statusHTML = `
+    <div style="
+      background:${color};
+      padding:8px 16px;
+      border-radius:20px;
+      display:inline-block;
+      font-weight:bold;
+      margin-bottom:10px;
+      color:${color === 'gold' ? 'black' : 'white'};
+    ">
+      ${data.status}
+    </div>
+  `;
+
+  // TIMELINE
   let historyHTML = "";
-  data.history.forEach(h => {
-    historyHTML += `<div>• ${h}</div>`;
+  data.history.forEach(item => {
+    historyHTML += `<div class="timeline-item">${item}</div>`;
   });
 
-  result.innerHTML =
-    `<div class="status ${cls}">${data.status}</div>
-     <br>📍 ${data.location}
-     <br><br>${historyHTML}`;
+  historyHTML = `<div class="timeline">${historyHTML}</div>`;
 
-  let progress =
-    data.status === "Delivered" ? 100 :
-    data.status === "In Transit" ? 50 : 25;
+  // PROGRESS
+  let progress = 25;
+  if (data.status === "In Transit") progress = 50;
+  if (data.status === "Out for Delivery") progress = 75;
+  if (data.status === "Delivered") progress = 100;
 
-  document.getElementById("progressBar").style.width = progress + "%";
+  const bar = document.getElementById("progressBar");
+  bar.style.width = "0%";
+
+  setTimeout(() => {
+    bar.style.width = progress + "%";
+  }, 200);
+
+  document.getElementById("progressText").innerText =
+    "Progress: " + progress + "%";
+
+  // RESULT
+  document.getElementById("result").innerHTML =
+    statusHTML + `
+    <br>
+    <b>📦 Tracking ID:</b> ${code}<br><br>
+    📍 ${data.location}<br>
+    📦 ${data.sender}<br>
+    👤 ${data.receiver}<br>
+    ⚖️ ${data.weight}<br>
+    📅 ${data.deliveryDate}<br>
+    ` + historyHTML;
 }
 
-// SHOW ALL DATA
-function showAllData() {
-  let output = "";
-
-  for (let code in shipments) {
-    let s = shipments[code];
-
-    output += `
-      <div class="card">
-        <b>${code}</b><br>
-        📍 ${s.location}<br>
-        📦 ${s.status}
-      </div>
-    `;
-  }
-
-  result.innerHTML = output;
-}
-
-// ADD SHIPMENT
+// ➕ ADD SHIPMENT
 function addShipment() {
   counter++;
   const code = "BW" + counter;
@@ -204,37 +252,23 @@ function addShipment() {
   shipments[code] = {
     status,
     location,
+    sender: "BlueWave",
+    receiver: "New Customer",
+    weight: "2kg",
+    deliveryDate: "Processing",
     history: [status + " - " + location]
   };
 
   saveData();
 
-  alert("Created: " + code);
+  alert("✅ Created: " + code);
 }
 
-// SET STATUS
+// STATUS BUTTON
 function setStatus(status) {
   document.getElementById("newStatus").value = status;
 }
 
-// EXPORT DATA
-function exportData() {
-  const dataStr = JSON.stringify(shipments, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "shipments.json";
-  a.click();
-}
-
-</script>
-
-<!-- SERVICE WORKER -->
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
 </script>
 
 </body>
