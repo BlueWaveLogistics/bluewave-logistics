@@ -5,6 +5,9 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+
   <style>
     body {
       margin: 0;
@@ -17,8 +20,8 @@
     .app {
       width: 100%;
       max-width: 420px;
-      min-height: 100vh;
       background: #111;
+      min-height: 100vh;
       color: white;
     }
 
@@ -34,26 +37,16 @@
       padding: 20px;
     }
 
-    input {
+    input, button {
       width: 100%;
       padding: 14px;
       margin-top: 10px;
       border-radius: 10px;
       border: none;
-      background: #222;
-      color: white;
     }
 
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border-radius: 10px;
-      border: none;
-      background: #ffcc00;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    input { background: #222; color: white; }
+    button { background: #ffcc00; font-weight: bold; }
 
     .card {
       background: #1a1a1a;
@@ -75,7 +68,6 @@
   <!-- LOGIN -->
   <div class="card">
     <h3>Account</h3>
-
     <input id="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
 
@@ -84,48 +76,56 @@
     <button onclick="logout()">Logout</button>
 
     <p id="userInfo">Not logged in</p>
-
-    <button onclick="myShipments()">📦 My Shipments</button>
   </div>
 
   <!-- TRACK -->
   <input id="code" placeholder="Enter tracking code">
   <button onclick="track()">Track</button>
 
+  <button onclick="myShipments()">📦 My Shipments</button>
+
   <div id="result" class="card"></div>
 
   <!-- ADMIN -->
   <div class="card">
-    <h3>Add Shipment (Admin)</h3>
-
+    <h3>Add Shipment</h3>
     <input id="newLocation" placeholder="Location">
-    <input id="newReceiver" placeholder="Receiver">
+    <input id="newReceiver" placeholder="Receiver Email">
     <input id="newStatus" placeholder="Status">
-
     <button onclick="addShipment()">Add Shipment</button>
   </div>
 
-</div>
+  <!-- PAYMENT -->
+  <button onclick="pay()">💳 Pay for Delivery</button>
 
 </div>
 
+</div>
+
+<!-- EMAILJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+<script>
+(function(){
+  emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+})();
+</script>
+
+<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 
-import { 
-  getFirestore, doc, getDoc, setDoc, getDocs, collection, query, where 
+import {
+  getFirestore, doc, getDoc, setDoc, getDocs, collection, query, where
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
 import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
+  getAuth, createUserWithEmailAndPassword,
+  signInWithEmailAndPassword, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
-// 🔥 YOUR CONFIG
+// 🔥 CONFIG
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_KEY",
   authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
@@ -136,117 +136,87 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 👤 SIGNUP
-window.signup = async function () {
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
-
-  await createUserWithEmailAndPassword(auth, email, pass);
-  alert("Account created!");
+// AUTH
+window.signup = async () => {
+  await createUserWithEmailAndPassword(auth, email.value, password.value);
+  alert("Account created");
 };
 
-// 🔐 LOGIN
-window.login = async function () {
-  const email = document.getElementById("email").value;
-  const pass = document.getElementById("password").value;
-
-  await signInWithEmailAndPassword(auth, email, pass);
-  alert("Logged in!");
+window.login = async () => {
+  await signInWithEmailAndPassword(auth, email.value, password.value);
+  alert("Logged in");
 };
 
-// 🚪 LOGOUT
-window.logout = function () {
-  signOut(auth);
-};
+window.logout = () => signOut(auth);
 
-// 👀 AUTH STATE
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    document.getElementById("userInfo").innerText =
-      "Logged in: " + user.email;
-  } else {
-    document.getElementById("userInfo").innerText =
-      "Not logged in";
-  }
+onAuthStateChanged(auth, user => {
+  userInfo.innerText = user ? user.email : "Not logged in";
 });
 
-// 🚀 TRACK
-window.track = async function () {
-  const code = document.getElementById("code").value.trim();
+// TRACK
+window.track = async () => {
+  const snap = await getDoc(doc(db, "shipments", code.value));
+  if (!snap.exists()) return result.innerHTML = "Not found";
 
-  const ref = doc(db, "shipments", code);
-  const snap = await getDoc(ref);
+  const d = snap.data();
 
-  if (!snap.exists()) {
-    document.getElementById("result").innerHTML =
-      "<p style='color:red;'>Tracking not found</p>";
-    return;
-  }
-
-  const data = snap.data();
-
-  document.getElementById("result").innerHTML = `
-    <b>📦 ${code}</b><br><br>
-    📍 ${data.location}<br>
-    👤 ${data.receiver}<br>
-    📦 ${data.status}
+  result.innerHTML = `
+    📦 ${code.value}<br>
+    📍 ${d.location}<br>
+    👤 ${d.receiver}<br>
+    📦 ${d.status}
   `;
 };
 
-// ➕ ADD SHIPMENT
-window.addShipment = async function () {
-  const user = auth.currentUser;
+// ADD SHIPMENT
+window.addShipment = async () => {
+  const c = "BW" + Math.floor(Math.random()*10000);
 
-  if (!user) {
-    alert("Login first");
-    return;
-  }
-
-  const code = "BW" + Math.floor(Math.random() * 10000);
-
-  await setDoc(doc(db, "shipments", code), {
-    location: document.getElementById("newLocation").value,
-    receiver: document.getElementById("newReceiver").value,
-    status: document.getElementById("newStatus").value,
-    user: user.email
+  await setDoc(doc(db, "shipments", c), {
+    location: newLocation.value,
+    receiver: newReceiver.value,
+    status: newStatus.value,
+    user: auth.currentUser.email
   });
 
-  alert("Shipment created: " + code);
-};
-
-// 📦 USER SHIPMENTS
-window.myShipments = async function () {
-  const user = auth.currentUser;
-
-  if (!user) {
-    alert("Login first");
-    return;
-  }
-
-  const q = query(
-    collection(db, "shipments"),
-    where("user", "==", user.email)
-  );
-
-  const snapshot = await getDocs(q);
-
-  let output = "<h3>My Shipments</h3>";
-
-  snapshot.forEach(docSnap => {
-    const s = docSnap.data();
-
-    output += `
-      <div class="card">
-        <b>${docSnap.id}</b><br>
-        ${s.location}<br>
-        ${s.status}
-      </div>
-    `;
+  // 📧 EMAIL
+  emailjs.send("SERVICE_ID","TEMPLATE_ID",{
+    to_email: newReceiver.value,
+    message: "Your shipment is created"
   });
 
-  document.getElementById("result").innerHTML = output;
+  alert("Created: " + c);
 };
 
+// USER SHIPMENTS
+window.myShipments = async () => {
+  const q = query(collection(db,"shipments"),
+    where("user","==",auth.currentUser.email));
+
+  const snap = await getDocs(q);
+
+  let out = "";
+  snap.forEach(d => {
+    out += `<div>${d.id} - ${d.data().status}</div>`;
+  });
+
+  result.innerHTML = out;
+};
+
+</script>
+
+<!-- PAYMENT -->
+<script>
+function pay() {
+  window.location.href = "https://buy.stripe.com/test_xxxx";
+}
+</script>
+
+<!-- SERVICE WORKER -->
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
 </script>
 
 </body>
