@@ -5,218 +5,221 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-
   <style>
     body {
       margin: 0;
-      font-family: Arial;
-      background: #000;
-      display: flex;
-      justify-content: center;
-    }
-
-    .app {
-      width: 100%;
-      max-width: 420px;
+      font-family: Arial, sans-serif;
       background: #111;
-      min-height: 100vh;
       color: white;
     }
 
+    /* HEADER */
     header {
       background: #ffcc00;
       color: black;
-      padding: 15px;
-      text-align: center;
+      padding: 15px 20px;
       font-weight: bold;
+      font-size: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .container {
+    /* HERO */
+    .hero {
+      background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)),
+      url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+      background-size: cover;
+      padding: 50px 20px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      margin-bottom: 20px;
+    }
+
+    .track-box {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      display: inline-flex;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .track-box input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      outline: none;
+    }
+
+    .track-box button {
+      background: #ffcc00;
+      border: none;
+      padding: 12px 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* RESULT CARD */
+    #result {
+      margin: 20px;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 6px solid #ffcc00;
+    }
+
+    /* STATUS BADGE */
+    .status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
+    .pending { background: gray; }
+    .transit { background: orange; }
+    .out { background: gold; color: black; }
+    .delivered { background: green; }
+
+    /* PROGRESS */
+    #progressContainer {
+      margin: 20px;
+      background: #333;
+      border-radius: 20px;
+    }
+
+    #progressBar {
+      height: 10px;
+      width: 0%;
+      background: #ffcc00;
+      border-radius: 20px;
+      transition: 0.5s;
+    }
+
+    /* TIMELINE */
+    .timeline {
+      margin-top: 20px;
+      border-left: 2px solid #ffcc00;
+      padding-left: 15px;
+    }
+
+    .timeline-item {
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      background: #ffcc00;
+      border-radius: 50%;
+      position: absolute;
+      left: -21px;
+      top: 5px;
+    }
+
+    /* SERVICES */
+    .services {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
       padding: 20px;
     }
 
-    input, button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border-radius: 10px;
-      border: none;
-    }
-
-    input { background: #222; color: white; }
-    button { background: #ffcc00; font-weight: bold; }
-
-    .card {
+    .service {
       background: #1a1a1a;
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 15px;
+      padding: 20px;
+      border-radius: 10px;
     }
+
+    footer {
+      background: #000;
+      padding: 20px;
+      text-align: center;
+      border-top: 2px solid #ffcc00;
+    }
+
   </style>
 </head>
 
 <body>
 
-<div class="app">
+<header>
+  <div>BlueWave Logistics 🚚</div>
+  <div>Express Delivery</div>
+</header>
 
-<header>BlueWave Logistics 🚚</header>
+<div class="hero">
+  <h1>Track Your Shipment</h1>
 
-<div class="container">
-
-  <!-- LOGIN -->
-  <div class="card">
-    <h3>Account</h3>
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-
-    <button onclick="signup()">Sign Up</button>
-    <button onclick="login()">Login</button>
-    <button onclick="logout()">Logout</button>
-
-    <p id="userInfo">Not logged in</p>
+  <div class="track-box">
+    <input id="code" placeholder="Enter tracking number">
+    <button onclick="track()">Track</button>
   </div>
-
-  <!-- TRACK -->
-  <input id="code" placeholder="Enter tracking code">
-  <button onclick="track()">Track</button>
-
-  <button onclick="myShipments()">📦 My Shipments</button>
-
-  <div id="result" class="card"></div>
-
-  <!-- ADMIN -->
-  <div class="card">
-    <h3>Add Shipment</h3>
-    <input id="newLocation" placeholder="Location">
-    <input id="newReceiver" placeholder="Receiver Email">
-    <input id="newStatus" placeholder="Status">
-    <button onclick="addShipment()">Add Shipment</button>
-  </div>
-
-  <!-- PAYMENT -->
-  <button onclick="pay()">💳 Pay for Delivery</button>
-
 </div>
 
+<div id="result"></div>
+
+<div id="progressContainer">
+  <div id="progressBar"></div>
 </div>
 
-<!-- EMAILJS -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<!-- SERVICES -->
+<div class="services">
+  <div class="service">🚚 Fast Delivery</div>
+  <div class="service">✈️ International Shipping</div>
+  <div class="service">📦 Secure Packaging</div>
+  <div class="service">📍 Real-Time Tracking</div>
+</div>
+
+<footer>
+  <p>📧 support@bluewavelogistics.com</p>
+  <p>© 2026 BlueWave Logistics</p>
+</footer>
 
 <script>
-(function(){
-  emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
-})();
-</script>
 
-<!-- FIREBASE -->
-<script type="module">
+// AUTO SYSTEM
+function track() {
+  const code = document.getElementById("code").value;
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  const statuses = ["Pending", "In Transit", "Out for Delivery", "Delivered"];
+  const status = statuses[Math.floor(Math.random()*statuses.length)];
 
-import {
-  getFirestore, doc, getDoc, setDoc, getDocs, collection, query, where
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+  let statusClass = "";
+  if (status === "Pending") statusClass = "pending";
+  if (status === "In Transit") statusClass = "transit";
+  if (status === "Out for Delivery") statusClass = "out";
+  if (status === "Delivered") statusClass = "delivered";
 
-import {
-  getAuth, createUserWithEmailAndPassword,
-  signInWithEmailAndPassword, signOut, onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-
-// 🔥 CONFIG
-const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_KEY",
-  authDomain: "bluewave-logistics-c9a21.firebaseapp.com",
-  projectId: "bluewave-logistics-c9a21"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-// AUTH
-window.signup = async () => {
-  await createUserWithEmailAndPassword(auth, email.value, password.value);
-  alert("Account created");
-};
-
-window.login = async () => {
-  await signInWithEmailAndPassword(auth, email.value, password.value);
-  alert("Logged in");
-};
-
-window.logout = () => signOut(auth);
-
-onAuthStateChanged(auth, user => {
-  userInfo.innerText = user ? user.email : "Not logged in";
-});
-
-// TRACK
-window.track = async () => {
-  const snap = await getDoc(doc(db, "shipments", code.value));
-  if (!snap.exists()) return result.innerHTML = "Not found";
-
-  const d = snap.data();
-
-  result.innerHTML = `
-    📦 ${code.value}<br>
-    📍 ${d.location}<br>
-    👤 ${d.receiver}<br>
-    📦 ${d.status}
+  let history = `
+    <div class="timeline">
+      <div class="timeline-item">Shipment created - Italy</div>
+      <div class="timeline-item">${status}</div>
+    </div>
   `;
-};
 
-// ADD SHIPMENT
-window.addShipment = async () => {
-  const c = "BW" + Math.floor(Math.random()*10000);
+  let progress = 25;
+  if (status === "In Transit") progress = 50;
+  if (status === "Out for Delivery") progress = 75;
+  if (status === "Delivered") progress = 100;
 
-  await setDoc(doc(db, "shipments", c), {
-    location: newLocation.value,
-    receiver: newReceiver.value,
-    status: newStatus.value,
-    user: auth.currentUser.email
-  });
+  document.getElementById("progressBar").style.width = progress + "%";
 
-  // 📧 EMAIL
-  emailjs.send("SERVICE_ID","TEMPLATE_ID",{
-    to_email: newReceiver.value,
-    message: "Your shipment is created"
-  });
-
-  alert("Created: " + c);
-};
-
-// USER SHIPMENTS
-window.myShipments = async () => {
-  const q = query(collection(db,"shipments"),
-    where("user","==",auth.currentUser.email));
-
-  const snap = await getDocs(q);
-
-  let out = "";
-  snap.forEach(d => {
-    out += `<div>${d.id} - ${d.data().status}</div>`;
-  });
-
-  result.innerHTML = out;
-};
-
-</script>
-
-<!-- PAYMENT -->
-<script>
-function pay() {
-  window.location.href = "https://buy.stripe.com/test_xxxx";
+  document.getElementById("result").innerHTML = `
+    <div class="status ${statusClass}">${status}</div>
+    <br>
+    📦 ${code}<br>
+    📍 Location: ${["New York","London","Berlin"][Math.floor(Math.random()*3)]}
+    ${history}
+  `;
 }
-</script>
 
-<!-- SERVICE WORKER -->
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
 </script>
 
 </body>
