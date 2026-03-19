@@ -90,13 +90,34 @@
     .timeline-item {
       margin-bottom: 10px;
     }
+
+    /* WhatsApp */
+    .whatsapp {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #25D366;
+      color: white;
+      padding: 15px;
+      border-radius: 50%;
+      font-size: 20px;
+      text-decoration: none;
+    }
   </style>
 </head>
 
 <body>
 
 <header>
-  <div>BlueWave Logistics 🚚</div>
+  <!-- ✅ LOGO HERE -->
+  <div style="display:flex; align-items:center; gap:10px;">
+    <img src="logo.png" style="height:45px;">
+    <div style="line-height:1;">
+      <div style="font-weight:bold;">BlueWave</div>
+      <small style="font-size:12px;">Logistics</small>
+    </div>
+  </div>
+
   <button>Admin</button>
 </header>
 
@@ -116,7 +137,6 @@
 
 <script>
 
-// ✅ FULL WORKING DATA (NO ERRORS)
 let shipments = {
 
   "BW1001": {
@@ -130,58 +150,6 @@ let shipments = {
       "Shipment created - Italy",
       "Picked up by BlueWave",
       "In transit to USA"
-    ]
-  },
-
-  "BW1002": {
-    status: "Pending",
-    location: "Rome, Italy",
-    sender: "BlueWave",
-    receiver: "Maria Rossi",
-    weight: "2kg",
-    deliveryDate: "28 March 2026",
-    history: [
-      "Shipment created - Italy"
-    ]
-  },
-
-  "BW1003": {
-    status: "Out for Delivery",
-    location: "London, UK",
-    sender: "BlueWave",
-    receiver: "James Smith",
-    weight: "3kg",
-    deliveryDate: "22 March 2026",
-    history: [
-      "Arrived in UK",
-      "Out for delivery"
-    ]
-  },
-
-  "BW1004": {
-    status: "Delivered",
-    location: "Toronto, Canada",
-    sender: "BlueWave",
-    receiver: "Michael Lee",
-    weight: "7kg",
-    deliveryDate: "20 March 2026",
-    history: [
-      "Shipment created",
-      "Delivered successfully"
-    ]
-  },
-
-  "BW1005": {
-    status: "In Transit",
-    location: "Berlin, Germany",
-    sender: "BlueWave",
-    receiver: "Anna Muller",
-    weight: "4kg",
-    deliveryDate: "27 March 2026",
-    history: [
-      "Picked up",
-      "Sorting facility",
-      "In transit"
     ]
   },
 
@@ -199,7 +167,6 @@ let shipments = {
 
 };
 
-// ✅ TRACK FUNCTION (FIXED)
 function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
@@ -207,8 +174,6 @@ function track() {
   if (!data) {
     document.getElementById("result").innerHTML =
       "<p style='color:red;'>Tracking code not found</p>";
-    document.getElementById("progressBar").style.width = "0%";
-    document.getElementById("progressText").innerText = "";
     return;
   }
 
@@ -269,6 +234,9 @@ function track() {
     </a>
   </p>
 </div>
+
+<!-- WHATSAPP -->
+<a class="whatsapp" href="https://wa.me/234XXXXXXXXXX" target="_blank">💬</a>
 
 </body>
 </html>
