@@ -25,10 +25,6 @@
       align-items: center;
     }
 
-    h2 {
-      margin-top: 30px;
-    }
-
     input {
       padding: 14px;
       width: 80%;
@@ -48,11 +44,6 @@
       border-radius: 10px;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      transform: scale(1.05);
     }
 
     #result {
@@ -63,7 +54,7 @@
       border-radius: 15px;
       border-left: 4px solid #ffcc00;
       text-align: left;
-      box-shadow: 0 0 25px rgba(255,204,0,0.15);
+      box-shadow: 0 0 25px rgba(255,204,0,0.2);
     }
 
     .status {
@@ -87,7 +78,6 @@
       width: 0%;
       background: linear-gradient(90deg, #ffcc00, gold);
       border-radius: 20px;
-      box-shadow: 0 0 10px #ffcc00;
       transition: 1s;
     }
 
@@ -99,40 +89,6 @@
 
     .timeline-item {
       margin-bottom: 10px;
-    }
-
-    /* LOADER */
-    #loader {
-      display: none;
-      margin-top: 15px;
-    }
-
-    .spinner {
-      width: 30px;
-      height: 30px;
-      border: 4px solid #333;
-      border-top: 4px solid #ffcc00;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: auto;
-    }
-
-    @keyframes spin {
-      100% { transform: rotate(360deg); }
-    }
-
-    /* WHATSAPP BUTTON */
-    .whatsapp {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #25D366;
-      color: white;
-      padding: 15px;
-      border-radius: 50%;
-      font-size: 20px;
-      text-decoration: none;
-      box-shadow: 0 0 10px #25D366;
     }
   </style>
 </head>
@@ -150,11 +106,6 @@
 <br>
 <button onclick="track()">Track</button>
 
-<div id="loader">
-  <div class="spinner"></div>
-  <p style="color:#aaa;">Tracking shipment...</p>
-</div>
-
 <div id="result"></div>
 
 <div id="progressContainer">
@@ -165,6 +116,7 @@
 
 <script>
 
+// ✅ FULL WORKING DATA (NO ERRORS)
 let shipments = {
 
   "BW1001": {
@@ -183,9 +135,9 @@ let shipments = {
 
   "BW1002": {
     status: "Pending",
-    location: "kentucky,USA",
+    location: "Rome, Italy",
     sender: "BlueWave",
-    receiver: "Mary Johnson",
+    receiver: "Maria Rossi",
     weight: "2kg",
     deliveryDate: "28 March 2026",
     history: [
@@ -241,123 +193,68 @@ let shipments = {
     weight: "6kg",
     deliveryDate: "30 March 2026",
     history: [
-      "Shipment created"
-    ]
-  },
-
-  "BW1007": {
-    status: "Out for Delivery",
-    location: "Paris, France",
-    sender: "BlueWave",
-    receiver: "Sophia Laurent",
-    weight: "1.5kg",
-    deliveryDate: "23 March 2026",
-    history: [
-      "Arrived in Paris",
-      "Out for delivery"
-    ]
-  },
-
-  "BW1008": {
-    status: "Delivered",
-    location: "Madrid, Spain",
-    sender: "BlueWave",
-    receiver: "Carlos Diaz",
-    weight: "2.5kg",
-    deliveryDate: "19 March 2026",
-    history: [
-      "Shipment created",
-      "Delivered"
-    ]
-  },
-
-  "BW1009": {
-    status: "In Transit",
-    location: "Rome, Italy",
-    sender: "BlueWave",
-    receiver: "Luca Rossi",
-    weight: "3.2kg",
-    deliveryDate: "26 March 2026",
-    history: [
-      "Picked up",
-      "In transit"
-    ]
-  },
-
-  "BW1010": {
-    status: "Pending",
-    location: "Cape Town, South Africa",
-    sender: "BlueWave",
-    receiver: "Thabo Nkosi",
-    weight: "8kg",
-    deliveryDate: "29 March 2026",
-    history: [
-      "Shipment created"
+      "Shipment created - Italy"
     ]
   }
 
 };
+
+// ✅ TRACK FUNCTION (FIXED)
 function track() {
   const code = document.getElementById("code").value.trim();
   const data = shipments[code];
 
-  document.getElementById("loader").style.display = "block";
-  document.getElementById("result").innerHTML = "";
+  if (!data) {
+    document.getElementById("result").innerHTML =
+      "<p style='color:red;'>Tracking code not found</p>";
+    document.getElementById("progressBar").style.width = "0%";
+    document.getElementById("progressText").innerText = "";
+    return;
+  }
+
+  let color =
+    data.status === "Delivered" ? "green" :
+    data.status === "In Transit" ? "orange" :
+    data.status === "Out for Delivery" ? "gold" : "gray";
+
+  let statusHTML = `
+    <div class="status" style="background:${color};">
+      ${data.status}
+    </div>
+  `;
+
+  let historyHTML = "";
+  data.history.forEach(item => {
+    historyHTML += `<div class="timeline-item">${item}</div>`;
+  });
+
+  historyHTML = `<div class="timeline">${historyHTML}</div>`;
+
+  let progress = 0;
+  if (data.status === "Pending") progress = 25;
+  else if (data.status === "In Transit") progress = 50;
+  else if (data.status === "Out for Delivery") progress = 75;
+  else if (data.status === "Delivered") progress = 100;
+
+  const bar = document.getElementById("progressBar");
+  bar.style.width = "0%";
 
   setTimeout(() => {
+    bar.style.width = progress + "%";
+  }, 200);
 
-    document.getElementById("loader").style.display = "none";
+  document.getElementById("progressText").innerText =
+    "Progress: " + progress + "%";
 
-    if (!data) {
-      document.getElementById("result").innerHTML =
-        "<p style='color:red;'>Tracking code not found</p>";
-      return;
-    }
-
-    let color =
-      data.status === "Delivered" ? "green" :
-      data.status === "In Transit" ? "orange" :
-      data.status === "Out for Delivery" ? "gold" : "gray";
-
-    let statusHTML = `
-      <div class="status" style="background:${color}; color:white;">
-        ${data.status}
-      </div>
-    `;
-
-    let historyHTML = "";
-    data.history.forEach(item => {
-      historyHTML += `<div class="timeline-item">${item}</div>`;
-    });
-
-    historyHTML = `<div class="timeline">${historyHTML}</div>`;
-
-    let progress = 50;
-    if (data.status === "Pending") progress = 25;
-    else if (data.status === "Out for Delivery") progress = 75;
-    else if (data.status === "Delivered") progress = 100;
-
-    const bar = document.getElementById("progressBar");
-    bar.style.width = "0%";
-
-    setTimeout(() => {
-      bar.style.width = progress + "%";
-    }, 300);
-
-    document.getElementById("progressText").innerText =
-      "Progress: " + progress + "%";
-
-    document.getElementById("result").innerHTML =
-      statusHTML + `
-      <b>📦 Tracking ID:</b> ${code}<br><br>
-      📍 ${data.location}<br>
-      📦 ${data.sender}<br>
-      👤 ${data.receiver}<br>
-      ⚖️ ${data.weight}<br>
-      📅 ${data.deliveryDate}<br>
-      ` + historyHTML;
-
-  }, 1200);
+  document.getElementById("result").innerHTML =
+    statusHTML + `
+    <b>📦 Tracking ID:</b> ${code}<br><br>
+    📍 ${data.location}<br>
+    📦 ${data.sender}<br>
+    👤 ${data.receiver}<br>
+    ⚖️ ${data.weight}<br>
+    📅 ${data.deliveryDate}<br>
+    ` + historyHTML;
 }
 
 </script>
@@ -367,13 +264,11 @@ function track() {
   <h3>Customer Support</h3>
   <p style="color:#aaa;">For tracking issues or delivery inquiries</p>
   <p>
-    📧 <a href="mailto:support@shippingcompanyservice015@gmail.com" 
-    style="color:#ffcc00;">support@shippingcompanyservice015@gmail.com</a>
+    📧 <a href="mailto:support@shippingcompanyservice015@gmail.com" style="color:#ffcc00;">
+      support@shippingcompanyservice015@gmail.com
+    </a>
   </p>
 </div>
-
-<!-- WHATSAPP -->
-<a class="whatsapp" href="https://wa.me/+14699600173" target="_blank">💬</a>
 
 </body>
 </html>
