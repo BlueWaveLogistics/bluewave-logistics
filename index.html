@@ -5,6 +5,10 @@
   <title>BlueWave Logistics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- LEAFLET MAP -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <style>
     body {
       margin:0;
@@ -50,6 +54,13 @@
       border-radius:12px;
       text-align:left;
     }
+
+    #map {
+      width:90%;
+      height:300px;
+      margin:20px auto;
+      border-radius:10px;
+    }
   </style>
 </head>
 
@@ -63,17 +74,17 @@
   <input id="loginEmail" placeholder="Email"><br>
   <input id="loginPass" type="password" placeholder="Password"><br>
   <button onclick="login()">Login</button>
-
-  <p>Don't have account?</p>
-  <button onclick="showSignup()">Sign Up</button>
+  <br>
+  <button onclick="showSignup()">Create Account</button>
 </div>
 
 <!-- SIGNUP -->
 <div id="signupBox" class="hidden">
-  <h2>Create Account</h2>
+  <h2>Sign Up</h2>
   <input id="signupEmail" placeholder="Email"><br>
   <input id="signupPass" type="password" placeholder="Password"><br>
-  <button onclick="signup()">Create Account</button>
+  <button onclick="signup()">Create</button>
+  <br>
   <button onclick="showLogin()">Back</button>
 </div>
 
@@ -86,127 +97,133 @@
 
   <div id="result"></div>
 
-  <h3>Your Shipments</h3>
-  <div id="myShipments"></div>
+  <!-- MAP -->
+  <div id="map"></div>
 
+  <h3>Add Shipment (Admin)</h3>
+
+  <input id="newLocation" placeholder="Location"><br>
+  <input id="newSender" placeholder="Sender"><br>
+  <input id="newReceiver" placeholder="Receiver"><br>
+  <input id="newWeight" placeholder="Weight"><br>
+  <input id="newDate" placeholder="Delivery Date"><br>
+  <input id="newStatus" placeholder="Status"><br>
+
+  <button onclick="addShipment()">Add Shipment</button>
+
+  <br><br>
   <button onclick="logout()" style="background:red;color:white;">Logout</button>
+
 </div>
 
-<script>
+<script type="module">
 
-// USERS + SHIPMENTS DATABASE
-let users = JSON.parse(localStorage.getItem("users")) || {};
-let shipments = JSON.parse(localStorage.getItem("shipments")) || {
-  "BW1001": {
-    user:"test@gmail.com",
-    status:"In Transit",
-    location:"New York",
-    receiver:"John",
-    weight:"5kg",
-    history:["Created - Italy","Transit"]
-  }
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut }
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+import { getFirestore, doc, setDoc, getDoc }
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+// 🔑 YOUR CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
+  authDomain: "bluewave-website.firebaseapp.com",
+  projectId: "bluewave-website",
+  storageBucket: "bluewave-website.firebasestorage.app",
+  messagingSenderId: "116060669757",
+  appId: "1:116060669757:web:26d6ef7746c7feceeaa754",
+  measurementId: "G-BT4DYMNWBL"
 };
 
-// SAVE
-function saveAll(){
-  localStorage.setItem("users", JSON.stringify(users));
-  localStorage.setItem("shipments", JSON.stringify(shipments));
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
 
-// NAVIGATION
-function showSignup(){
+// UI SWITCH
+window.showSignup = () => {
   loginBox.style.display="none";
   signupBox.style.display="block";
-}
+};
 
-function showLogin(){
+window.showLogin = () => {
   signupBox.style.display="none";
   loginBox.style.display="block";
-}
+};
 
-// SIGNUP
-function signup(){
-  const email=signupEmail.value;
-  const pass=signupPass.value;
-
-  if(users[email]){
-    alert("User exists");
-    return;
-  }
-
-  users[email]={password:pass};
-  saveAll();
-  alert("Account created!");
-  showLogin();
-}
-
-// LOGIN
-function login(){
-  const email=loginEmail.value;
-  const pass=loginPass.value;
-
-  if(!users[email] || users[email].password!==pass){
-    alert("Invalid login");
-    return;
-  }
-
-  localStorage.setItem("currentUser", email);
-  showDashboard();
-}
-
-// SHOW DASHBOARD
-function showDashboard(){
+window.showDashboard = () => {
   loginBox.style.display="none";
   signupBox.style.display="none";
   dashboard.style.display="block";
+};
 
-  loadUserShipments();
-}
+// AUTH
+window.signup = async () => {
+  await createUserWithEmailAndPassword(auth, signupEmail.value, signupPass.value);
+  alert("Account created");
+  showLogin();
+};
 
-// AUTO LOGIN
-if(localStorage.getItem("currentUser")){
+window.login = async () => {
+  await signInWithEmailAndPassword(auth, loginEmail.value, loginPass.value);
   showDashboard();
-}
+};
 
-// LOGOUT
-function logout(){
-  localStorage.removeItem("currentUser");
+window.logout = () => {
+  signOut(auth);
   location.reload();
-}
+};
 
-// LOAD USER SHIPMENTS
-function loadUserShipments(){
-  const user=localStorage.getItem("currentUser");
+// ADD SHIPMENT
+window.addShipment = async () => {
+  const code = "BW" + Math.floor(Math.random()*10000);
 
-  let html="";
+  await setDoc(doc(db, "shipments", code), {
+    location: newLocation.value,
+    sender: newSender.value,
+    receiver: newReceiver.value,
+    weight: newWeight.value,
+    deliveryDate: newDate.value,
+    status: newStatus.value,
+    lat: 40.7128,
+    lng: -74.0060
+  });
 
-  for(let code in shipments){
-    if(shipments[code].user===user){
-      html+=`<div style="margin:10px;">📦 ${code} - ${shipments[code].status}</div>`;
-    }
-  }
+  alert("Shipment created: " + code);
+};
 
-  myShipments.innerHTML=html || "No shipments";
-}
+// MAP
+let map = L.map('map').setView([20,0],2);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+let marker;
 
 // TRACK
-function track(){
-  const code=document.getElementById("code").value;
-  const data=shipments[code];
+window.track = async () => {
 
-  if(!data){
+  const code = document.getElementById("code").value;
+  const docSnap = await getDoc(doc(db,"shipments",code));
+
+  if(!docSnap.exists()){
     result.innerHTML="❌ Not found";
     return;
   }
 
-  result.innerHTML=`
+  const data = docSnap.data();
+
+  result.innerHTML = `
     <b>${code}</b><br>
     📍 ${data.location}<br>
     👤 ${data.receiver}<br>
     📦 ${data.weight}<br>
-    <br>${data.history.join("<br>")}
+    📅 ${data.deliveryDate}<br>
+    🚚 ${data.status}
   `;
-}
+
+  if(marker) map.removeLayer(marker);
+
+  marker = L.marker([data.lat, data.lng]).addTo(map);
+  map.setView([data.lat, data.lng], 6);
+};
 
 </script>
 
