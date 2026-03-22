@@ -138,6 +138,7 @@ BlueWave Logistics 🚚
 <input id="location" placeholder="Location">
 <input id="receiver" placeholder="Receiver">
 <input id="weight" placeholder="Weight">
+
 <input id="date" type="date" readonly>
 
 <select id="status" onchange="autoDate()">
@@ -163,7 +164,6 @@ import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } fro
 const ADMIN_EMAIL = "shippingcompanyservice015@gmail.com";
 let isAdmin = false;
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
@@ -175,188 +175,17 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
+const auth = getAuth(app);
 const db = getFirestore(app);
 
+// NAVIGATION
 window.show = (id)=>{
   if((id==="dashboard" || id==="admin") && !isAdmin){
     alert("Admin only 🔐");
     return;
   }
+
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-};
 
-window.signup = async ()=>{
-  try{
-    await createUserWithEmailAndPassword(auth,email.value,password.value);
-    alert("Account created");
-  }catch(e){alert(e.message);}
-};
-
-window.login = async ()=>{
-  try{
-    const user = await signInWithEmailAndPassword(auth,email.value,password.value);
-    if(user.user.email === ADMIN_EMAIL){
-      isAdmin = true;
-      show("dashboard");
-      loadShipments();
-    } else {
-      alert("Access denied");
-      logout();
-    }
-  }catch(e){
-    alert("Invalid login");
-  }
-};
-
-window.logout = ()=>{
-  isAdmin = false;
-  signOut(auth);
-  show("home");
-};
-
-function getToday(){
-  const d = new Date();
-  return d.toISOString().split("T")[0];
-}
-
-function addDays(days){
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split("T")[0];
-}
-
-window.autoDate = ()=>{
-  const statusVal = status.value;
-
-  let auto = "";
-
-  if(statusVal === "Order Received"){
-    auto = getToday();
-  }
-  else if(statusVal === "Picked Up"){
-    auto = getToday();
-  }
-  else if(statusVal === "In Transit"){
-    auto = addDays(3);
-  }
-  else if(statusVal === "Arrived at Facility"){
-    auto = addDays(2);
-  }
-  else if(statusVal === "Out for Delivery"){
-    auto = getToday();
-  }
-  else if(statusVal === "Delivered"){
-    auto = getToday();
-  }
-
-  date.value = auto;
-};
-
-window.addShipment = async ()=>{
-  const locationVal = location.value.trim();
-  const receiverVal = receiver.value.trim();
-  const weightVal = weight.value.trim();
-  const dateVal = date.value;
-  const statusVal = status.value;
-
-  if(!locationVal || !receiverVal || !weightVal || !dateVal || !statusVal){
-    alert("Please fill all fields");
-    return;
-  }
-
-  const code = "BW" + Math.floor(1000 + Math.random()*9000);
-
-  await setDoc(doc(db,"shipments",code),{
-    location: locationVal,
-    receiver: receiverVal,
-    weight: weightVal,
-    deliveryDate: dateVal,
-    status: statusVal,
-    paid:false
-  });
-
-  alert("✅ Shipment Created: " + code);
-
-  location.value = "";
-  receiver.value = "";
-  weight.value = "";
-  date.value = "";
-  status.value = "";
-
-  show("dashboard");
-  loadShipments();
-};
-
-async function loadShipments(){
-  shipments.innerHTML="";
-  const snap = await getDocs(collection(db,"shipments"));
-
-  snap.forEach(docu=>{
-    const d = docu.data();
-    shipments.innerHTML += `
-    <div class="card">
-    <b>${docu.id}</b><br>
-    ${d.location}<br>
-    ${d.status}<br>
-    ${d.paid ? "✅ Paid" : "❌ Not Paid"}
-    </div>`;
-  });
-}
-
-window.track = async ()=>{
-  const codeVal = code.value.trim();
-
-  if(!codeVal){
-    alert("Enter tracking number");
-    return;
-  }
-
-  const ref = doc(db,"shipments",codeVal);
-  const snap = await getDoc(ref);
-
-  if(!snap.exists()){
-    result.innerHTML="<p style='color:red'>❌ Tracking not found</p>";
-    return;
-  }
-
-  const d = snap.data();
-
-  const paymentUI = d.paid
-  ? "✅ Paid"
-  : `
-  ❌ Not Paid<br>
-  <button onclick="payEmail('${codeVal}')">Email</button>
-  <a href="https://www.paypal.me/shippingcompany015" target="_blank">
-  <button>PayPal</button></a>
-  <button onclick="markPaid('${codeVal}')">I Paid</button>
-  `;
-
-  result.innerHTML = `
-  <div class="card">
-  <h2>${codeVal}</h2>
-  📍 ${d.location}<br>
-  👤 ${d.receiver}<br>
-  📦 ${d.weight}<br>
-  📅 ${d.deliveryDate}<br>
-  🚚 ${d.status}<br><br>
-  💳 ${paymentUI}
-  </div>`;
-};
-
-window.payEmail = (code)=>{
-  window.location.href =
-  "mailto:shippingcompanyservice015@gmail.com?subject=Payment "+code;
-};
-
-window.markPaid = async (code)=>{
-  await updateDoc(doc(db,"shipments",code),{paid:true});
-  track();
-  loadShipments();
-};
-
-</script>
-
-</body>
-</html>
+  //
