@@ -258,11 +258,12 @@ window.addShipment = async ()=>{
     const code = "BW"+Math.floor(1000+Math.random()*9000);
 
     await setDoc(doc(db,"shipments",code),{
-      location: locationVal,
-      receiver: receiverVal,
-      weight: weightVal,
-      status: statusVal
-    });
+  location: locationVal,
+  receiver: receiverVal,
+  weight: weightVal,
+  status: statusVal,
+  paid: false
+});
 
     alert("✅ Shipment Created: " + code);
 
@@ -299,27 +300,67 @@ async function loadShipments(){
 
 // TRACK
 window.track = async ()=>{
-  const codeVal = code.value.trim();
+
+  const codeVal = document.getElementById("code").value.trim();
+
   const snap = await getDoc(doc(db,"shipments",codeVal));
 
   if(!snap.exists()){
-    result.innerHTML="Not found";
+    document.getElementById("result").innerHTML = "Not found";
     return;
   }
 
   const d = snap.data();
 
-  result.innerHTML = `
+  document.getElementById("result").innerHTML = `
 <div class="card">
 <h2>📦 ${codeVal}</h2>
-<hr>
+
 <p><b>📍 Location:</b> ${d.location}</p>
 <p><b>👤 Receiver:</b> ${d.receiver}</p>
 <p><b>📦 Weight:</b> ${d.weight}</p>
-<p><b>🚚 Status:</b> ${d.status}</p>
+
+<hr>
+
+<h3>🚚 Shipment Progress</h3>
+
+<div style="text-align:left">
+
+<p>${d.status === "Order Received" ? "🟡" : "🟢"} Order Received</p>
+<p>${["Picked Up","In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status) ? "🟢" : "⚪"} Picked Up</p>
+<p>${["In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status) ? "🟢" : "⚪"} In Transit</p>
+<p>${["Arrived at Facility","Out for Delivery","Delivered"].includes(d.status) ? "🟢" : "⚪"} Arrived at Facility</p>
+<p>${["Out for Delivery","Delivered"].includes(d.status) ? "🟢" : "⚪"} Out for Delivery</p>
+<p>${d.status === "Delivered" ? "🟢" : "⚪"} Delivered</p>
+
+</div>
+
+<hr>
+
+<p>
+<b>💳 Payment:</b> 
+${d.paid ? "✅ Paid" : `
+❌ Not Paid
+<br><br>
+<button onclick="markPaid('${codeVal}')">Mark as Paid</button>
+`}
+</p>
+
 </div>`;
 };
+window.markPaid = async (code)=>{
+  try{
+    await updateDoc(doc(db,"shipments",code),{
+      paid: true
+    });
 
+    alert("Payment marked as paid ✅");
+    track();
+
+  }catch(e){
+    alert("❌ " + e.message);
+  }
+};
 </script>
 
 </body>
