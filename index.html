@@ -236,8 +236,18 @@ async function login(){
   }
 }
 /* SIGNUP */
-function signup(){
-  alert("Signup system not connected yet");
+async function signup(){
+  try{
+    const emailVal = document.getElementById("email").value;
+    const passVal = document.getElementById("password").value;
+
+    await createUserWithEmailAndPassword(auth, emailVal, passVal);
+
+    alert("✅ Account created successfully");
+
+  }catch(e){
+    alert(e.message);
+  }
 }
 
 </script>
