@@ -7,6 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon.png">
+
 <style>
 body{
   margin:0;
@@ -31,7 +32,7 @@ header div button{
 
 .page{
   display:none;
-  min-height:80vh; /* ✅ FIX */
+  min-height:80vh;
 }
 .active{display:block;}
 
@@ -69,7 +70,6 @@ header div button{
   padding:20px;
   border-radius:15px;
   border:1px solid #333;
-  box-shadow:0 0 10px rgba(0,0,0,0.5);
   margin:20px;
 }
 
@@ -81,28 +81,12 @@ header div button{
 
 .step{
   margin:15px 0;
-  position:relative;
   color:#777;
-}
-
-.step::before{
-  content:"";
-  position:absolute;
-  left:-27px;
-  top:5px;
-  width:15px;
-  height:15px;
-  border-radius:50%;
-  background:#555;
 }
 
 .step.active{
   color:#00ff88;
   font-weight:bold;
-}
-
-.step.active::before{
-  background:#00ff88;
 }
 
 input, select{
@@ -124,14 +108,11 @@ button{
   font-weight:bold;
   cursor:pointer;
 }
-button:hover{opacity:0.8;}
 
-/* ✅ FOOTER */
 .footer{
   background:#111;
   padding:20px;
   text-align:center;
-  font-size:14px;
 }
 </style>
 </head>
@@ -141,8 +122,8 @@ button:hover{opacity:0.8;}
 <header>
 BlueWave Logistics 🚚
 <div>
-<button onclick="show('home')">Home</button>
-<button onclick="show('login')">Login</button>
+<button onclick="showPage('home')">Home</button>
+<button onclick="showPage('login')">Login</button>
 </div>
 </header>
 
@@ -162,17 +143,16 @@ BlueWave Logistics 🚚
 
 <!-- LOGIN -->
 <div id="login" class="page">
-<h2 style="padding:20px;">Login / Signup</h2>
+<h2 style="padding:20px;">Login</h2>
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
 <button onclick="login()">Login</button>
-<button onclick="signup()">Signup</button>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard" class="page">
-<h2 style="padding:20px;">Admin Dashboard 🔐</h2>
-<button onclick="show('admin')">Add Shipment</button>
+<h2 style="padding:20px;">Admin Dashboard</h2>
+<button onclick="showPage('admin')">Add Shipment</button>
 <button onclick="logout()">Logout</button>
 <div id="shipments"></div>
 </div>
@@ -188,220 +168,113 @@ BlueWave Logistics 🚚
 <option>Order Received</option>
 <option>Picked Up</option>
 <option>In Transit</option>
-<option>Arrived at Facility</option>
-<option>Out for Delivery</option>
 <option>Delivered</option>
 </select>
 
 <button onclick="addShipment()">Add Shipment</button>
-<button onclick="show('dashboard')">Back</button>
+<button onclick="showPage('dashboard')">Back</button>
 </div>
 
-<!-- EDIT -->
-<div id="edit" class="page">
-<h2 style="padding:20px;">Edit Shipment</h2>
-
-<input id="editLocation">
-<input id="editReceiver">
-<input id="editWeight">
-
-<select id="editStatus">
-<option>Order Received</option>
-<option>Picked Up</option>
-<option>In Transit</option>
-<option>Arrived at Facility</option>
-<option>Out for Delivery</option>
-<option>Delivered</option>
-</select>
-
-<button onclick="saveEdit()">Save</button>
-<button onclick="show('dashboard')">Back</button>
-</div>
-
-<!-- ✅ FOOTER (GLOBAL FIX) -->
 <div class="footer">
-<p>© 2026 BlueWave Logistics</p>
-<p>📧 shippingcompanyservice015@gmail.com</p>
-<p>📞 +1 234 567 8900</p>
-<p>📍 New York, USA</p>
+© 2026 BlueWave Logistics
 </div>
 
-<script type="module">
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore-compat.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
+<script>
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
-  projectId: "bluewave-website"
+  projectId: "bluewave-website",
+  storageBucket: "bluewave-website.firebasestorage.app",
+  messagingSenderId: "116060669757",
+  appId: "1:116060669757:web:26d6ef7746c7feceeaa754",
+  measurementId: "G-BT4DYMNWBL"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 let isAdmin = false;
-let currentEdit = "";
 
-// NAVIGATION
-window.show = (id)=>{
-  if((id==="dashboard"||id==="admin"||id==="edit")&&!isAdmin){
-    alert("Admin only");
-    return;
-  }
+// NAV
+function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+}
 
-  window.scrollTo(0,0); // ✅ FIX
-};
+// LOGIN
+async function login(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-// AUTH
-window.signup=async()=>{await createUserWithEmailAndPassword(auth,email.value,password.value);alert("Created");};
-window.login=async()=>{
-  const user=await signInWithEmailAndPassword(auth,email.value,password.value);
-  isAdmin=(user.user.email==="shippingcompanyservice015@gmail.com");
-  if(isAdmin){show("dashboard");loadShipments();}
-  else show("home");
-};
-window.logout=()=>{isAdmin=false;signOut(auth);show("home");};
+  const user = await auth.signInWithEmailAndPassword(email,password);
+  isAdmin = (user.user.email === "shippingcompanyservice015@gmail.com");
 
-// ADD
-window.addShipment=async()=>{
-  const code="BW"+Math.floor(1000+Math.random()*9000);
-  await setDoc(doc(db,"shipments",code),{
+  if(isAdmin){
+    showPage("dashboard");
+    loadShipments();
+  }
+}
+
+// LOGOUT
+function logout(){
+  auth.signOut();
+  showPage("home");
+}
+
+// ADD SHIPMENT
+async function addShipment(){
+  const code = "BW" + Math.floor(1000+Math.random()*9000);
+
+  await db.collection("shipments").doc(code).set({
     location:location.value,
     receiver:receiver.value,
     weight:weight.value,
     status:status.value,
     paid:false
   });
-  alert("Created: "+code);
-  loadShipments();
-};
+
+  alert("Created: " + code);
+}
+
+// TRACK
+async function track(){
+  const codeVal = code.value.trim();
+
+  const doc = await db.collection("shipments").doc(codeVal).get();
+
+  if(!doc.exists){
+    result.innerHTML = "❌ Not found";
+    return;
+  }
+
+  const d = doc.data();
+
+  result.innerHTML = `
+  <div class="card">
+  <h2>${codeVal}</h2>
+  <p>${d.location}</p>
+  <p>${d.receiver}</p>
+  <p>${d.weight}</p>
+  <p>${d.status}</p>
+  </div>`;
+}
 
 // LOAD
 async function loadShipments(){
   shipments.innerHTML="";
-  const snap=await getDocs(collection(db,"shipments"));
-  snap.forEach(docu=>{
-    const d=docu.data();
-    shipments.innerHTML+=`
-    <div class="card">
-    <b>${docu.id}</b><br>
-    ${d.location}<br>
-    ${d.status}<br>
-    ${d.paid?"✅ Paid":"❌ Not Paid"}<br><br>
-    <button onclick="editShipment('${docu.id}')">Edit</button>
-    </div>`;
+  const snap = await db.collection("shipments").get();
+
+  snap.forEach(doc=>{
+    shipments.innerHTML += `<div class="card">${doc.id}</div>`;
   });
 }
-
-// EDIT
-window.editShipment=async(code)=>{
-  currentEdit=code;
-  const d=(await getDoc(doc(db,"shipments",code))).data();
-  editLocation.value=d.location;
-  editReceiver.value=d.receiver;
-  editWeight.value=d.weight;
-  editStatus.value=d.status;
-  show("edit");
-};
-
-window.saveEdit=async()=>{
-  await updateDoc(doc(db,"shipments",currentEdit),{
-    location:editLocation.value,
-    receiver:editReceiver.value,
-    weight:editWeight.value,
-    status:editStatus.value
-  });
-  alert("Updated");
-  show("dashboard");
-  loadShipments();
-};
-
-// TRACK
-window.track = async ()=>{
-
-  const codeVal = document.getElementById("code").value.trim();
-
-  if(!codeVal){
-    alert("Enter tracking number");
-    return;
-  }
-
-  document.getElementById("result").innerHTML = "Loading...";
-
-  const snap = await getDoc(doc(db,"shipments",codeVal));
-
-  if(!snap.exists()){
-    document.getElementById("result").innerHTML = "❌ Not found";
-    return;
-  }
-
-  const d = snap.data();
-
-  document.getElementById("result").innerHTML = `
-  <div class="card">
-  <h2>${codeVal}</h2>
-
-<p>📍 ${d.location}</p>
-
-<iframe 
-  width="100%" 
-  height="200" 
-  style="border-radius:10px;margin-top:10px"
-  src="https://maps.google.com/maps?q=${d.location}&output=embed">
-</iframe>
-  <p>${d.receiver}</p>
-  <p>${d.weight}</p>
-
-  <div class="timeline">
-  <div class="step ${d.status==="Order Received"?"active":""}">Order Received</div>
-  <div class="step ${["Picked Up","In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">Picked Up</div>
-  <div class="step ${["In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">In Transit</div>
-  <div class="step ${["Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">Arrived</div>
-  <div class="step ${["Out for Delivery","Delivered"].includes(d.status)?"active":""}">Out</div>
-  <div class="step ${d.status==="Delivered"?"active":""}">Delivered</div>
-  </div>
-
-  <hr>
-
- ${d.paid ? "✅ Paid" : `
-❌ Not Paid
-
-<br><br>
-
-<a href="https://www.paypal.me/shippingcompany015" target="_blank">
-<button style="background:#00ff88">💳 Pay Now</button>
-</a>
-
-<br><br>
-
-<button onclick="markPaid('${codeVal}')">✔ I Paid</button>
-`}
-
-// PAYMENT
-window.markPaid=async(code)=>{
-  await updateDoc(doc(db,"shipments",code),{paid:true});
-  track();
-};
-
-// INVOICE
-window.downloadInvoice=(code)=>{
-  const blob=new Blob([`Invoice\n${code}`],{type:"text/plain"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=code+".txt";
-  a.click();
-};
-
-// EMAIL
-window.sendEmail=(code)=>{
-  window.location.href="mailto:shippingcompanyservice015@gmail.com?subject="+code;
-};
-
 </script>
 
 </body>
