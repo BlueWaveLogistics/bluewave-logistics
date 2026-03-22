@@ -163,10 +163,15 @@ import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } fro
 const ADMIN_EMAIL = "shippingcompanyservice015@gmail.com";
 let isAdmin = false;
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
-  projectId: "bluewave-website"
+  projectId: "bluewave-website",
+  storageBucket: "bluewave-website.firebasestorage.app",
+  messagingSenderId: "116060669757",
+  appId: "1:116060669757:web:26d6ef7746c7feceeaa754",
+  measurementId: "G-BT4DYMNWBL"
 };
 
 const app = initializeApp(firebaseConfig);
