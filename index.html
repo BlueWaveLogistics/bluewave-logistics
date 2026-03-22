@@ -58,18 +58,13 @@ header div button{
   font-weight:bold;
 }
 
-.features{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-  padding:20px;
-}
-
 .card{
-  background:#1a1a1a;
+  background:#111;
   padding:20px;
   border-radius:15px;
-  text-align:center;
+  border:1px solid #333;
+  box-shadow:0 0 10px rgba(0,0,0,0.5);
+  margin:20px;
 }
 
 .timeline{
@@ -121,7 +116,9 @@ button{
   border-radius:10px;
   background:#ffcc00;
   font-weight:bold;
+  cursor:pointer;
 }
+button:hover{opacity:0.8;}
 </style>
 </head>
 
@@ -169,7 +166,6 @@ BlueWave Logistics 🚚
 <!-- ADMIN -->
 <div id="admin" class="page">
 <h2 style="padding:20px;">Add Shipment</h2>
-
 <input id="location" placeholder="Location">
 <input id="receiver" placeholder="Receiver">
 <input id="weight" placeholder="Weight">
@@ -184,6 +180,27 @@ BlueWave Logistics 🚚
 </select>
 
 <button onclick="addShipment()">Add Shipment</button>
+<button onclick="show('dashboard')">Back</button>
+</div>
+
+<!-- EDIT -->
+<div id="edit" class="page">
+<h2 style="padding:20px;">Edit Shipment</h2>
+
+<input id="editLocation">
+<input id="editReceiver">
+<input id="editWeight">
+
+<select id="editStatus">
+<option>Order Received</option>
+<option>Picked Up</option>
+<option>In Transit</option>
+<option>Arrived at Facility</option>
+<option>Out for Delivery</option>
+<option>Delivered</option>
+</select>
+
+<button onclick="saveEdit()">Save</button>
 <button onclick="show('dashboard')">Back</button>
 </div>
 
@@ -204,11 +221,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let isAdmin = false;
+let currentEdit = "";
 
 // NAVIGATION
 window.show = (id)=>{
-  if((id==="dashboard" || id==="admin") && !isAdmin){
-    alert("Admin only 🔐");
+  if((id==="dashboard"||id==="admin"||id==="edit")&&!isAdmin){
+    alert("Admin only");
     return;
   }
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
@@ -216,146 +234,128 @@ window.show = (id)=>{
 };
 
 // AUTH
-window.signup = async ()=>{
-  await createUserWithEmailAndPassword(auth,email.value,password.value);
-  alert("Account created");
+window.signup=async()=>{await createUserWithEmailAndPassword(auth,email.value,password.value);alert("Created");};
+window.login=async()=>{
+  const user=await signInWithEmailAndPassword(auth,email.value,password.value);
+  isAdmin=(user.user.email==="shippingcompanyservice015@gmail.com");
+  if(isAdmin){show("dashboard");loadShipments();}
+  else show("home");
 };
+window.logout=()=>{isAdmin=false;signOut(auth);show("home");};
 
-window.login = async ()=>{
-  const user = await signInWithEmailAndPassword(auth,email.value,password.value);
-  isAdmin = (user.user.email === "shippingcompanyservice015@gmail.com");
-
-  if(isAdmin){
-    show("dashboard");
-    loadShipments();
-  } else {
-    show("home");
-  }
-};
-
-window.logout = ()=>{
-  isAdmin = false;
-  signOut(auth);
-  show("home");
-};
-
-// ADD SHIPMENT
-window.addShipment = async ()=>{
-  const locationVal = document.getElementById("location").value;
-  const receiverVal = document.getElementById("receiver").value;
-  const weightVal = document.getElementById("weight").value;
-  const statusVal = document.getElementById("status").value;
-
-  const code = "BW"+Math.floor(1000+Math.random()*9000);
-
+// ADD
+window.addShipment=async()=>{
+  const code="BW"+Math.floor(1000+Math.random()*9000);
   await setDoc(doc(db,"shipments",code),{
-    location:locationVal,
-    receiver:receiverVal,
-    weight:weightVal,
-    status:statusVal,
+    location:location.value,
+    receiver:receiver.value,
+    weight:weight.value,
+    status:status.value,
     paid:false
   });
-
   alert("Created: "+code);
   loadShipments();
 };
 
-// LOAD DASHBOARD
+// LOAD
 async function loadShipments(){
   shipments.innerHTML="";
-  const snap = await getDocs(collection(db,"shipments"));
-
+  const snap=await getDocs(collection(db,"shipments"));
   snap.forEach(docu=>{
-    const d = docu.data();
-    shipments.innerHTML += `
+    const d=docu.data();
+    shipments.innerHTML+=`
     <div class="card">
     <b>${docu.id}</b><br>
     ${d.location}<br>
     ${d.status}<br>
-    ${d.paid ? "✅ Paid" : "❌ Not Paid"}
+    ${d.paid?"✅ Paid":"❌ Not Paid"}<br><br>
+    <button onclick="editShipment('${docu.id}')">Edit</button>
     </div>`;
   });
 }
 
-// TRACK
-window.track = async ()=>{
-  const codeVal = document.getElementById("code").value.trim();
-  const snap = await getDoc(doc(db,"shipments",codeVal));
-
-  if(!snap.exists()){
-    document.getElementById("result").innerHTML="Not found";
-    return;
-  }
-
-  const d = snap.data();
-
-  document.getElementById("result").innerHTML = `
-<div class="card">
-
-<h2>📦 ${codeVal}</h2>
-
-<p><b>📍 ${d.location}</b></p>
-<p>👤 ${d.receiver}</p>
-<p>📦 ${d.weight}</p>
-
-<hr>
-
-<h3>🚚 Shipment Progress</h3>
-
-<div class="timeline">
-
-<div class="step ${d.status==="Order Received"?"active":""}">
-<span>Order Received</span>
-</div>
-
-<div class="step ${["Picked Up","In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">
-<span>Picked Up</span>
-</div>
-
-<div class="step ${["In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">
-<span>In Transit</span>
-</div>
-
-<div class="step ${["Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">
-<span>Arrived at Facility</span>
-</div>
-
-<div class="step ${["Out for Delivery","Delivered"].includes(d.status)?"active":""}">
-<span>Out for Delivery</span>
-</div>
-
-<div class="step ${d.status==="Delivered"?"active":""}">
-<span>Delivered</span>
-</div>
-
-</div>
-
-<hr>
-
-<p><b>💳 Payment:</b></p>
-
-${d.paid ? "✅ Paid" : `
-❌ Not Paid
-<br><br>
-<a href="https://www.paypal.me/shippingcompany015" target="_blank">
-<button>Pay with PayPal</button>
-</a>
-<br><br>
-<button onclick="markPaid('${codeVal}')">I Have Paid</button>
-`}
-
-</div>
-`;
+// EDIT
+window.editShipment=async(code)=>{
+  currentEdit=code;
+  const d=(await getDoc(doc(db,"shipments",code))).data();
+  editLocation.value=d.location;
+  editReceiver.value=d.receiver;
+  editWeight.value=d.weight;
+  editStatus.value=d.status;
+  show("edit");
 };
 
-// MARK PAID
-window.markPaid = async (code)=>{
-  await updateDoc(doc(db,"shipments",code),{
-    paid:true
+window.saveEdit=async()=>{
+  await updateDoc(doc(db,"shipments",currentEdit),{
+    location:editLocation.value,
+    receiver:editReceiver.value,
+    weight:editWeight.value,
+    status:editStatus.value
   });
+  alert("Updated");
+  show("dashboard");
+  loadShipments();
+};
 
-  alert("Payment confirmed");
+// TRACK
+window.track=async()=>{
+  const codeVal=document.getElementById("code").value.trim();
+  const snap=await getDoc(doc(db,"shipments",codeVal));
+
+  if(!snap.exists()){result.innerHTML="Not found";return;}
+
+  const d=snap.data();
+
+  result.innerHTML=`
+  <div class="card">
+  <h2>${codeVal}</h2>
+
+  <p>${d.location}</p>
+  <p>${d.receiver}</p>
+  <p>${d.weight}</p>
+
+  <div class="timeline">
+  <div class="step ${d.status==="Order Received"?"active":""}">Order Received</div>
+  <div class="step ${["Picked Up","In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">Picked Up</div>
+  <div class="step ${["In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">In Transit</div>
+  <div class="step ${["Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">Arrived</div>
+  <div class="step ${["Out for Delivery","Delivered"].includes(d.status)?"active":""}">Out</div>
+  <div class="step ${d.status==="Delivered"?"active":""}">Delivered</div>
+  </div>
+
+  <hr>
+
+  ${d.paid?"✅ Paid":`
+  ❌ Not Paid<br><br>
+  <a href="https://www.paypal.me/shippingcompany015" target="_blank">
+  <button>Pay</button></a><br><br>
+  <button onclick="markPaid('${codeVal}')">I Paid</button>`}
+
+  <br><br>
+  <button onclick="downloadInvoice('${codeVal}')">Invoice</button>
+  <button onclick="sendEmail('${codeVal}')">Email</button>
+
+  </div>`;
+};
+
+// PAYMENT
+window.markPaid=async(code)=>{
+  await updateDoc(doc(db,"shipments",code),{paid:true});
   track();
+};
+
+// INVOICE
+window.downloadInvoice=(code)=>{
+  const blob=new Blob([`Invoice\n${code}`],{type:"text/plain"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=code+".txt";
+  a.click();
+};
+
+// EMAIL
+window.sendEmail=(code)=>{
+  window.location.href="mailto:shippingcompanyservice015@gmail.com?subject="+code;
 };
 
 </script>
