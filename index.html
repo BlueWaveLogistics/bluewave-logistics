@@ -230,17 +230,41 @@ window.login = async ()=>{
 
 // ADD SHIPMENT
 window.addShipment = async ()=>{
-  const code = "BW"+Math.floor(1000+Math.random()*9000);
+  try{
 
-  await setDoc(doc(db,"shipments",code),{
-    location:location.value,
-    receiver:receiver.value,
-    weight:weight.value,
-    status:status.value
-  });
+    const locationVal = location.value.trim();
+    const receiverVal = receiver.value.trim();
+    const weightVal = weight.value.trim();
+    const statusVal = status.value;
 
-  alert("Created: "+code);
-  loadShipments();
+    if(!locationVal || !receiverVal || !weightVal){
+      alert("Fill all fields");
+      return;
+    }
+
+    const code = "BW"+Math.floor(1000+Math.random()*9000);
+
+    await setDoc(doc(db,"shipments",code),{
+      location: locationVal,
+      receiver: receiverVal,
+      weight: weightVal,
+      status: statusVal
+    });
+
+    alert("✅ Shipment Created: " + code);
+
+    // clear inputs
+    location.value = "";
+    receiver.value = "";
+    weight.value = "";
+
+    show("dashboard");
+    loadShipments();
+
+  }catch(e){
+    alert("❌ ERROR: " + e.message);
+    console.error(e);
+  }
 };
 
 // LOAD DASHBOARD
