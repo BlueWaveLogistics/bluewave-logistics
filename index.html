@@ -138,9 +138,10 @@ BlueWave Logistics 🚚
 <input id="location" placeholder="Location">
 <input id="receiver" placeholder="Receiver">
 <input id="weight" placeholder="Weight">
-<input id="date" placeholder="Delivery Date">
+<input id="date" type="date">
 
 <select id="status">
+<option value="">Select Status</option>
 <option>Order Received</option>
 <option>Picked Up</option>
 <option>In Transit</option>
@@ -211,7 +212,13 @@ window.logout = ()=>{
 };
 
 window.addShipment = async ()=>{
-  if(!location.value || !receiver.value || !weight.value || !date.value || !status.value){
+  if(
+    location.value.trim() === "" ||
+    receiver.value.trim() === "" ||
+    weight.value.trim() === "" ||
+    date.value.trim() === "" ||
+    status.value === ""
+  ){
     alert("Please fill all fields");
     return;
   }
@@ -234,7 +241,7 @@ window.addShipment = async ()=>{
     receiver.value = "";
     weight.value = "";
     date.value = "";
-    status.value = "Order Received";
+    status.value = "";
 
     show("dashboard");
     loadShipments();
@@ -294,7 +301,7 @@ window.track = async ()=>{
   📍 ${d.location}<br>
   👤 ${d.receiver}<br>
   📦 ${d.weight}<br>
-  📅 ${d.deliveryDate || "N/A"}<br>
+  📅 ${d.deliveryDate}<br>
   🚚 ${d.status}<br><br>
   💳 ${paymentUI}
   </div>`;
