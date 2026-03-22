@@ -217,10 +217,24 @@ function track(){
 }
 
 /* LOGIN */
-function login(){
-  alert("Login system not connected yet");
-}
+async function login(){
+  try{
+    const emailVal = document.getElementById("email").value;
+    const passVal = document.getElementById("password").value;
 
+    const user = await signInWithEmailAndPassword(auth, emailVal, passVal);
+
+    if(user.user.email === "shippingcompanyservice015@gmail.com"){
+      alert("Login successful ✅");
+      show("dashboard");
+    } else {
+      alert("Access denied ❌");
+    }
+
+  }catch(e){
+    alert("Login failed ❌");
+  }
+}
 /* SIGNUP */
 function signup(){
   alert("Signup system not connected yet");
