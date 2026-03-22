@@ -26,7 +26,10 @@ header div button{
   margin-left:10px;
 }
 
-.page{display:none;}
+.page{
+  display:none;
+  min-height:80vh; /* ✅ FIX */
+}
 .active{display:block;}
 
 .hero{
@@ -119,6 +122,14 @@ button{
   cursor:pointer;
 }
 button:hover{opacity:0.8;}
+
+/* ✅ FOOTER */
+.footer{
+  background:#111;
+  padding:20px;
+  text-align:center;
+  font-size:14px;
+}
 </style>
 </head>
 
@@ -204,6 +215,14 @@ BlueWave Logistics 🚚
 <button onclick="show('dashboard')">Back</button>
 </div>
 
+<!-- ✅ FOOTER (GLOBAL FIX) -->
+<div class="footer">
+<p>© 2026 BlueWave Logistics</p>
+<p>📧 shippingcompanyservice015@gmail.com</p>
+<p>📞 +1 234 567 8900</p>
+<p>📍 New York, USA</p>
+</div>
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
@@ -231,6 +250,8 @@ window.show = (id)=>{
   }
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+
+  window.scrollTo(0,0); // ✅ FIX
 };
 
 // AUTH
@@ -302,7 +323,9 @@ window.track=async()=>{
   const codeVal=document.getElementById("code").value.trim();
   const snap=await getDoc(doc(db,"shipments",codeVal));
 
-  if(!snap.exists()){result.innerHTML="Not found";return;}
+if(!snap.exists()){
+  document.getElementById("result").innerHTML = `
+}
 
   const d=snap.data();
 
