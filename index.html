@@ -227,28 +227,31 @@ function addDays(days){
   return d.toISOString().split("T")[0];
 }
 
-// AUTO DATE SYSTEM
 window.autoDate = ()=>{
   const statusVal = status.value;
 
+  let auto = "";
+
   if(statusVal === "Order Received"){
-    date.value = getToday();
+    auto = getToday();
   }
   else if(statusVal === "Picked Up"){
-    date.value = getToday();
+    auto = getToday();
   }
   else if(statusVal === "In Transit"){
-    date.value = addDays(3);
+    auto = addDays(3);
   }
   else if(statusVal === "Arrived at Facility"){
-    date.value = addDays(2);
+    auto = addDays(2);
   }
   else if(statusVal === "Out for Delivery"){
-    date.value = getToday();
+    auto = getToday();
   }
   else if(statusVal === "Delivered"){
-    date.value = getToday();
+    auto = getToday();
   }
+
+  date.value = auto;
 };
 
 window.addShipment = async ()=>{
