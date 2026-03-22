@@ -302,13 +302,14 @@ window.track = async ()=>{
   const d = snap.data();
 
   result.innerHTML = `
-  <div class="card">
-  <h2>${codeVal}</h2>
-  ${d.location}<br>
-  ${d.receiver}<br>
-  ${d.weight}<br>
-  ${d.status}
-  </div>`;
+<div class="card">
+<h2>📦 ${codeVal}</h2>
+<hr>
+<p><b>📍 Location:</b> ${d.location}</p>
+<p><b>👤 Receiver:</b> ${d.receiver}</p>
+<p><b>📦 Weight:</b> ${d.weight}</p>
+<p><b>🚚 Status:</b> ${d.status}</p>
+</div>`;
 };
 
 </script>
