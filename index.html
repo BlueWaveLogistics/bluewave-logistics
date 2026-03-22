@@ -81,12 +81,28 @@ header div button{
 
 .step{
   margin:15px 0;
+  position:relative;
   color:#777;
+}
+
+.step::before{
+  content:"";
+  position:absolute;
+  left:-27px;
+  top:5px;
+  width:15px;
+  height:15px;
+  border-radius:50%;
+  background:#555;
 }
 
 .step.active{
   color:#00ff88;
   font-weight:bold;
+}
+
+.step.active::before{
+  background:#00ff88;
 }
 
 input, select{
@@ -168,6 +184,8 @@ BlueWave Logistics 🚚
 <option>Order Received</option>
 <option>Picked Up</option>
 <option>In Transit</option>
+<option>Arrived at Facility</option>
+<option>Out for Delivery</option>
 <option>Delivered</option>
 </select>
 
@@ -195,14 +213,13 @@ const firebaseConfig = {
   appId: "1:116060669757:web:26d6ef7746c7feceeaa754",
   measurementId: "G-BT4DYMNWBL"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
 let isAdmin = false;
 
-// NAV
+// NAVIGATION
 function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
@@ -210,10 +227,7 @@ function showPage(id){
 
 // LOGIN
 async function login(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const user = await auth.signInWithEmailAndPassword(email,password);
+  const user = await auth.signInWithEmailAndPassword(email.value,password.value);
   isAdmin = (user.user.email === "shippingcompanyservice015@gmail.com");
 
   if(isAdmin){
@@ -243,8 +257,7 @@ async function addShipment(){
   alert("Created: " + code);
 }
 
-// TRACK
-<script>
+// TRACK (WITH TIMELINE)
 async function track(){
 
   const codeVal = code.value.trim();
@@ -282,7 +295,6 @@ async function track(){
 
   </div>`;
 }
-</script>
 
 // LOAD
 async function loadShipments(){
