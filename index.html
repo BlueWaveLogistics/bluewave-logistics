@@ -138,7 +138,6 @@ BlueWave Logistics 🚚
 <input id="location" placeholder="Location">
 <input id="receiver" placeholder="Receiver">
 <input id="weight" placeholder="Weight">
-
 <input id="date" type="date" readonly>
 
 <select id="status" onchange="autoDate()">
@@ -156,6 +155,8 @@ BlueWave Logistics 🚚
 </div>
 
 <script type="module">
+
+console.log("JS LOADED");
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
@@ -178,16 +179,15 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// DATE FUNCTIONS
+// DATE
 function getToday(){
-  const d = new Date();
-  return d.toISOString().split("T")[0];
+  return new Date().toISOString().split("T")[0];
 }
 
-function addDays(days){
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split("T")[0];
+function addDays(d){
+  let dateObj = new Date();
+  dateObj.setDate(dateObj.getDate()+d);
+  return dateObj.toISOString().split("T")[0];
 }
 
 // NAVIGATION
@@ -200,22 +200,17 @@ window.show = (id)=>{
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 
-  if(id === "admin"){
-    date.value = getToday();
+  if(id==="admin"){
+    document.getElementById("date").value = getToday();
   }
-};
-
-// LOAD DEFAULT DATE
-window.onload = ()=>{
-  date.value = getToday();
 };
 
 // AUTO DATE
 window.autoDate = ()=>{
-  const s = status.value;
+  let s = document.getElementById("status").value;
 
-  if(s === "In Transit") date.value = addDays(3);
-  else if(s === "Arrived at Facility") date.value = addDays(2);
+  if(s==="In Transit") date.value = addDays(3);
+  else if(s==="Arrived at Facility") date.value = addDays(2);
   else date.value = getToday();
 };
 
@@ -230,11 +225,11 @@ window.signup = async ()=>{
 window.login = async ()=>{
   try{
     const user = await signInWithEmailAndPassword(auth,email.value,password.value);
-    if(user.user.email === ADMIN_EMAIL){
-      isAdmin = true;
+    if(user.user.email===ADMIN_EMAIL){
+      isAdmin=true;
       show("dashboard");
       loadShipments();
-    } else {
+    }else{
       alert("Access denied");
       logout();
     }
@@ -244,113 +239,81 @@ window.login = async ()=>{
 };
 
 window.logout = ()=>{
-  isAdmin = false;
+  isAdmin=false;
   signOut(auth);
   show("home");
 };
 
 // ADD SHIPMENT
 window.addShipment = async ()=>{
-  const locationVal = location.value.trim();
-  const receiverVal = receiver.value.trim();
-  const weightVal = weight.value.trim();
-  const dateVal = date.value;
-  const statusVal = status.value;
+  console.log("CLICKED");
+
+  let locationVal = location.value.trim();
+  let receiverVal = receiver.value.trim();
+  let weightVal = weight.value.trim();
+  let dateVal = date.value;
+  let statusVal = status.value;
 
   if(!locationVal || !receiverVal || !weightVal || !dateVal || !statusVal){
     alert("Please fill all fields");
     return;
   }
 
-  const code = "BW" + Math.floor(1000 + Math.random()*9000);
+  let code = "BW"+Math.floor(1000+Math.random()*9000);
 
   await setDoc(doc(db,"shipments",code),{
-    location: locationVal,
-    receiver: receiverVal,
-    weight: weightVal,
-    deliveryDate: dateVal,
-    status: statusVal,
+    location:locationVal,
+    receiver:receiverVal,
+    weight:weightVal,
+    deliveryDate:dateVal,
+    status:statusVal,
     paid:false
   });
 
-  alert("✅ Shipment Created: " + code);
-
-  location.value="";
-  receiver.value="";
-  weight.value="";
-  status.value="";
+  alert("Created: "+code);
 
   show("dashboard");
   loadShipments();
 };
 
-// LOAD DASHBOARD
+// DASHBOARD
 async function loadShipments(){
   shipments.innerHTML="";
-  const snap = await getDocs(collection(db,"shipments"));
+  let snap = await getDocs(collection(db,"shipments"));
 
   snap.forEach(docu=>{
-    const d = docu.data();
-    shipments.innerHTML += `
+    let d=docu.data();
+    shipments.innerHTML+=`
     <div class="card">
     <b>${docu.id}</b><br>
     ${d.location}<br>
     ${d.status}<br>
-    ${d.paid ? "✅ Paid" : "❌ Not Paid"}
+    ${d.paid?"✅ Paid":"❌ Not Paid"}
     </div>`;
   });
 }
 
 // TRACK
 window.track = async ()=>{
-  const codeVal = code.value.trim();
-
-  if(!codeVal){
-    alert("Enter tracking number");
-    return;
-  }
-
-  const snap = await getDoc(doc(db,"shipments",codeVal));
+  let codeVal = code.value.trim();
+  let snap = await getDoc(doc(db,"shipments",codeVal));
 
   if(!snap.exists()){
-    result.innerHTML="<p style='color:red'>❌ Tracking not found</p>";
+    result.innerHTML="Not found";
     return;
   }
 
-  const d = snap.data();
+  let d = snap.data();
 
-  const paymentUI = d.paid
-  ? "✅ Paid"
-  : `
-  ❌ Not Paid<br>
-  <button onclick="payEmail('${codeVal}')">Email</button>
-  <a href="https://www.paypal.me/shippingcompany015" target="_blank">
-  <button>PayPal</button></a>
-  <button onclick="markPaid('${codeVal}')">I Paid</button>
-  `;
-
-  result.innerHTML = `
+  result.innerHTML=`
   <div class="card">
   <h2>${codeVal}</h2>
-  📍 ${d.location}<br>
-  👤 ${d.receiver}<br>
-  📦 ${d.weight}<br>
-  📅 ${d.deliveryDate}<br>
-  🚚 ${d.status}<br><br>
-  💳 ${paymentUI}
+  ${d.location}<br>
+  ${d.receiver}<br>
+  ${d.weight}<br>
+  ${d.deliveryDate}<br>
+  ${d.status}
   </div>`;
-};
-
-// PAYMENT
-window.payEmail = (code)=>{
-  window.location.href =
-  "mailto:shippingcompanyservice015@gmail.com?subject=Payment "+code;
-};
-
-window.markPaid = async (code)=>{
-  await updateDoc(doc(db,"shipments",code),{paid:true});
-  track();
-  loadShipments();
 };
 
 </script>
