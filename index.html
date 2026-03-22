@@ -140,7 +140,7 @@ BlueWave Logistics 🚚
 <input id="weight" placeholder="Weight">
 <input id="date" type="date">
 
-<select id="status">
+<select id="status" onchange="autoDate()">
 <option value="">Select Status</option>
 <option>Order Received</option>
 <option>Picked Up</option>
@@ -164,7 +164,7 @@ const ADMIN_EMAIL = "shippingcompanyservice015@gmail.com";
 let isAdmin = false;
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
+  apiKey: "AIzaSy...",
   authDomain: "bluewave-website.firebaseapp.com",
   projectId: "bluewave-website"
 };
@@ -211,44 +211,74 @@ window.logout = ()=>{
   show("home");
 };
 
+function getToday(){
+  const d = new Date();
+  return d.toISOString().split("T")[0];
+}
+
+function addDays(days){
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split("T")[0];
+}
+
+// AUTO DATE SYSTEM
+window.autoDate = ()=>{
+  const statusVal = status.value;
+
+  if(statusVal === "Order Received"){
+    date.value = getToday();
+  }
+  else if(statusVal === "Picked Up"){
+    date.value = getToday();
+  }
+  else if(statusVal === "In Transit"){
+    date.value = addDays(3);
+  }
+  else if(statusVal === "Arrived at Facility"){
+    date.value = addDays(2);
+  }
+  else if(statusVal === "Out for Delivery"){
+    date.value = getToday();
+  }
+  else if(statusVal === "Delivered"){
+    date.value = getToday();
+  }
+};
+
 window.addShipment = async ()=>{
-  if(
-    location.value.trim() === "" ||
-    receiver.value.trim() === "" ||
-    weight.value.trim() === "" ||
-    date.value.trim() === "" ||
-    status.value === ""
-  ){
+  const locationVal = location.value.trim();
+  const receiverVal = receiver.value.trim();
+  const weightVal = weight.value.trim();
+  const dateVal = date.value;
+  const statusVal = status.value;
+
+  if(!locationVal || !receiverVal || !weightVal || !dateVal || !statusVal){
     alert("Please fill all fields");
     return;
   }
 
   const code = "BW" + Math.floor(1000 + Math.random()*9000);
 
-  try{
-    await setDoc(doc(db,"shipments",code),{
-      location: location.value,
-      receiver: receiver.value,
-      weight: weight.value,
-      deliveryDate: date.value,
-      status: status.value,
-      paid:false
-    });
+  await setDoc(doc(db,"shipments",code),{
+    location: locationVal,
+    receiver: receiverVal,
+    weight: weightVal,
+    deliveryDate: dateVal,
+    status: statusVal,
+    paid:false
+  });
 
-    alert("✅ Shipment Created: " + code);
+  alert("✅ Shipment Created: " + code);
 
-    location.value = "";
-    receiver.value = "";
-    weight.value = "";
-    date.value = "";
-    status.value = "";
+  location.value = "";
+  receiver.value = "";
+  weight.value = "";
+  date.value = "";
+  status.value = "";
 
-    show("dashboard");
-    loadShipments();
-
-  }catch(e){
-    alert("Error: " + e.message);
-  }
+  show("dashboard");
+  loadShipments();
 };
 
 async function loadShipments(){
