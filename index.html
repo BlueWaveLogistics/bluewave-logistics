@@ -93,7 +93,6 @@ BlueWave Logistics 🚚
 <button onclick="show('login')">Login</button>
 </header>
 
-<!-- HOME -->
 <div id="home" class="page active">
 <div class="hero">
 <h1>Live Shipment Tracking</h1>
@@ -114,7 +113,6 @@ BlueWave Logistics 🚚
 <div id="result"></div>
 </div>
 
-<!-- LOGIN -->
 <div id="login" class="page">
 <h2 style="padding:20px;">Login / Signup</h2>
 <input id="email" placeholder="Email">
@@ -123,7 +121,6 @@ BlueWave Logistics 🚚
 <button onclick="signup()">Signup</button>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="page">
 <h2 style="padding:20px;">Admin Dashboard 🔐</h2>
 <button onclick="show('admin')">Add Shipment</button>
@@ -131,7 +128,6 @@ BlueWave Logistics 🚚
 <div id="shipments"></div>
 </div>
 
-<!-- ADMIN -->
 <div id="admin" class="page">
 <h2 style="padding:20px;">Add Shipment</h2>
 
@@ -177,7 +173,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// DATE HELPERS
 function getToday(){
   return new Date().toISOString().split("T")[0];
 }
@@ -188,7 +183,6 @@ function addDays(d){
   return dateObj.toISOString().split("T")[0];
 }
 
-// NAVIGATION
 window.show = (id)=>{
   if((id==="dashboard" || id==="admin") && !isAdmin){
     alert("Admin only 🔐");
@@ -199,37 +193,32 @@ window.show = (id)=>{
   document.getElementById(id).classList.add("active");
 
   if(id==="admin"){
-    date.value = getToday();
+    document.getElementById("date").value = getToday();
   }
 };
 
-// AUTO DATE
 window.autoDate = ()=>{
-  let s = document.getElementById("status").value;
-document.getElementById("date").value = getToday();
+  const status = document.getElementById("status").value;
+  const dateInput = document.getElementById("date");
+
+  if(status==="In Transit") dateInput.value = addDays(3);
+  else if(status==="Arrived at Facility") dateInput.value = addDays(2);
+  else dateInput.value = getToday();
 };
 
-// AUTH
 window.signup = async ()=>{
-  try{
-    await createUserWithEmailAndPassword(auth,email.value,password.value);
-    alert("Account created");
-  }catch(e){alert(e.message);}
+  await createUserWithEmailAndPassword(auth,email.value,password.value);
+  alert("Account created");
 };
 
 window.login = async ()=>{
-  try{
-    const user = await signInWithEmailAndPassword(auth,email.value,password.value);
-    if(user.user.email===ADMIN_EMAIL){
-      isAdmin=true;
-      show("dashboard");
-      loadShipments();
-    }else{
-      alert("Access denied");
-      logout();
-    }
-  }catch(e){
-    alert("Invalid login");
+  const user = await signInWithEmailAndPassword(auth,email.value,password.value);
+  if(user.user.email===ADMIN_EMAIL){
+    isAdmin=true;
+    show("dashboard");
+    loadShipments();
+  } else {
+    alert("Access denied");
   }
 };
 
@@ -239,57 +228,44 @@ window.logout = ()=>{
   show("home");
 };
 
-// 🔥 FIXED ADD SHIPMENT
 window.addShipment = async ()=>{
-
-  const locationInput = document.getElementById("location");
-  const receiverInput = document.getElementById("receiver");
-  const weightInput = document.getElementById("weight");
-  const dateInput = document.getElementById("date");
-  const statusInput = document.getElementById("status");
-
-  let locationVal = locationInput.value.trim();
-  let receiverVal = receiverInput.value.trim();
-  let weightVal = weightInput.value.trim();
-  let statusVal = statusInput.value;
-  let dateVal = dateInput.value || getToday();
+  const locationVal = document.getElementById("location").value.trim();
+  const receiverVal = document.getElementById("receiver").value.trim();
+  const weightVal = document.getElementById("weight").value.trim();
+  const statusVal = document.getElementById("status").value;
+  const dateVal = document.getElementById("date").value || getToday();
 
   if(!locationVal || !receiverVal || !weightVal || !statusVal){
-    alert("Please fill all fields");
+    alert("Fill all fields");
     return;
   }
 
-  let code = "BW" + Math.floor(1000 + Math.random()*9000);
+  const code = "BW"+Math.floor(1000+Math.random()*9000);
 
   await setDoc(doc(db,"shipments",code),{
-    location: locationVal,
-    receiver: receiverVal,
-    weight: weightVal,
-    deliveryDate: dateVal,
-    status: statusVal,
+    location:locationVal,
+    receiver:receiverVal,
+    weight:weightVal,
+    deliveryDate:dateVal,
+    status:statusVal,
     paid:false
   });
 
-  alert("✅ Shipment Created: " + code);
-
-  locationInput.value = "";
-  receiverInput.value = "";
-  weightInput.value = "";
-  dateInput.value = "";
-  statusInput.value = "";
+  alert("Created: "+code);
 
   show("dashboard");
   loadShipments();
 };
 
-// DASHBOARD
 async function loadShipments(){
-  document.getElementById("shipments").innerHTML = "";
-  let snap = await getDocs(collection(db,"shipments"));
+  const container = document.getElementById("shipments");
+  container.innerHTML="";
+
+  const snap = await getDocs(collection(db,"shipments"));
 
   snap.forEach(docu=>{
-    let d=docu.data();
-    shipments.innerHTML+=`
+    const d = docu.data();
+    container.innerHTML+=`
     <div class="card">
     <b>${docu.id}</b><br>
     ${d.location}<br>
@@ -299,32 +275,26 @@ async function loadShipments(){
   });
 }
 
-// TRACK
 window.track = async ()=>{
-  let codeVal = code.value.trim();
+  const codeVal = document.getElementById("code").value.trim();
 
-  if(!codeVal){
-    alert("Enter tracking number");
-    return;
-  }
-
-  let snap = await getDoc(doc(db,"shipments",codeVal));
+  const snap = await getDoc(doc(db,"shipments",codeVal));
 
   if(!snap.exists()){
-    result.innerHTML="<p style='color:red'>❌ Not found</p>";
+    document.getElementById("result").innerHTML="Not found";
     return;
   }
 
-  let d = snap.data();
+  const d = snap.data();
 
-  result.innerHTML=`
+  document.getElementById("result").innerHTML=`
   <div class="card">
   <h2>${codeVal}</h2>
-  📍 ${d.location}<br>
-  👤 ${d.receiver}<br>
-  📦 ${d.weight}<br>
-  📅 ${d.deliveryDate}<br>
-  🚚 ${d.status}
+  ${d.location}<br>
+  ${d.receiver}<br>
+  ${d.weight}<br>
+  ${d.deliveryDate}<br>
+  ${d.status}
   </div>`;
 };
 
