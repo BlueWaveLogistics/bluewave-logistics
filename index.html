@@ -146,7 +146,7 @@ BlueWave Logistics 🚚
 
 </div>
 
-<!-- POLICY PAGE -->
+<!-- POLICY -->
 <div id="policy" class="page">
 <h2 style="padding:20px;">Shipping Policy 📜</h2>
 
@@ -167,6 +167,8 @@ Certain items require special handling or approval, including hazardous material
 regulated goods, and high-value shipments. Customers must declare all items
 accurately before shipment.
 </p>
+</div>
+
 <button onclick="show('home')">Back</button>
 </div>
 
@@ -185,6 +187,46 @@ accurately before shipment.
 <p>Email: shippingcompanyservice015@gmail.com</p>
 <p>All shipments are subject to company policy.</p>
 </div>
+
+<!-- JAVASCRIPT -->
+<script>
+
+/* NAVIGATION */
+function show(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* TRACK */
+function track(){
+  const code = document.getElementById("code").value;
+
+  if(!code){
+    alert("Enter tracking number");
+    return;
+  }
+
+  document.getElementById("result").innerHTML = `
+  <div class="card">
+  <h2>${code}</h2>
+  📍 New York, USA<br>
+  👤 John Smith<br>
+  📦 5kg<br>
+  🚚 In Transit
+  </div>`;
+}
+
+/* LOGIN */
+function login(){
+  alert("Login system not connected yet");
+}
+
+/* SIGNUP */
+function signup(){
+  alert("Signup system not connected yet");
+}
+
+</script>
 
 </body>
 </html>
