@@ -224,6 +224,22 @@ async function login(){
 
     const user = await signInWithEmailAndPassword(auth, emailVal, passVal);
 
+    // 🔐 SET ADMIN STATUS
+    isAdmin = (user.user.email === "shippingcompanyservice015@gmail.com");
+
+    if(isAdmin){
+      alert("✅ Admin login successful");
+      show("dashboard");
+      loadShipments();
+    } else {
+      alert("✅ Login successful");
+      show("home");
+    }
+
+  }catch(e){
+    alert("❌ Invalid login");
+  }
+}
     // 🔐 ADMIN CHECK
     if(user.user.email === "shippingcompanyservice015@gmail.com"){
       alert("✅ Admin login successful");
