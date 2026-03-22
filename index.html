@@ -189,16 +189,41 @@ accurately before shipment.
 </div>
 
 <!-- JAVASCRIPT -->
-<script>
+<script type="module">
 
-/* NAVIGATION */
-function show(id){
+// 🔥 FIREBASE IMPORTS (REQUIRED)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+// 🔥 YOUR FIREBASE CONFIG (KEEP YOURS)
+const firebaseConfig = {
+  apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
+  authDomain: "bluewave-website.firebaseapp.com",
+  projectId: "bluewave-website"
+};
+
+// 🔥 INIT FIREBASE
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// 🔐 GLOBAL ADMIN FLAG
+let isAdmin = false;
+
+
+// 🔐 SECURE PAGE SWITCHER
+window.show = (id)=>{
+  if((id === "dashboard" || id === "admin") && !isAdmin){
+    alert("Admin only 🔐");
+    return;
+  }
+
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-}
+};
 
-/* TRACK */
-function track(){
+
+// 📦 TRACK (demo)
+window.track = ()=>{
   const code = document.getElementById("code").value;
 
   if(!code){
@@ -214,50 +239,36 @@ function track(){
   📦 5kg<br>
   🚚 In Transit
   </div>`;
-}
+};
 
-/* LOGIN */
-async function login(){
+
+// 🔐 LOGIN (FIXED)
+window.login = async ()=>{
   try{
     const emailVal = document.getElementById("email").value;
     const passVal = document.getElementById("password").value;
 
     const user = await signInWithEmailAndPassword(auth, emailVal, passVal);
 
-    // 🔐 SET ADMIN STATUS
+    // 🔐 CHECK ADMIN
     isAdmin = (user.user.email === "shippingcompanyservice015@gmail.com");
 
     if(isAdmin){
       alert("✅ Admin login successful");
-      show("dashboard");
-      loadShipments();
+      show("dashboard"); // only works if page exists
     } else {
       alert("✅ Login successful");
       show("home");
     }
 
   }catch(e){
-    alert("❌ Invalid login");
+    alert("❌ " + e.message);
   }
-}
-    // 🔐 ADMIN CHECK
-    if(user.user.email === "shippingcompanyservice015@gmail.com"){
-      alert("✅ Admin login successful");
-      show("dashboard");
-      loadShipments();
-    } else {
-      alert("✅ Login successful");
+};
 
-      // 👉 NORMAL USERS GO HOME (NOT dashboard)
-      show("home");
-    }
 
-  }catch(e){
-    alert("❌ Invalid login");
-  }
-}
-/* SIGNUP */
-async function signup(){
+// 🧾 SIGNUP (FIXED)
+window.signup = async ()=>{
   try{
     const emailVal = document.getElementById("email").value;
     const passVal = document.getElementById("password").value;
@@ -269,7 +280,7 @@ async function signup(){
   }catch(e){
     alert(e.message);
   }
-}
+};
 
 </script>
 
