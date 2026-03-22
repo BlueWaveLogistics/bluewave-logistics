@@ -12,29 +12,43 @@ body{
   color:white;
 }
 
+/* HEADER */
 header{
   background:#ffcc00;
   padding:15px;
   display:flex;
   justify-content:space-between;
+  align-items:center;
   color:black;
   font-weight:bold;
 }
 
+header div button{
+  margin-left:10px;
+}
+
+/* PAGES */
 .page{display:none;}
 .active{display:block;}
 
+/* HERO */
 .hero{
-  background:url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+  background:linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+  url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
   background-size:cover;
   padding:120px 20px;
   text-align:center;
 }
 
+.hero h1{
+  font-size:32px;
+}
+
+/* TRACK */
 .track-box{
   display:flex;
   max-width:400px;
-  margin:auto;
+  margin:20px auto;
   border-radius:10px;
   overflow:hidden;
 }
@@ -52,6 +66,7 @@ header{
   font-weight:bold;
 }
 
+/* FEATURES */
 .features{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -63,8 +78,19 @@ header{
   background:#1a1a1a;
   padding:20px;
   border-radius:15px;
+  text-align:center;
 }
 
+/* FOOTER */
+.footer{
+  background:#111;
+  padding:20px;
+  text-align:center;
+  margin-top:30px;
+  font-size:14px;
+}
+
+/* FORM */
 input, select{
   width:90%;
   padding:12px;
@@ -90,10 +116,16 @@ button{
 
 <header>
 BlueWave Logistics 🚚
+<div>
+<button onclick="show('home')">Home</button>
+<button onclick="show('policy')">Policy</button>
 <button onclick="show('login')">Login</button>
+</div>
 </header>
 
+<!-- HOME -->
 <div id="home" class="page active">
+
 <div class="hero">
 <h1>Live Shipment Tracking</h1>
 
@@ -111,8 +143,34 @@ BlueWave Logistics 🚚
 </div>
 
 <div id="result"></div>
+
 </div>
 
+<!-- POLICY PAGE -->
+<div id="policy" class="page">
+<h2 style="padding:20px;">Shipping Policy 📜</h2>
+
+<div class="card" style="margin:20px;">
+<h3>📦 General Shipping</h3>
+<p>We provide secure and reliable delivery services worldwide.</p>
+</div>
+
+<div class="card" style="margin:20px;">
+<h3>📄 Allowed Items</h3>
+<p>Documents, parcels, electronics, and general goods.</p>
+</div>
+
+<div class="card" style="margin:20px;">
+<h3>⚠️ Restricted Items</h3>
+<p>
+Certain items require special handling or approval, including hazardous materials,
+regulated goods, and high-value shipments. Customers must declare all items
+accurately before shipment.
+</p>
+<button onclick="show('home')">Back</button>
+</div>
+
+<!-- LOGIN -->
 <div id="login" class="page">
 <h2 style="padding:20px;">Login / Signup</h2>
 <input id="email" placeholder="Email">
@@ -121,184 +179,12 @@ BlueWave Logistics 🚚
 <button onclick="signup()">Signup</button>
 </div>
 
-<div id="dashboard" class="page">
-<h2 style="padding:20px;">Admin Dashboard 🔐</h2>
-<button onclick="show('admin')">Add Shipment</button>
-<button onclick="logout()">Logout</button>
-<div id="shipments"></div>
+<!-- FOOTER -->
+<div class="footer">
+<p>© 2026 BlueWave Logistics</p>
+<p>Email: shippingcompanyservice015@gmail.com</p>
+<p>All shipments are subject to company policy.</p>
 </div>
-
-<div id="admin" class="page">
-<h2 style="padding:20px;">Add Shipment</h2>
-
-<input id="location" placeholder="Location">
-<input id="receiver" placeholder="Receiver">
-<input id="weight" placeholder="Weight">
-<input id="date" type="date" readonly>
-
-<select id="status" onchange="autoDate()">
-<option value="">Select Status</option>
-<option>Order Received</option>
-<option>Picked Up</option>
-<option>In Transit</option>
-<option>Arrived at Facility</option>
-<option>Out for Delivery</option>
-<option>Delivered</option>
-</select>
-
-<button onclick="addShipment()">Add Shipment</button>
-<button onclick="show('dashboard')">Back</button>
-</div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-const ADMIN_EMAIL = "shippingcompanyservice015@gmail.com";
-let isAdmin = false;
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
-  authDomain: "bluewave-website.firebaseapp.com",
-  projectId: "bluewave-website",
-  storageBucket: "bluewave-website.firebasestorage.app",
-  messagingSenderId: "116060669757",
-  appId: "1:116060669757:web:26d6ef7746c7feceeaa754",
-  measurementId: "G-BT4DYMNWBL"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-function getToday(){
-  return new Date().toISOString().split("T")[0];
-}
-
-function addDays(d){
-  let dateObj = new Date();
-  dateObj.setDate(dateObj.getDate()+d);
-  return dateObj.toISOString().split("T")[0];
-}
-
-window.show = (id)=>{
-  if((id==="dashboard" || id==="admin") && !isAdmin){
-    alert("Admin only 🔐");
-    return;
-  }
-
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-
-  if(id==="admin"){
-    document.getElementById("date").value = getToday();
-  }
-};
-
-window.autoDate = ()=>{
-  const status = document.getElementById("status").value;
-  const dateInput = document.getElementById("date");
-
-  if(status==="In Transit") dateInput.value = addDays(3);
-  else if(status==="Arrived at Facility") dateInput.value = addDays(2);
-  else dateInput.value = getToday();
-};
-
-window.signup = async ()=>{
-  await createUserWithEmailAndPassword(auth,email.value,password.value);
-  alert("Account created");
-};
-
-window.login = async ()=>{
-  const user = await signInWithEmailAndPassword(auth,email.value,password.value);
-  if(user.user.email===ADMIN_EMAIL){
-    isAdmin=true;
-    show("dashboard");
-    loadShipments();
-  } else {
-    alert("Access denied");
-  }
-};
-
-window.logout = ()=>{
-  isAdmin=false;
-  signOut(auth);
-  show("home");
-};
-
-window.addShipment = async ()=>{
-  const locationVal = document.getElementById("location").value.trim();
-  const receiverVal = document.getElementById("receiver").value.trim();
-  const weightVal = document.getElementById("weight").value.trim();
-  const statusVal = document.getElementById("status").value;
-  const dateVal = document.getElementById("date").value || getToday();
-
-  if(!locationVal || !receiverVal || !weightVal || !statusVal){
-    alert("Fill all fields");
-    return;
-  }
-
-  const code = "BW"+Math.floor(1000+Math.random()*9000);
-
-  await setDoc(doc(db,"shipments",code),{
-    location:locationVal,
-    receiver:receiverVal,
-    weight:weightVal,
-    deliveryDate:dateVal,
-    status:statusVal,
-    paid:false
-  });
-
-  alert("Created: "+code);
-
-  show("dashboard");
-  loadShipments();
-};
-
-async function loadShipments(){
-  const container = document.getElementById("shipments");
-  container.innerHTML="";
-
-  const snap = await getDocs(collection(db,"shipments"));
-
-  snap.forEach(docu=>{
-    const d = docu.data();
-    container.innerHTML+=`
-    <div class="card">
-    <b>${docu.id}</b><br>
-    ${d.location}<br>
-    ${d.status}<br>
-    ${d.paid?"✅ Paid":"❌ Not Paid"}
-    </div>`;
-  });
-}
-
-window.track = async ()=>{
-  const codeVal = document.getElementById("code").value.trim();
-
-  const snap = await getDoc(doc(db,"shipments",codeVal));
-
-  if(!snap.exists()){
-    document.getElementById("result").innerHTML="Not found";
-    return;
-  }
-
-  const d = snap.data();
-
-  document.getElementById("result").innerHTML=`
-  <div class="card">
-  <h2>${codeVal}</h2>
-  ${d.location}<br>
-  ${d.receiver}<br>
-  ${d.weight}<br>
-  ${d.deliveryDate}<br>
-  ${d.status}
-  </div>`;
-};
-
-</script>
 
 </body>
 </html>
