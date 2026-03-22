@@ -232,10 +232,15 @@ window.login = async ()=>{
 window.addShipment = async ()=>{
   try{
 
-    const locationVal = location.value.trim();
-    const receiverVal = receiver.value.trim();
-    const weightVal = weight.value.trim();
-    const statusVal = status.value;
+    const locationInput = document.getElementById("location");
+    const receiverInput = document.getElementById("receiver");
+    const weightInput = document.getElementById("weight");
+    const statusInput = document.getElementById("status");
+
+    const locationVal = locationInput.value.trim();
+    const receiverVal = receiverInput.value.trim();
+    const weightVal = weightInput.value.trim();
+    const statusVal = statusInput.value;
 
     if(!locationVal || !receiverVal || !weightVal){
       alert("Fill all fields");
@@ -254,9 +259,9 @@ window.addShipment = async ()=>{
     alert("✅ Shipment Created: " + code);
 
     // clear inputs
-    location.value = "";
-    receiver.value = "";
-    weight.value = "";
+    locationInput.value = "";
+    receiverInput.value = "";
+    weightInput.value = "";
 
     show("dashboard");
     loadShipments();
