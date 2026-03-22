@@ -244,27 +244,45 @@ async function addShipment(){
 }
 
 // TRACK
+<script>
 async function track(){
+
   const codeVal = code.value.trim();
 
-  const doc = await db.collection("shipments").doc(codeVal).get();
+  if(!codeVal){
+    alert("Enter tracking number");
+    return;
+  }
 
-  if(!doc.exists){
+  const snap = await db.collection("shipments").doc(codeVal).get();
+
+  if(!snap.exists){
     result.innerHTML = "❌ Not found";
     return;
   }
 
-  const d = doc.data();
+  const d = snap.data();
 
   result.innerHTML = `
   <div class="card">
   <h2>${codeVal}</h2>
+
   <p>${d.location}</p>
   <p>${d.receiver}</p>
   <p>${d.weight}</p>
-  <p>${d.status}</p>
+
+  <div class="timeline">
+    <div class="step ${d.status==="Order Received"?"active":""}">Order Received</div>
+    <div class="step ${["Picked Up","In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">Picked Up</div>
+    <div class="step ${["In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">In Transit</div>
+    <div class="step ${["Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">Arrived</div>
+    <div class="step ${["Out for Delivery","Delivered"].includes(d.status)?"active":""}">Out for Delivery</div>
+    <div class="step ${d.status==="Delivered"?"active":""}">Delivered</div>
+  </div>
+
   </div>`;
 }
+</script>
 
 // LOAD
 async function loadShipments(){
