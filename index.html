@@ -72,6 +72,38 @@ header div button{
   text-align:center;
 }
 
+.timeline{
+  border-left:3px solid #444;
+  margin-left:10px;
+  padding-left:20px;
+}
+
+.step{
+  margin:15px 0;
+  position:relative;
+  color:#777;
+}
+
+.step::before{
+  content:"";
+  position:absolute;
+  left:-27px;
+  top:5px;
+  width:15px;
+  height:15px;
+  border-radius:50%;
+  background:#555;
+}
+
+.step.active{
+  color:#00ff88;
+  font-weight:bold;
+}
+
+.step.active::before{
+  background:#00ff88;
+}
+
 input, select{
   width:90%;
   padding:12px;
@@ -99,7 +131,6 @@ button{
 BlueWave Logistics 🚚
 <div>
 <button onclick="show('home')">Home</button>
-<button onclick="show('policy')">Policy</button>
 <button onclick="show('login')">Login</button>
 </div>
 </header>
@@ -115,23 +146,7 @@ BlueWave Logistics 🚚
 </div>
 </div>
 
-<div class="features">
-<div class="card">🚚 Fast Delivery</div>
-<div class="card">✈️ International Shipping</div>
-<div class="card">📦 Secure Packaging</div>
-<div class="card">📍 Real-Time Tracking</div>
-</div>
-
 <div id="result"></div>
-</div>
-
-<!-- POLICY -->
-<div id="policy" class="page">
-<h2 style="padding:20px;">Shipping Policy 📜</h2>
-<div class="card" style="margin:20px;">
-<p>We provide secure and reliable delivery services worldwide.</p>
-</div>
-<button onclick="show('home')">Back</button>
 </div>
 
 <!-- LOGIN -->
@@ -161,7 +176,9 @@ BlueWave Logistics 🚚
 
 <select id="status">
 <option>Order Received</option>
+<option>Picked Up</option>
 <option>In Transit</option>
+<option>Arrived at Facility</option>
 <option>Out for Delivery</option>
 <option>Delivered</option>
 </select>
@@ -170,12 +187,11 @@ BlueWave Logistics 🚚
 <button onclick="show('dashboard')">Back</button>
 </div>
 
-<!-- FIREBASE -->
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
@@ -195,91 +211,53 @@ window.show = (id)=>{
     alert("Admin only 🔐");
     return;
   }
-
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 };
 
-// SIGNUP
+// AUTH
 window.signup = async ()=>{
-  try{
-    await createUserWithEmailAndPassword(auth,email.value,password.value);
-    alert("Account created");
-  }catch(e){alert(e.message);}
+  await createUserWithEmailAndPassword(auth,email.value,password.value);
+  alert("Account created");
 };
 
-// LOGIN
 window.login = async ()=>{
-  try{
-    const emailVal = document.getElementById("email").value;
-    const passVal = document.getElementById("password").value;
+  const user = await signInWithEmailAndPassword(auth,email.value,password.value);
+  isAdmin = (user.user.email === "shippingcompanyservice015@gmail.com");
 
-    const user = await signInWithEmailAndPassword(auth, emailVal, passVal);
-
-    isAdmin = (user.user.email === "shippingcompanyservice015@gmail.com");
-
-    if(isAdmin){
-      alert("👑 Admin login");
-      show("dashboard");
-      loadShipments();
-    } else {
-      alert("✅ Login successful");
-      show("home");
-    }
-
-  }catch(e){
-    alert("❌ " + e.message);
+  if(isAdmin){
+    show("dashboard");
+    loadShipments();
+  } else {
+    show("home");
   }
 };
 
 window.logout = ()=>{
   isAdmin = false;
+  signOut(auth);
   show("home");
 };
+
 // ADD SHIPMENT
 window.addShipment = async ()=>{
-  try{
+  const locationVal = document.getElementById("location").value;
+  const receiverVal = document.getElementById("receiver").value;
+  const weightVal = document.getElementById("weight").value;
+  const statusVal = document.getElementById("status").value;
 
-    const locationInput = document.getElementById("location");
-    const receiverInput = document.getElementById("receiver");
-    const weightInput = document.getElementById("weight");
-    const statusInput = document.getElementById("status");
+  const code = "BW"+Math.floor(1000+Math.random()*9000);
 
-    const locationVal = locationInput.value.trim();
-    const receiverVal = receiverInput.value.trim();
-    const weightVal = weightInput.value.trim();
-    const statusVal = statusInput.value;
+  await setDoc(doc(db,"shipments",code),{
+    location:locationVal,
+    receiver:receiverVal,
+    weight:weightVal,
+    status:statusVal,
+    paid:false
+  });
 
-    if(!locationVal || !receiverVal || !weightVal){
-      alert("Fill all fields");
-      return;
-    }
-
-    const code = "BW"+Math.floor(1000+Math.random()*9000);
-
-    await setDoc(doc(db,"shipments",code),{
-  location: locationVal,
-  receiver: receiverVal,
-  weight: weightVal,
-  status: statusVal,
-  paid: false
-});
-
-    alert("✅ Shipment Created: " + code);
-
-    // clear inputs
-    locationInput.value = "";
-receiverInput.value = "";
-weightInput.value = "";
-statusInput.value = "";
-
-    show("dashboard");
-    loadShipments();
-
-  }catch(e){
-    alert("❌ ERROR: " + e.message);
-    console.error(e);
-  }
+  alert("Created: "+code);
+  loadShipments();
 };
 
 // LOAD DASHBOARD
@@ -293,20 +271,19 @@ async function loadShipments(){
     <div class="card">
     <b>${docu.id}</b><br>
     ${d.location}<br>
-    ${d.status}
+    ${d.status}<br>
+    ${d.paid ? "✅ Paid" : "❌ Not Paid"}
     </div>`;
   });
 }
 
 // TRACK
 window.track = async ()=>{
-
   const codeVal = document.getElementById("code").value.trim();
-
   const snap = await getDoc(doc(db,"shipments",codeVal));
 
   if(!snap.exists()){
-    document.getElementById("result").innerHTML = "Not found";
+    document.getElementById("result").innerHTML="Not found";
     return;
   }
 
@@ -314,53 +291,73 @@ window.track = async ()=>{
 
   document.getElementById("result").innerHTML = `
 <div class="card">
+
 <h2>📦 ${codeVal}</h2>
 
-<p><b>📍 Location:</b> ${d.location}</p>
-<p><b>👤 Receiver:</b> ${d.receiver}</p>
-<p><b>📦 Weight:</b> ${d.weight}</p>
+<p><b>📍 ${d.location}</b></p>
+<p>👤 ${d.receiver}</p>
+<p>📦 ${d.weight}</p>
 
 <hr>
 
 <h3>🚚 Shipment Progress</h3>
 
-<div style="text-align:left">
+<div class="timeline">
 
-<p>${d.status === "Order Received" ? "🟡" : "🟢"} Order Received</p>
-<p>${["Picked Up","In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status) ? "🟢" : "⚪"} Picked Up</p>
-<p>${["In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status) ? "🟢" : "⚪"} In Transit</p>
-<p>${["Arrived at Facility","Out for Delivery","Delivered"].includes(d.status) ? "🟢" : "⚪"} Arrived at Facility</p>
-<p>${["Out for Delivery","Delivered"].includes(d.status) ? "🟢" : "⚪"} Out for Delivery</p>
-<p>${d.status === "Delivered" ? "🟢" : "⚪"} Delivered</p>
+<div class="step ${d.status==="Order Received"?"active":""}">
+<span>Order Received</span>
+</div>
+
+<div class="step ${["Picked Up","In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">
+<span>Picked Up</span>
+</div>
+
+<div class="step ${["In Transit","Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">
+<span>In Transit</span>
+</div>
+
+<div class="step ${["Arrived at Facility","Out for Delivery","Delivered"].includes(d.status)?"active":""}">
+<span>Arrived at Facility</span>
+</div>
+
+<div class="step ${["Out for Delivery","Delivered"].includes(d.status)?"active":""}">
+<span>Out for Delivery</span>
+</div>
+
+<div class="step ${d.status==="Delivered"?"active":""}">
+<span>Delivered</span>
+</div>
 
 </div>
 
 <hr>
 
-<p>
-<b>💳 Payment:</b> 
+<p><b>💳 Payment:</b></p>
+
 ${d.paid ? "✅ Paid" : `
 ❌ Not Paid
 <br><br>
-<button onclick="markPaid('${codeVal}')">Mark as Paid</button>
+<a href="https://www.paypal.me/shippingcompany015" target="_blank">
+<button>Pay with PayPal</button>
+</a>
+<br><br>
+<button onclick="markPaid('${codeVal}')">I Have Paid</button>
 `}
-</p>
 
-</div>`;
+</div>
+`;
 };
+
+// MARK PAID
 window.markPaid = async (code)=>{
-  try{
-    await updateDoc(doc(db,"shipments",code),{
-      paid: true
-    });
+  await updateDoc(doc(db,"shipments",code),{
+    paid:true
+  });
 
-    alert("Payment marked as paid ✅");
-    track();
-
-  }catch(e){
-    alert("❌ " + e.message);
-  }
+  alert("Payment confirmed");
+  track();
 };
+
 </script>
 
 </body>
