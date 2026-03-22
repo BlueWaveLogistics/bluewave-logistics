@@ -12,7 +12,6 @@ body{
   color:white;
 }
 
-/* HEADER */
 header{
   background:#ffcc00;
   padding:15px;
@@ -22,11 +21,9 @@ header{
   font-weight:bold;
 }
 
-/* PAGES */
 .page{display:none;}
 .active{display:block;}
 
-/* HERO */
 .hero{
   background:url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
   background-size:cover;
@@ -34,9 +31,6 @@ header{
   text-align:center;
 }
 
-.hero h1{font-size:30px;}
-
-/* TRACK */
 .track-box{
   display:flex;
   max-width:400px;
@@ -58,7 +52,6 @@ header{
   font-weight:bold;
 }
 
-/* FEATURES */
 .features{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -72,8 +65,7 @@ header{
   border-radius:15px;
 }
 
-/* FORM */
-input{
+input, select{
   width:90%;
   padding:12px;
   margin:5px;
@@ -103,7 +95,6 @@ BlueWave Logistics 🚚
 
 <!-- HOME -->
 <div id="home" class="page active">
-
 <div class="hero">
 <h1>Live Shipment Tracking</h1>
 
@@ -121,7 +112,6 @@ BlueWave Logistics 🚚
 </div>
 
 <div id="result"></div>
-
 </div>
 
 <!-- LOGIN -->
@@ -144,11 +134,21 @@ BlueWave Logistics 🚚
 <!-- ADMIN -->
 <div id="admin" class="page">
 <h2 style="padding:20px;">Add Shipment</h2>
+
 <input id="location" placeholder="Location">
 <input id="receiver" placeholder="Receiver">
 <input id="weight" placeholder="Weight">
 <input id="date" placeholder="Delivery Date">
-<input id="status" placeholder="Status">
+
+<select id="status">
+<option>Order Received</option>
+<option>Picked Up</option>
+<option>In Transit</option>
+<option>Arrived at Facility</option>
+<option>Out for Delivery</option>
+<option>Delivered</option>
+</select>
+
 <button onclick="addShipment()">Add Shipment</button>
 <button onclick="show('dashboard')">Back</button>
 </div>
@@ -162,7 +162,6 @@ import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc } fro
 const ADMIN_EMAIL = "shippingcompanyservice015@gmail.com";
 let isAdmin = false;
 
-// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyAqCDIlhWHEWsOkti8yEgN1BVKA5f1XNSE",
   authDomain: "bluewave-website.firebaseapp.com",
@@ -173,7 +172,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore(app);
 
-// NAVIGATION
 window.show = (id)=>{
   if((id==="dashboard" || id==="admin") && !isAdmin){
     alert("Admin only 🔐");
@@ -183,7 +181,6 @@ window.show = (id)=>{
   document.getElementById(id).classList.add("active");
 };
 
-// AUTH
 window.signup = async ()=>{
   try{
     await createUserWithEmailAndPassword(auth,email.value,password.value);
@@ -213,23 +210,40 @@ window.logout = ()=>{
   show("home");
 };
 
-// ADD SHIPMENT
 window.addShipment = async ()=>{
-  const code = "BW" + Math.floor(Math.random()*10000);
+  if(!location.value || !receiver.value || !weight.value || !date.value || !status.value){
+    alert("Please fill all fields");
+    return;
+  }
 
-  await setDoc(doc(db,"shipments",code),{
-    location: location.value,
-    receiver: receiver.value,
-    weight: weight.value,
-    deliveryDate: date.value,
-    status: status.value,
-    paid:false
-  });
+  const code = "BW" + Math.floor(1000 + Math.random()*9000);
 
-  alert("Created: "+code);
+  try{
+    await setDoc(doc(db,"shipments",code),{
+      location: location.value,
+      receiver: receiver.value,
+      weight: weight.value,
+      deliveryDate: date.value,
+      status: status.value,
+      paid:false
+    });
+
+    alert("✅ Shipment Created: " + code);
+
+    location.value = "";
+    receiver.value = "";
+    weight.value = "";
+    date.value = "";
+    status.value = "Order Received";
+
+    show("dashboard");
+    loadShipments();
+
+  }catch(e){
+    alert("Error: " + e.message);
+  }
 };
 
-// LOAD DASHBOARD
 async function loadShipments(){
   shipments.innerHTML="";
   const snap = await getDocs(collection(db,"shipments"));
@@ -246,14 +260,19 @@ async function loadShipments(){
   });
 }
 
-// TRACK
 window.track = async ()=>{
   const codeVal = code.value.trim();
+
+  if(!codeVal){
+    alert("Enter tracking number");
+    return;
+  }
+
   const ref = doc(db,"shipments",codeVal);
   const snap = await getDoc(ref);
 
   if(!snap.exists()){
-    result.innerHTML="<p style='color:red'>Not found</p>";
+    result.innerHTML="<p style='color:red'>❌ Tracking not found</p>";
     return;
   }
 
@@ -275,13 +294,12 @@ window.track = async ()=>{
   📍 ${d.location}<br>
   👤 ${d.receiver}<br>
   📦 ${d.weight}<br>
-  📅 ${d.deliveryDate}<br>
+  📅 ${d.deliveryDate || "N/A"}<br>
   🚚 ${d.status}<br><br>
   💳 ${paymentUI}
   </div>`;
 };
 
-// PAYMENT
 window.payEmail = (code)=>{
   window.location.href =
   "mailto:shippingcompanyservice015@gmail.com?subject=Payment "+code;
@@ -290,6 +308,7 @@ window.payEmail = (code)=>{
 window.markPaid = async (code)=>{
   await updateDoc(doc(db,"shipments",code),{paid:true});
   track();
+  loadShipments();
 };
 
 </script>
