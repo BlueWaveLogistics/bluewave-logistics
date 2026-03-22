@@ -205,11 +205,8 @@ window.show = (id)=>{
 
 // AUTO DATE
 window.autoDate = ()=>{
-  let s = status.value;
-
-  if(s==="In Transit") date.value = addDays(3);
-  else if(s==="Arrived at Facility") date.value = addDays(2);
-  else date.value = getToday();
+  let s = document.getElementById("status").value;
+document.getElementById("date").value = getToday();
 };
 
 // AUTH
@@ -245,35 +242,41 @@ window.logout = ()=>{
 // 🔥 FIXED ADD SHIPMENT
 window.addShipment = async ()=>{
 
-  let locationVal = location.value.trim();
-  let receiverVal = receiver.value.trim();
-  let weightVal = weight.value.trim();
-  let statusVal = status.value;
-  let dateVal = date.value || getToday(); // ✅ FIX
+  const locationInput = document.getElementById("location");
+  const receiverInput = document.getElementById("receiver");
+  const weightInput = document.getElementById("weight");
+  const dateInput = document.getElementById("date");
+  const statusInput = document.getElementById("status");
+
+  let locationVal = locationInput.value.trim();
+  let receiverVal = receiverInput.value.trim();
+  let weightVal = weightInput.value.trim();
+  let statusVal = statusInput.value;
+  let dateVal = dateInput.value || getToday();
 
   if(!locationVal || !receiverVal || !weightVal || !statusVal){
     alert("Please fill all fields");
     return;
   }
 
-  let code = "BW"+Math.floor(1000+Math.random()*9000);
+  let code = "BW" + Math.floor(1000 + Math.random()*9000);
 
   await setDoc(doc(db,"shipments",code),{
-    location:locationVal,
-    receiver:receiverVal,
-    weight:weightVal,
-    deliveryDate:dateVal,
-    status:statusVal,
+    location: locationVal,
+    receiver: receiverVal,
+    weight: weightVal,
+    deliveryDate: dateVal,
+    status: statusVal,
     paid:false
   });
 
-  alert("✅ Shipment Created: "+code);
+  alert("✅ Shipment Created: " + code);
 
-  location.value="";
-  receiver.value="";
-  weight.value="";
-  date.value="";
-  status.value="";
+  locationInput.value = "";
+  receiverInput.value = "";
+  weightInput.value = "";
+  dateInput.value = "";
+  statusInput.value = "";
 
   show("dashboard");
   loadShipments();
@@ -281,7 +284,7 @@ window.addShipment = async ()=>{
 
 // DASHBOARD
 async function loadShipments(){
-  shipments.innerHTML="";
+  document.getElementById("shipments").innerHTML = "";
   let snap = await getDocs(collection(db,"shipments"));
 
   snap.forEach(docu=>{
