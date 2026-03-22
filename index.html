@@ -224,15 +224,20 @@ async function login(){
 
     const user = await signInWithEmailAndPassword(auth, emailVal, passVal);
 
+    // 🔐 ADMIN CHECK
     if(user.user.email === "shippingcompanyservice015@gmail.com"){
-      alert("Login successful ✅");
+      alert("✅ Admin login successful");
       show("dashboard");
+      loadShipments();
     } else {
-      alert("Access denied ❌");
+      alert("✅ Login successful");
+
+      // 👉 NORMAL USERS GO HOME (NOT dashboard)
+      show("home");
     }
 
   }catch(e){
-    alert("Login failed ❌");
+    alert("❌ Invalid login");
   }
 }
 /* SIGNUP */
