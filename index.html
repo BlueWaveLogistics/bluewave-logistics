@@ -147,7 +147,7 @@ BlueWave Logistics 🚚
 <div id="dashboard" class="page">
 <h2 style="padding:20px;">Admin Dashboard 🔐</h2>
 <button onclick="show('admin')">Add Shipment</button>
-<button onclick="show('home')">Logout</button>
+<button onclick="logout()">Logout</button>
 <div id="shipments"></div>
 </div>
 
@@ -211,24 +211,31 @@ window.signup = async ()=>{
 // LOGIN
 window.login = async ()=>{
   try{
-    const user = await signInWithEmailAndPassword(auth,email.value,password.value);
+    const emailVal = document.getElementById("email").value;
+    const passVal = document.getElementById("password").value;
+
+    const user = await signInWithEmailAndPassword(auth, emailVal, passVal);
 
     isAdmin = (user.user.email === "shippingcompanyservice015@gmail.com");
 
     if(isAdmin){
-      alert("Admin login");
+      alert("👑 Admin login");
       show("dashboard");
       loadShipments();
     } else {
-      alert("Login successful");
+      alert("✅ Login successful");
       show("home");
     }
 
   }catch(e){
-    alert("Invalid login");
+    alert("❌ " + e.message);
   }
 };
 
+window.logout = ()=>{
+  isAdmin = false;
+  show("home");
+};
 // ADD SHIPMENT
 window.addShipment = async ()=>{
   try{
